@@ -1,0 +1,6 @@
+{
+  "tsserver.enable": false,
+  "eslint.filetypes": ["javascript", "typescript", "typescriptreact", "javascriptreact", "typescript.tsx"],
+  "eslint.autoFixOnSave": true,
+  "diagnostic.virtualText": true
+}

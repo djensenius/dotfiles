@@ -1,0 +1,18 @@
+[cmd_duration]
+min_time = 500
+format = "took [$duration]($style) "
+
+[directory]
+truncate_to_repo = false
+
+[aws]
+disabled = true
+
+[battery]
+charging_symbol = "🔌 "
+discharging_symbol = "🔋 "
+unknown_symbol = "⚠️  "
+
+[[battery.display]]
+threshold = 40
+style = "bold red"
