@@ -35,7 +35,8 @@ function! UpdateTheme()
   endif
 endfunction
 
-autocmd CursorHold * silent call UpdateTheme()
+" Disabling until I need mode switching again
+" autocmd CursorHold * silent call UpdateTheme()
 let g:lightline = {
       \ 'colorscheme': 'one',
       \ 'active': {
@@ -46,23 +47,15 @@ let g:lightline = {
       \   'filetype': 'MyFiletype',
       \   'fileformat': 'MyFileformat',
       \   'gitbranch': 'FugitiveHead',
-      \ },
-      \ 'tabline': {
-      \   'left': [ ['buffers'] ],
-      \   'right': [ ['close'] ]
-      \ },
-      \ 'component_expand': {
-      \   'buffers': 'lightline#bufferline#buffers'
-      \ },
-      \ 'component_type': {
-      \   'buffers': 'tabsel'
       \ }
   \ }
 
-let g:lightline#bufferline#enable_devicons = 1
-let g:lightline.component_raw = {'buffers': 1}
-let g:lightline#bufferline#clickable = 1
-let g:lightline#bufferline#unicode_symbols = 1
+let g:lightline.enable = {
+  \ 'statusline': 1,
+  \ 'tabline': 0
+\ }
+
+lua require'bufferline'.setup{options = {separator_style = "thin"}}
 
 function! MyFiletype()
   return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''

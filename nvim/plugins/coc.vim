@@ -9,7 +9,7 @@ nmap <silent> <leader>lf <Plug>(coc-references)
 nmap <leader>lr <Plug>(coc-rename)
 
 " Use K for show documentation in preview window
-nnoremap <silent> L :call <SID>show_documentation()<CR>
+nnoremap <leader>df :call <SID>show_documentation()<CR>
 
 function! s:show_documentation()
   if &filetype == 'vim'

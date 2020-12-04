@@ -88,3 +88,6 @@ nnoremap <leader>v<CR> 0vg_
 
 " SuperCollider
 map <leader>ss :SClangStart
+
+" Coc explorer
+map <F1> :CocCommand explorer<CR>

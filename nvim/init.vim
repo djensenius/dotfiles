@@ -18,10 +18,13 @@ source $HOME/.config/nvim/plugins/indentline.vim
 source $HOME/.config/nvim/plugins/javascript.vim
 source $HOME/.config/nvim/plugins/jsx.vim
 source $HOME/.config/nvim/plugins/neocomplcache.vim
-source $HOME/.config/nvim/plugins/nerdtree.vim
 source $HOME/.config/nvim/plugins/supertab.vim
 source $HOME/.config/nvim/plugins/tabular.vim
 source $HOME/.config/nvim/plugins/tagbar.vim
 source $HOME/.config/nvim/plugins/vim-signature.vim
 source $HOME/.config/nvim/plugins/vimspector.vim
 source $HOME/.config/nvim/plugins/vimux.vim
+source $HOME/.config/nvim/plugins/indent-guides.vim
+luafile $HOME/.config/nvim/plugins/plug-colorizer.lua
+luafile $HOME/.config/nvim/plugins/lspconfig.lua
+
