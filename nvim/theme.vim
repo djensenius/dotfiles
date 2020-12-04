@@ -6,10 +6,6 @@ set t_8f=[38;2;%lu;%lu;%lum
 colorscheme onedark
 set background=dark
 let g:one_allow_italics = 1
-let g:lightline = {
-  \ 'colorscheme': 'one',
-  \ }
-
 
 function! SourceFileExists(file)
   if filereadable(expand(a:file))
@@ -41,6 +37,7 @@ endfunction
 
 autocmd CursorHold * silent call UpdateTheme()
 let g:lightline = {
+      \ 'colorscheme': 'one',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
@@ -49,8 +46,23 @@ let g:lightline = {
       \   'filetype': 'MyFiletype',
       \   'fileformat': 'MyFileformat',
       \   'gitbranch': 'FugitiveHead',
+      \ },
+      \ 'tabline': {
+      \   'left': [ ['buffers'] ],
+      \   'right': [ ['close'] ]
+      \ },
+      \ 'component_expand': {
+      \   'buffers': 'lightline#bufferline#buffers'
+      \ },
+      \ 'component_type': {
+      \   'buffers': 'tabsel'
       \ }
-      \ }
+  \ }
+
+let g:lightline#bufferline#enable_devicons = 1
+let g:lightline.component_raw = {'buffers': 1}
+let g:lightline#bufferline#clickable = 1
+let g:lightline#bufferline#unicode_symbols = 1
 
 function! MyFiletype()
   return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''

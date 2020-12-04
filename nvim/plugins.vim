@@ -24,6 +24,7 @@ Plug 'vim-ruby/vim-ruby' 						                            " Vim/Ruby Configurat
 " Plug 'vim-airline/vim-airline'                                  " Lean & mean status/tabline for vim that's light as air
 " Plug 'vim-airline/vim-airline-themes'
 Plug 'itchyny/lightline.vim'
+Plug 'mengelbrecht/lightline-bufferline'
 Plug 'tmux-plugins/vim-tmux-focus-events'                       " Makes the autoread option work properly for terminal vim
 Plug 'kshenoy/vim-signature'                                    " Plugin to toggle, display and navigate marks
 Plug 'junegunn/fzf.vim'                                         " 🌸 A command-line fuzzy finder written in Go
