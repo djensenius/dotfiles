@@ -42,12 +42,13 @@ Plug 'rust-lang/rust.vim'                                       " Rust!
 Plug 'rhysd/git-messenger.vim'                                  " Git
 Plug 'rakr/vim-one'
 Plug 'joshdick/onedark.vim'
-Plug 'glepnir/indent-guided.nvim', { 'branch': 'main' }                               " Async indentation guides
+Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
 Plug 'akinsho/nvim-bufferline.lua'
 Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/completion-nvim'
+Plug 'mhinz/vim-startify'
 
 
 call plug#end()

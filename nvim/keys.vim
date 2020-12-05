@@ -78,8 +78,8 @@ nmap <Leader>P "+P
 
 
 " Quick window split
-" map <leader>sp :split<cr>
-" map <leader>vs :vsplit<cr>
+map <leader>sp :split<cr>
+map <leader>vs :vsplit<cr>
 map <leader>\| :vsplit<cr>
 map <leader>- :split<cr>
 

@@ -25,6 +25,7 @@ source $HOME/.config/nvim/plugins/vim-signature.vim
 source $HOME/.config/nvim/plugins/vimspector.vim
 source $HOME/.config/nvim/plugins/vimux.vim
 source $HOME/.config/nvim/plugins/indent-guides.vim
+source $HOME/.config/nvim/plugins/start-screen.vim
 luafile $HOME/.config/nvim/plugins/plug-colorizer.lua
 luafile $HOME/.config/nvim/plugins/lspconfig.lua
 
