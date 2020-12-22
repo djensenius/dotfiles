@@ -61,6 +61,7 @@ nmap <leader>nrn :set nornu<cr>
 nmap <leader>nh :nohls<cr>
 nmap <leader>so :source ~/.vimrc<cr>
 nmap <leader>se :vsp ~/.vimrc<cr>
+nmap <leader>sf :w<cr>:Format<cr>
 nmap <leader>w :wq<cr>
 nmap <leader>s :w<cr>
 nmap <leader>e :e!<cr>

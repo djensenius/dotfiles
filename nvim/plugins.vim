@@ -49,7 +49,11 @@ Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/completion-nvim'
 Plug 'mhinz/vim-startify'
+Plug 'mhartington/formatter.nvim'
 
 
 call plug#end()
+
+set completeopt=menuone,noinsert,noselect
+let g:completion_matching_strategy_list = ['exact', 'substring', 'fuzzy']
 

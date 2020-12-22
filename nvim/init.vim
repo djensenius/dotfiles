@@ -28,4 +28,5 @@ source $HOME/.config/nvim/plugins/indent-guides.vim
 source $HOME/.config/nvim/plugins/start-screen.vim
 luafile $HOME/.config/nvim/plugins/plug-colorizer.lua
 luafile $HOME/.config/nvim/plugins/lspconfig.lua
+luafile $HOME/.config/nvim/plugins/prettier.lua
 
