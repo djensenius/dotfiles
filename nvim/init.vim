@@ -11,7 +11,7 @@ source $HOME/.config/nvim/plugins/ale.vim
 source $HOME/.config/nvim/plugins/elm-vim.vim
 source $HOME/.config/nvim/plugins/expand-region.vim
 source $HOME/.config/nvim/plugins/fugitive.vim
-source $HOME/.config/nvim/plugins/fzf.vim
+" source $HOME/.config/nvim/plugins/fzf.vim
 source $HOME/.config/nvim/plugins/gitgutter.vim
 source $HOME/.config/nvim/plugins/gitmessenger.vim
 source $HOME/.config/nvim/plugins/indentline.vim
@@ -26,7 +26,7 @@ source $HOME/.config/nvim/plugins/vimspector.vim
 source $HOME/.config/nvim/plugins/vimux.vim
 source $HOME/.config/nvim/plugins/indent-guides.vim
 source $HOME/.config/nvim/plugins/start-screen.vim
+source $HOME/.config/nvim/plugins/telescope.vim
 luafile $HOME/.config/nvim/plugins/plug-colorizer.lua
 luafile $HOME/.config/nvim/plugins/lspconfig.lua
 luafile $HOME/.config/nvim/plugins/prettier.lua
-
