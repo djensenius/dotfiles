@@ -50,6 +50,7 @@ set undodir=~/.vim/.undo
 set undofile
 set undolevels=1000
 set undoreload=10000
+set updatetime=100
 
 " Encoding configuration
 " set encoding=utf-8
