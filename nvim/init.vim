@@ -7,7 +7,7 @@ source $HOME/.config/nvim/theme.vim
 source $HOME/.config/nvim/basic.vim
 source $HOME/.config/nvim/keys.vim
 source $HOME/.config/nvim/plugins/ag.vim
-source $HOME/.config/nvim/plugins/ale.vim
+" source $HOME/.config/nvim/plugins/ale.vim
 source $HOME/.config/nvim/plugins/elm-vim.vim
 source $HOME/.config/nvim/plugins/expand-region.vim
 source $HOME/.config/nvim/plugins/fugitive.vim
@@ -16,7 +16,7 @@ source $HOME/.config/nvim/plugins/gitgutter.vim
 source $HOME/.config/nvim/plugins/gitmessenger.vim
 source $HOME/.config/nvim/plugins/indentline.vim
 source $HOME/.config/nvim/plugins/javascript.vim
-source $HOME/.config/nvim/plugins/jsx.vim
+" source $HOME/.config/nvim/plugins/jsx.vim
 " source $HOME/.config/nvim/plugins/neocomplcache.vim
 source $HOME/.config/nvim/plugins/supertab.vim
 source $HOME/.config/nvim/plugins/tabular.vim
@@ -31,3 +31,4 @@ luafile $HOME/.config/nvim/plugins/plug-colorizer.lua
 luafile $HOME/.config/nvim/plugins/lspconfig.lua
 luafile $HOME/.config/nvim/plugins/prettier.lua
 luafile $HOME/.config/nvim/plugins/nvim-comple.lua
+luafile $HOME/.config/nvim/plugins/treesitter.lua

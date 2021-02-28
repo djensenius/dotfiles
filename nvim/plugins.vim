@@ -26,19 +26,19 @@ Plug 'junegunn/fzf.vim'                                         " 🌸 A command
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'janko-m/vim-test'                                         " Run your tests at the speed of thought
 Plug 'tpope/vim-dispatch'                                       " dispatch.vim: asynchronous build and test dispatcher
-Plug 'yuezk/vim-js'
-Plug 'maxmellon/vim-jsx-pretty'
+" Plug 'yuezk/vim-js'
+" Plug 'maxmellon/vim-jsx-pretty'
 Plug 'terryma/vim-multiple-cursors'                             " True Sublime Text style multiple selections for Vim
-Plug 'HerringtonDarkholme/yats.vim'                             " TypeScript synax file
+" Plug 'HerringtonDarkholme/yats.vim'                             " TypeScript synax file
 Plug 'Shougo/denite.nvim'                                       " Denite features
 Plug 'ryanoasis/vim-devicons'                                   " Icons for files
 " Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'peitalin/vim-jsx-typescript'
-Plug 'leafgarland/typescript-vim'
+" Plug 'peitalin/vim-jsx-typescript'
+" Plug 'leafgarland/typescript-vim'
 Plug 'puremourning/vimspector'
 Plug 'supercollider/scvim'                                      " Supercolldier
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-Plug 'rust-lang/rust.vim'                                       " Rust!
+" Plug 'rust-lang/rust.vim'                                       " Rust!
 Plug 'rhysd/git-messenger.vim'                                  " Git
 Plug 'rakr/vim-one'
 Plug 'joshdick/onedark.vim'
