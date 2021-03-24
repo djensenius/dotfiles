@@ -18,7 +18,7 @@ function! UpdateTheme()
   if SourceFileExists("~/.darkmode") == "true"
     colorscheme onedark
     set background=dark
-    execute 'runtime autoload/lightline/colorscheme/one.vim'
+    execute 'runtime autoload/lightline/colorscheme/nord.vim'
     let g:lightline.colorscheme = 'one'
     call lightline#init()
     call lightline#colorscheme()

@@ -19,7 +19,8 @@ Plug 'tpope/vim-ragtag'                                         " Ghetto HTML/XM
 Plug 'tpope/vim-repeat'							                            " repeat.vim: enable repeating supported plugin maps with '.'
 Plug 'tpope/vim-surround' 					                            " surround.vim: quoting/parenthesizing made simple
 Plug 'vim-ruby/vim-ruby' 						                            " Vim/Ruby Configuration Files
-Plug 'itchyny/lightline.vim'
+" Plug 'itchyny/lightline.vim'
+Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
 Plug 'tmux-plugins/vim-tmux-focus-events'                       " Makes the autoread option work properly for terminal vim
 Plug 'kshenoy/vim-signature'                                    " Plugin to toggle, display and navigate marks
 Plug 'junegunn/fzf.vim'                                         " 🌸 A command-line fuzzy finder written in Go
@@ -32,7 +33,6 @@ Plug 'terryma/vim-multiple-cursors'                             " True Sublime T
 " Plug 'HerringtonDarkholme/yats.vim'                             " TypeScript synax file
 Plug 'Shougo/denite.nvim'                                       " Denite features
 Plug 'ryanoasis/vim-devicons'                                   " Icons for files
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " Plug 'peitalin/vim-jsx-typescript'
 " Plug 'leafgarland/typescript-vim'
 Plug 'puremourning/vimspector'
@@ -42,8 +42,9 @@ Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rhysd/git-messenger.vim'                                  " Git
 Plug 'rakr/vim-one'
 Plug 'joshdick/onedark.vim'
-" Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
+Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
+Plug 'kyazdani42/nvim-tree.lua'
 Plug 'akinsho/nvim-bufferline.lua'
 Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
