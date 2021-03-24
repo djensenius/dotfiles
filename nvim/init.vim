@@ -32,3 +32,4 @@ luafile $HOME/.config/nvim/plugins/lspconfig.lua
 luafile $HOME/.config/nvim/plugins/prettier.lua
 luafile $HOME/.config/nvim/plugins/nvim-comple.lua
 luafile $HOME/.config/nvim/plugins/treesitter.lua
+luafile $HOME/.config/nvim/plugins/galaxyline.lua

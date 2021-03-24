@@ -19,8 +19,7 @@ local on_attach = function(client)
   vim.api.nvim_command([[autocmd CursorHold  * lua vim.lsp.diagnostic.show_line_diagnostics({ show_header = false })]])
 end
 
-
-require'lspconfig'.gopls.setup{}
+--require'lspconfig'.gopls.setup{}
 
 local lspconfig = require"lspconfig"
 
@@ -49,6 +48,7 @@ local eslint = {
   formatStdin = true
 }
 
+--[[
 lspconfig.tsserver.setup {
   on_attach = function(client)
     if client.config.flags then
@@ -58,6 +58,7 @@ lspconfig.tsserver.setup {
     --set_lsp_config(client)
   end
 }
+]]
 
 lspconfig.efm.setup {
   on_attach = function(client)
