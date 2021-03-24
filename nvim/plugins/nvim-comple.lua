@@ -1,4 +1,4 @@
-vim.o.completeopt = "menu,menuone,noselect"
+vim.o.completeopt = "menuone,noselect"
 
 require "compe".setup {
   enabled = true,
@@ -10,15 +10,19 @@ require "compe".setup {
   source_timeout = 200,
   incomplete_delay = 400,
   allow_prefix_unmatch = false,
+  documentation = true,
+  max_abbr_width = 100,
+  max_kind_width = 100,
+  max_menu_width = 100,
   source = {
     path = true,
     buffer = true,
     calc = true,
-    ultisnips = true,
     vsnip = false,
     nvim_lsp = true,
     nvim_lua = true,
     spell = true,
-    tags = true
+    tags = true,
+    treesitter = true
   }
 }

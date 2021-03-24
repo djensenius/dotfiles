@@ -20,6 +20,8 @@ local on_attach = function(client)
 end
 
 --require'lspconfig'.gopls.setup{}
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionItem.snippetSupport = true
 
 local lspconfig = require"lspconfig"
 
@@ -92,3 +94,6 @@ lspconfig.efm.setup {
   },
 }
 
+require "lspconfig".tsserver.setup {}
+require "lspconfig".cssls.setup {}
+require "lspconfig".html.setup {}

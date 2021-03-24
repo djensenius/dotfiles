@@ -1,7 +1,6 @@
 call plug#begin("~/.vim/bundle")
 
 Plug 'Townk/vim-autoclose'                                      " This plugin for Vim enable an auto-close chars feature for you
-Plug 'airblade/vim-gitgutter'                                   " A Vim plugin which shows a git diff in the gutter (sign column) and stages/undoes hunks
 Plug 'benmills/vimux'                                           " Vim plugin to interact with tmux
 Plug 'tyewang/vimux-jest-test'                                  " Vimux for jest
 Plug 'danro/rename.vim'                                         " Rename the current file in the vim buffer + retain relative path.
@@ -42,7 +41,9 @@ Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rhysd/git-messenger.vim'                                  " Git
 Plug 'rakr/vim-one'
 Plug 'joshdick/onedark.vim'
-Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
+" Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
+Plug 'lukas-reineke/indent-blankline.nvim' , { 'branch': 'lua' }
+Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
 Plug 'kyazdani42/nvim-tree.lua'
 Plug 'akinsho/nvim-bufferline.lua'
@@ -57,6 +58,7 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
 Plug 'kblin/vim-fountain'
+Plug 'onsails/lspkind-nvim'
 
 
 call plug#end()

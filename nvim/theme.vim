@@ -55,8 +55,6 @@ let g:lightline.enable = {
   \ 'tabline': 0
 \ }
 
-lua require'bufferline'.setup{options = {separator_style = "thin"}}
-
 function! MyFiletype()
   return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''
 endfunction
