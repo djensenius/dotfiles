@@ -22,6 +22,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] =
                  {underline = true, virtual_text = false})
 
 vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
+-- vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.diagnostic.show_line_diagnostics()]]
 
 -- Prepare completion
 local on_attach = function(client, bufnr)
@@ -31,10 +32,10 @@ local on_attach = function(client, bufnr)
 
     -- Mappings.
     local opts = {noremap = true, silent = true}
-    buf_set_keymap('n', 'ggD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-    buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
-    buf_set_keymap('n', 'gh', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+    buf_set_keymap('n', '<space>D', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+    buf_set_keymap('n', '<space>f', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
+    buf_set_keymap('n', '<space>h', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+    buf_set_keymap('n', '<space>i', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
     buf_set_keymap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>',
                    opts)
     buf_set_keymap('n', '<space>rm', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
