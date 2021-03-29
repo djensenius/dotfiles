@@ -59,7 +59,8 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
 Plug 'kblin/vim-fountain'
 Plug 'onsails/lspkind-nvim'
-
+Plug 'RishabhRD/popfix' " Required by lsputils
+Plug 'RishabhRD/nvim-lsputils' " Enhance built in LSP functions
 
 call plug#end()
 

@@ -1,4 +1,5 @@
 set runtimepath^=~/.vim runtimepath+=~/.vim/after
+let g:custom_path = '~/.config/nvim/'
 let &packpath = &runtimepath
 let $NVIM_TUI_ENABLE_TRUE_COLOR=1
 set termguicolors
@@ -27,12 +28,11 @@ source $HOME/.config/nvim/plugins/vimux.vim
 source $HOME/.config/nvim/plugins/indent-guides.vim
 source $HOME/.config/nvim/plugins/start-screen.vim
 source $HOME/.config/nvim/plugins/telescope.vim
-luafile $HOME/.config/nvim/plugins/plug-colorizer.lua
-luafile $HOME/.config/nvim/plugins/lspconfig.lua
-luafile $HOME/.config/nvim/plugins/prettier.lua
-luafile $HOME/.config/nvim/plugins/nvim-comple.lua
-luafile $HOME/.config/nvim/plugins/treesitter.lua
-luafile $HOME/.config/nvim/plugins/galaxyline.lua
-luafile $HOME/.config/nvim/plugins/gitsigns.lua
-luafile $HOME/.config/nvim/plugins/lspkind.lua
-luafile $HOME/.config/nvim/plugins/bufferline.lua
+luafile $HOME/.config/nvim/lua/plug-colorizer.lua
+luafile $HOME/.config/nvim/lua/prettier.lua
+luafile $HOME/.config/nvim/lua/nvim-comple.lua
+luafile $HOME/.config/nvim/lua/treesitter.lua
+luafile $HOME/.config/nvim/lua/galaxyline.lua
+luafile $HOME/.config/nvim/lua/gitsigns.lua
+luafile $HOME/.config/nvim/lua/bufferline.lua
+luafile $HOME/.config/nvim/lua/lspconfig.lua
