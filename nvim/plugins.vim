@@ -41,12 +41,15 @@ Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rhysd/git-messenger.vim'                                  " Git
 Plug 'rakr/vim-one'
 Plug 'joshdick/onedark.vim'
+Plug 'sonph/onehalf', { 'rtp': 'vim/' }
+Plug 'marko-cerovac/material.nvim'
 " Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
-Plug 'lukas-reineke/indent-blankline.nvim' , { 'branch': 'lua' }
+Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
 Plug 'kyazdani42/nvim-tree.lua'
-Plug 'akinsho/nvim-bufferline.lua'
+" This was the tab bar I was using before
+" Plug 'akinsho/nvim-bufferline.lua'
 Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
 " Plug 'nvim-lua/completion-nvim'
@@ -61,6 +64,9 @@ Plug 'kblin/vim-fountain'
 Plug 'onsails/lspkind-nvim'
 Plug 'RishabhRD/popfix' " Required by lsputils
 Plug 'RishabhRD/nvim-lsputils' " Enhance built in LSP functions
+Plug 'alvarosevilla95/luatab.nvim'
+Plug 'vim-test/vim-test'
+Plug 'rcarriga/vim-ultest', { 'do': ':UpdateRemotePlugins' }
 
 call plug#end()
 

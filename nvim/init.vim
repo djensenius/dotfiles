@@ -28,11 +28,13 @@ source $HOME/.config/nvim/plugins/vimux.vim
 source $HOME/.config/nvim/plugins/indent-guides.vim
 source $HOME/.config/nvim/plugins/start-screen.vim
 source $HOME/.config/nvim/plugins/telescope.vim
+source $HOME/.config/nvim/lua/vim-ultest.vim
 luafile $HOME/.config/nvim/lua/plug-colorizer.lua
 luafile $HOME/.config/nvim/lua/prettier.lua
 luafile $HOME/.config/nvim/lua/nvim-comple.lua
 luafile $HOME/.config/nvim/lua/treesitter.lua
 luafile $HOME/.config/nvim/lua/galaxyline.lua
 luafile $HOME/.config/nvim/lua/gitsigns.lua
-luafile $HOME/.config/nvim/lua/bufferline.lua
+" luafile $HOME/.config/nvim/lua/bufferline.lua
 luafile $HOME/.config/nvim/lua/lspconfig.lua
+luafile $HOME/.config/nvim/lua/tabline.lua

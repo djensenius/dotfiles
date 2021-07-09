@@ -3,9 +3,9 @@ set termguicolors
 set t_8b=[48;2;%lu;%lu;%lum
 set t_8f=[38;2;%lu;%lu;%lum
 
-colorscheme onedark
+colorscheme material
 set background=dark
-let g:one_allow_italics = 1
+" let g:one_allow_italics = 1
 
 function! SourceFileExists(file)
   if filereadable(expand(a:file))
@@ -32,6 +32,18 @@ function! UpdateTheme()
     call lightline#init()
     call lightline#colorscheme()
     call lightline#update()
+  endif
+endfunction
+
+function! ChangeBackground(mode)
+  if a:mode =~ '^dark'
+    " set background=dark   " for the dark version of the theme
+    :lua require('material.functions').change_style("deepocean")
+  else
+    :lua require('material.functions').change_style("lighter")
+  endif
+  if a:mode =~ '^dark'
+    highlight Normal guibg=black
   endif
 endfunction
 
