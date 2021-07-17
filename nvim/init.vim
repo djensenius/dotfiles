@@ -3,6 +3,7 @@ let g:custom_path = '~/.config/nvim/'
 let &packpath = &runtimepath
 let $NVIM_TUI_ENABLE_TRUE_COLOR=1
 set termguicolors
+set shell=/bin/bash
 source $HOME/.config/nvim/plugins.vim
 source $HOME/.config/nvim/theme.vim
 source $HOME/.config/nvim/basic.vim
