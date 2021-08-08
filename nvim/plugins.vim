@@ -35,14 +35,14 @@ Plug 'ryanoasis/vim-devicons'                                   " Icons for file
 " Plug 'peitalin/vim-jsx-typescript'
 " Plug 'leafgarland/typescript-vim'
 Plug 'puremourning/vimspector'
-Plug 'supercollider/scvim'                                      " Supercolldier
+Plug 'supercollider/scvim', { 'branch': 'main' }                                      " Supercolldier
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 " Plug 'rust-lang/rust.vim'                                       " Rust!
 Plug 'rhysd/git-messenger.vim'                                  " Git
 Plug 'rakr/vim-one'
 Plug 'joshdick/onedark.vim'
 Plug 'sonph/onehalf', { 'rtp': 'vim/' }
-Plug 'marko-cerovac/material.nvim'
+Plug 'marko-cerovac/material.nvim', { 'branch': 'main' }
 " Plug 'glepnir/indent-guides.nvim', { 'branch': 'main' }                               " Async indentation guides
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}

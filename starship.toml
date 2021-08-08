@@ -8,6 +8,9 @@ truncate_to_repo = false
 [aws]
 disabled = true
 
+[git_metrics]
+disabled = false
+
 [battery]
 charging_symbol = "🔌 "
 discharging_symbol = "🔋 "
