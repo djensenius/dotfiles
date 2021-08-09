@@ -1,4 +1,6 @@
 local lspconfig = require 'lspconfig'
+vim.cmd [[autocmd CursorHold,CursorHoldI * lua require'nvim-lightbulb'.update_lightbulb()]]
+-- require'navigator'.setup()
 
 -- Use ehanced LSP stuff
 vim.lsp.handlers['textDocument/codeAction'] =
@@ -62,64 +64,74 @@ local on_attach = function(client, bufnr)
     end
 end
 
+require("null-ls").config({
+    sources = { require("null-ls").builtins.formatting.stylua }
+})
+require("lspconfig")["null-ls"].setup({})
+
 -- Tsserver setup
 lspconfig.tsserver.setup {
-    root_dir = lspconfig.util.root_pattern("yarn.lock", "lerna.json", ".git"),
     on_attach = function(client, bufnr)
-        -- This makes sure tsserver is not used for formatting (I prefer prettier)
+        -- disable tsserver formatting if you plan on formatting via null-ls
         client.resolved_capabilities.document_formatting = false
 
-        on_attach(client, bufnr)
-    end,
-    settings = {documentFormatting = false}
+        local ts_utils = require("nvim-lsp-ts-utils")
+
+        -- defaults
+        ts_utils.setup {
+            debug = false,
+            disable_commands = false,
+            enable_import_on_completion = false,
+
+            -- import all
+            import_all_timeout = 5000, -- ms
+            import_all_priorities = {
+                buffers = 4, -- loaded buffer names
+                buffer_content = 3, -- loaded buffer content
+                local_files = 2, -- git files or files with relative path markers
+                same_file = 1, -- add to existing import statement
+            },
+            import_all_scan_buffers = 100,
+            import_all_select_source = false,
+
+            -- eslint
+            eslint_enable_code_actions = true,
+            eslint_enable_disable_comments = true,
+            eslint_bin = "eslint",
+            eslint_config_fallback = nil,
+            eslint_enable_diagnostics = false,
+            eslint_show_rule_id = false,
+
+            -- formatting
+            enable_formatting = false,
+            formatter = "prettier",
+            formatter_config_fallback = nil,
+
+            -- update imports on file move
+            update_imports_on_move = false,
+            require_confirmation_on_move = false,
+            watch_dir = nil,
+        }
+
+        -- required to fix code action ranges
+        ts_utils.setup_client(client)
+
+        -- no default maps, so you may want to define some here
+        local opts = {silent = true}
+        vim.api.nvim_buf_set_keymap(bufnr, "n", "gs", ":TSLspOrganize<CR>", opts)
+        vim.api.nvim_buf_set_keymap(bufnr, "n", "qq", ":TSLspFixCurrent<CR>", opts)
+        vim.api.nvim_buf_set_keymap(bufnr, "n", "gr", ":TSLspRenameFile<CR>", opts)
+        vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", ":TSLspImportAll<CR>", opts)
+    end
 }
 
 local util = require 'lspconfig/util'
-lspconfig.sumneko_lua.setup {
-    cmd = {
-        "/usr/bin/lua-language-server", "-E",
-        "/usr/share/lua-language-server/main.lua"
-    },
-    on_attach = on_attach,
-    root_dir = function(fname)
-        return util.find_git_ancestor(fname) or util.path.dirname(fname)
-    end,
-    settings = {
-        Lua = {
-            runtime = {
-                version = 'LuaJIT',
-                -- Setup your lua path
-                path = vim.split(package.path, ';')
-            },
-            diagnostics = {
-                -- Get the language server to recognize the `vim` global
-                globals = {'vim'}
-            },
-            workspace = {
-                -- Make the server aware of Neovim runtime files
-                library = {
-                    [vim.fn.expand('$VIMRUNTIME/lua')] = true,
-                    [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true
-                }
-            }
-        }
-    }
-}
-
-
--- Vim lsp
-lspconfig.vimls.setup {on_attach = on_attach}
-
--- JSON lsp
-lspconfig.jsonls.setup {on_attach = on_attach}
 
 -- Formatting via efm
 local prettier = require "efm/prettier"
 local eslint = require "efm/eslint"
-local luafmt = require "efm/luafmt"
 
 local languages = {
-    lua = {luafmt},
     typescript = {prettier, eslint},
     javascript = {prettier, eslint},
     typescriptreact = {prettier, eslint},

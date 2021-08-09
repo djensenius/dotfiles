@@ -31,7 +31,8 @@ Plug 'tpope/vim-dispatch'                                       " dispatch.vim: 
 Plug 'terryma/vim-multiple-cursors'                             " True Sublime Text style multiple selections for Vim
 " Plug 'HerringtonDarkholme/yats.vim'                             " TypeScript synax file
 Plug 'Shougo/denite.nvim'                                       " Denite features
-Plug 'ryanoasis/vim-devicons'                                   " Icons for files
+Plug 'kyazdani42/nvim-web-devicons'
+
 " Plug 'peitalin/vim-jsx-typescript'
 " Plug 'leafgarland/typescript-vim'
 Plug 'puremourning/vimspector'
@@ -48,10 +49,15 @@ Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
 Plug 'kyazdani42/nvim-tree.lua'
+Plug 'folke/trouble.nvim'
+Plug 'folke/lsp-colors.nvim'
 " This was the tab bar I was using before
 " Plug 'akinsho/nvim-bufferline.lua'
 Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
+Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
+Plug 'jose-elias-alvarez/null-ls.nvim'
+Plug 'nvim-lua/plenary.nvim'
 " Plug 'nvim-lua/completion-nvim'
 Plug 'hrsh7th/nvim-compe'
 Plug 'mhinz/vim-startify'
@@ -62,11 +68,15 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
 Plug 'kblin/vim-fountain'
 Plug 'onsails/lspkind-nvim'
+Plug 'kosayoda/nvim-lightbulb'
 Plug 'RishabhRD/popfix' " Required by lsputils
 Plug 'RishabhRD/nvim-lsputils' " Enhance built in LSP functions
+Plug 'ray-x/guihua.lua', {'do': 'cd lua/fzy && make' }
+Plug 'ray-x/navigator.lua'
 Plug 'alvarosevilla95/luatab.nvim'
 Plug 'vim-test/vim-test'
 Plug 'rcarriga/vim-ultest', { 'do': ':UpdateRemotePlugins' }
+Plug 'liuchengxu/vista.vim'
 
 call plug#end()
 
