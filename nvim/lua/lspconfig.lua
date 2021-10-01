@@ -1,5 +1,4 @@
 local lspconfig = require 'lspconfig'
-vim.cmd [[autocmd CursorHold,CursorHoldI * lua require'nvim-lightbulb'.update_lightbulb()]]
 -- require'navigator'.setup()
 
 -- Use ehanced LSP stuff
@@ -21,10 +20,16 @@ vim.lsp.handlers['workspace/symbol'] =
     require'lsputil.symbols'.workspace_handler
 vim.lsp.handlers["textDocument/publishDiagnostics"] =
     vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics,
-                 {underline = true, virtual_text = false})
+                 {underline = true, virtual_text = false, signs = true})
 
 vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
 -- vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.diagnostic.show_line_diagnostics()]]
+local signs = { Error = " ", Warning = " ", Hint = " ", Information = " " }
+
+for type, icon in pairs(signs) do
+  local hl = "LspDiagnosticsSign" .. type
+  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
+end
 
 -- Prepare completion
 local on_attach = function(client, bufnr)
@@ -64,13 +69,15 @@ local on_attach = function(client, bufnr)
     end
 end
 
+local coq = require "coq"
+
 require("null-ls").config({
     sources = { require("null-ls").builtins.formatting.stylua }
 })
-require("lspconfig")["null-ls"].setup({})
+require("lspconfig")["null-ls"].setup(coq.lsp_ensure_capabilities({}))
 
 -- Tsserver setup
-lspconfig.tsserver.setup {
+lspconfig.tsserver.setup(coq.lsp_ensure_capabilities({
     on_attach = function(client, bufnr)
         -- disable tsserver formatting if you plan on formatting via null-ls
         client.resolved_capabilities.document_formatting = false
@@ -123,7 +130,7 @@ lspconfig.tsserver.setup {
         vim.api.nvim_buf_set_keymap(bufnr, "n", "gr", ":TSLspRenameFile<CR>", opts)
         vim.api.nvim_buf_set_keymap(bufnr, "n", "gi", ":TSLspImportAll<CR>", opts)
     end
-}
+}))
 
 local util = require 'lspconfig/util'
 
@@ -144,10 +151,10 @@ local languages = {
     markdown = {prettier}
 }
 
-lspconfig.efm.setup {
+lspconfig.efm.setup(coq.lsp_ensure_capabilities({
     root_dir = lspconfig.util.root_pattern("yarn.lock", "lerna.json", ".git", "package.json"),
     filetypes = vim.tbl_keys(languages),
     init_options = {documentFormatting = true, codeAction = true},
     settings = {languages = languages, log_level = 1, log_file = '~/efm.log'},
     on_attach = on_attach
-}
+}))

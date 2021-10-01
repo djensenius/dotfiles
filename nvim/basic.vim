@@ -115,6 +115,7 @@ endif
 
 " highlight Normal guibg=black guifg=white
 highlight Normal guibg=black
+highlight SignColumn guibg=black
 
 " Load all plugins now.
 " Plugins need to be added to runtimepath before helptags can be generated.
