@@ -32,10 +32,19 @@ source $HOME/.config/nvim/plugins/telescope.vim
 source $HOME/.config/nvim/lua/vim-ultest.vim
 luafile $HOME/.config/nvim/lua/plug-colorizer.lua
 luafile $HOME/.config/nvim/lua/prettier.lua
-luafile $HOME/.config/nvim/lua/nvim-comple.lua
+" luafile $HOME/.config/nvim/lua/nvim-comple.lua
 luafile $HOME/.config/nvim/lua/treesitter.lua
 luafile $HOME/.config/nvim/lua/galaxyline.lua
 luafile $HOME/.config/nvim/lua/gitsigns.lua
 " luafile $HOME/.config/nvim/lua/bufferline.lua
+luafile $HOME/.config/nvim/lua/coq.lua
 luafile $HOME/.config/nvim/lua/lspconfig.lua
 luafile $HOME/.config/nvim/lua/tabline.lua
+
+lua << EOF
+  require("which-key").setup {
+    -- your configuration comes here
+    -- or leave it empty to use the default settings
+    -- refer to the configuration section below
+  }
+EOF

@@ -79,6 +79,13 @@ Plug 'alvarosevilla95/luatab.nvim'
 Plug 'vim-test/vim-test'
 Plug 'rcarriga/vim-ultest', { 'do': ':UpdateRemotePlugins' }
 Plug 'liuchengxu/vista.vim'
+Plug 'mfussenegger/nvim-dap'
+Plug 'folke/which-key.nvim'
+" main one
+Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
+" 9000+ Snippets
+Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
+Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 
 call plug#end()
 

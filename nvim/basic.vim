@@ -84,9 +84,9 @@ autocmd Filetype gitcommit setlocal textwidth=72
 autocmd FileType c setlocal tabstop=8 shiftwidth=4 softtabstop=4
 autocmd FileType elm set ai ts=4 sw=4 sts=4 et
 autocmd Filetype javascript setlocal ts=2 sw=2 sts=0 expandtab
-autocmd BufNewFile,BufRead /Users/djensenius/Code/macross/* set ts=4 sw=4 sts=4 expandtab
-autocmd BufNewFile,BufRead /Users/djensenius/Code/macross-bak/* set ts=4 sw=4 sts=4 expandtab
-autocmd BufNewFile,BufRead **/TLX/**.xml set ts=4 sw=4 sts=0 expandtab filetype=javascript
+autocmd BufNewFile,BufRead,BufEnter **/macross/** setlocal ts=4 sw=4 sts=4 expandtab
+autocmd BufNewFile,BufRead,BufEnter **/macross-brain/** setlocal ts=4 sw=4 sts=4 expandtab
+autocmd BufNewFile,BufRead,BufEnter **/TLX/**.xml setlocal ts=4 sw=4 sts=0 expandtab filetype=javascript
 
 " Filetype colorschemes
 
@@ -115,6 +115,7 @@ endif
 
 " highlight Normal guibg=black guifg=white
 highlight Normal guibg=black
+highlight SignColumn guibg=black
 
 " Load all plugins now.
 " Plugins need to be added to runtimepath before helptags can be generated.
