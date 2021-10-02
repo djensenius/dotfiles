@@ -21,13 +21,14 @@ vim.lsp.handlers['workspace/symbol'] =
     require'lsputil.symbols'.workspace_handler
 vim.lsp.handlers["textDocument/publishDiagnostics"] =
     vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics,
-                 {underline = true, virtual_text = false})
+                 {underline = true, virtual_text = false, signs = true, update_in_insert = true})
 
 vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
 -- vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.diagnostic.show_line_diagnostics()]]
 
 -- Prepare completion
 local on_attach = function(client, bufnr)
+    require'completion'.on_attach(client)
     local function buf_set_keymap(...)
         vim.api.nvim_buf_set_keymap(bufnr, ...)
     end
@@ -143,6 +144,8 @@ local languages = {
     css = {prettier},
     markdown = {prettier}
 }
+
+lspconfig.rust_analyzer.setup({ on_attach=on_attach })
 
 lspconfig.efm.setup {
     root_dir = lspconfig.util.root_pattern("yarn.lock", "lerna.json", ".git", "package.json"),
