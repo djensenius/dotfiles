@@ -33,7 +33,7 @@ nnoremap <F3> :set invpaste paste?<CR>
 set pastetoggle=<F3>
 
 " Remove trailing whitespaces
-nnoremap <silent> <F4> :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
+" nnoremap <silent> <F4> :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
 
 " Automatically jump to end of text you pasted
 vnoremap <silent> y y`]
@@ -50,9 +50,9 @@ noremap n nzz
 noremap N Nzz
 
 let mapleader=","
-nmap <leader>bp orequire'pry-byebug';binding.pry<ESC>
+" nmap <leader>bp orequire'pry-byebug';binding.pry<ESC>
 " Nab lines from ~/.pry_history (respects 'count')
-nmap <Leader>bph :<c-u>let pc = (v:count1 ? v:count1 : 1)<cr>:read !tail -<c-r>=pc<cr> ~/.pry_history<cr>:.-<c-r>=pc-1<cr>:norm <c-r>=pc<cr>==<cr>
+" nmap <Leader>bph :<c-u>let pc = (v:count1 ? v:count1 : 1)<cr>:read !tail -<c-r>=pc<cr> ~/.pry_history<cr>:.-<c-r>=pc-1<cr>:norm <c-r>=pc<cr>==<cr>
 " nmap <leader>co i# Copyright (c) 2015 Di Wen <ifyouseewendy@gmail.com><ESC>
 nmap <leader>no :set nonu<cr>
 nmap <leader>nu :set nu<cr>
@@ -60,12 +60,12 @@ nmap <leader>rn :set rnu<cr>
 nmap <leader>nrn :set nornu<cr>
 nmap <leader>nh :nohls<cr>
 nmap <leader>so :source ~/.vimrc<cr>
-nmap <leader>se :vsp ~/.vimrc<cr>
-nmap <leader>sf :w<cr>:Format<cr>
-nmap <leader>w :wq<cr>
-nmap <leader>s :w<cr>
-nmap <leader>e :e!<cr>
-nmap <leader>q :q!<cr>
+" nmap <leader>se :vsp ~/.vimrc<cr>
+" nmap <leader>sf :w<cr>:Format<cr>
+" nmap <leader>w :wq<cr>
+" nmap <leader>s :w<cr>
+" nmap <leader>e :e!<cr>
+" nmap <leader>q :q!<cr>
 cmap w!! %!sudo tee > /dev/null %
 command! InsertTime :normal a<c-r>=strftime('%F %H:%M:%S')<cr>
 command! InsertDate :normal a<c-r>=strftime('%F')<cr>
@@ -80,14 +80,14 @@ nmap <Leader>P "+P
 
 " Quick window split
 map <leader>sp :split<cr>
-map <leader>vs :vsplit<cr>
+map <leader>sv :vsplit<cr>
 map <leader>\| :vsplit<cr>
 map <leader>- :split<cr>
 
 " Select entire line without newline
-nnoremap <leader>v<CR> 0vg_
+" nnoremap <leader>v<CR> 0vg_
 
 " SuperCollider
-map <leader>ss :SClangStart
+" map <leader>ss :SClangStart
 
 map <F1> :NvimTreeToggle<CR>
