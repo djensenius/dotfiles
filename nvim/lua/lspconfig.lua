@@ -44,29 +44,19 @@ local on_attach = function(client, bufnr)
     buf_set_keymap('n', '<leader><space>f', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
     buf_set_keymap('n', '<leader><space>h', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
     buf_set_keymap('n', '<leader><space>i', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-    buf_set_keymap('n', '<leader><C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>',
-                   opts)
-    buf_set_keymap('n', '<leader><space>rm', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-    buf_set_keymap('n', '<leader><space>rr', '<cmd>lua vim.lsp.buf.references()<CR>',
-                   opts)
-    buf_set_keymap('n', '<leader><space>d',
-                   '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>',
-                   opts)
-
-    buf_set_keymap('n', '<leader><space>i', '<cmd>lua vim.lsp.buf.code_action()<CR>',
-                   opts)
-    buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>',
-                   opts)
-    buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>',
-                   opts)
+    buf_set_keymap('n', '<leader><space>S', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
+    buf_set_keymap('n', '<leader><space>R', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
+    buf_set_keymap('n', '<leader><space>r', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+    buf_set_keymap('n', '<leader><space>d', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
+    buf_set_keymap('n', '<leader><space>i', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+    buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
+    buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
 
     -- Set some keybinds conditional on server capabilities
     if client.resolved_capabilities.document_formatting then
-        buf_set_keymap("n", "<space>=", "<cmd>lua vim.lsp.buf.formatting()<CR>",
-                       opts)
+        buf_set_keymap("n", "<space>=", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
     elseif client.resolved_capabilities.document_range_formatting then
-        buf_set_keymap("n", "<space>=", "<cmd>lua vim.lsp.buf.formatting()<CR>",
-                       opts)
+        buf_set_keymap("n", "<space>=", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
     end
 end
 

@@ -59,7 +59,8 @@ nmap <leader>nu :set nu<cr>
 nmap <leader>rn :set rnu<cr>
 nmap <leader>nrn :set nornu<cr>
 nmap <leader>nh :nohls<cr>
-nmap <leader>so :source ~/.vimrc<cr>
+nmap <leader>so :source ~/.config/nvim/init.vim<cr>
+nmap <leader>tt :TroubleToggle<cr>
 " nmap <leader>se :vsp ~/.vimrc<cr>
 " nmap <leader>sf :w<cr>:Format<cr>
 " nmap <leader>w :wq<cr>

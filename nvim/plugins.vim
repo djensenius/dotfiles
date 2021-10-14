@@ -31,8 +31,6 @@ Plug 'tpope/vim-dispatch'                                       " dispatch.vim: 
 Plug 'terryma/vim-multiple-cursors'                             " True Sublime Text style multiple selections for Vim
 " Plug 'HerringtonDarkholme/yats.vim'                             " TypeScript synax file
 Plug 'Shougo/denite.nvim'                                       " Denite features
-Plug 'kyazdani42/nvim-web-devicons'
-
 " Plug 'peitalin/vim-jsx-typescript'
 " Plug 'leafgarland/typescript-vim'
 " Plug 'puremourning/vimspector'
@@ -87,10 +85,11 @@ Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
 Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
 Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 Plug 'windwp/nvim-autopairs'
+Plug 'David-Kunz/jester'
+Plug 'machakann/vim-sandwich'
 
 
 call plug#end()
 
 " set completeopt=menuone,noinsert,noselect
 " let g:completion_matching_strategy_list = ['exact', 'substring', 'fuzzy']
-
