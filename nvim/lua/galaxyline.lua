@@ -3,8 +3,8 @@ local gls = gl.section
 gl.short_line_list = { }
 
 local colors = {
-    bg = "#282c34",
-    line_bg = "#282c34",
+    bg = "#000000",
+    line_bg = "#000000",
     fg = "#D8DEE9",
     fg_green = "#65a380",
     yellow = "#A3BE8C",
@@ -80,7 +80,7 @@ gls.left[6] = {
         provider = "DiffAdd",
         condition = checkwidth,
         icon = "   ",
-        highlight = {colors.greenYel, colors.line_bg}
+        highlight = {colors.greenYel, colors.bg}
     }
 }
 
@@ -89,7 +89,7 @@ gls.left[7] = {
         provider = "DiffModified",
         condition = checkwidth,
         icon = " ",
-        highlight = {colors.orange, colors.line_bg}
+        highlight = {colors.orange, colors.bg}
     }
 }
 
@@ -98,7 +98,7 @@ gls.left[8] = {
         provider = "DiffRemove",
         condition = checkwidth,
         icon = " ",
-        highlight = {colors.red, colors.line_bg}
+        highlight = {colors.red, colors.bg}
     }
 }
 
@@ -109,7 +109,7 @@ gls.left[9] = {
         end,
         separator = " ",
         separator_highlight = {colors.line_bg, colors.line_bg},
-        highlight = {colors.line_bg, colors.line_bg}
+        highlight = {colors.line_bg, colors.bg}
     }
 }
 
@@ -126,7 +126,7 @@ gls.left[11] = {
         provider = function()
             return " "
         end,
-        highlight = {colors.line_bg, colors.line_bg}
+        highlight = {colors.line_bg, colors.bg}
     }
 }
 
@@ -144,7 +144,7 @@ gls.right[1] = {
             return "   "
         end,
         condition = require("galaxyline.provider_vcs").check_git_workspace,
-        highlight = {colors.green, colors.line_bg}
+        highlight = {colors.green, colors.bg}
     }
 }
 
@@ -152,7 +152,7 @@ gls.right[2] = {
     GitBranch = {
         provider = "GitBranch",
         condition = require("galaxyline.provider_vcs").check_git_workspace,
-        highlight = {colors.green, colors.line_bg}
+        highlight = {colors.green, colors.bg}
     }
 }
 
