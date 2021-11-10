@@ -69,6 +69,7 @@ Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 Plug 'windwp/nvim-autopairs'
 Plug 'David-Kunz/jester'
 Plug 'machakann/vim-sandwich'
+Plug 'metakirby5/codi.vim'
 
 
 call plug#end()
