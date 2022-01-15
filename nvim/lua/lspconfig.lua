@@ -62,16 +62,16 @@ end
 
 local coq = require "coq"
 
-require("null-ls").config({
-    sources = { require("null-ls").builtins.formatting.stylua }
-})
-require("lspconfig")["null-ls"].setup(coq.lsp_ensure_capabilities({}))
+-- require("null-ls").config({
+--    sources = { require("null-ls").builtins.formatting.stylua }
+-- })
+-- require("lspconfig")["null-ls"].setup(coq.lsp_ensure_capabilities({}))
 
 -- Tsserver setup
 lspconfig.tsserver.setup(coq.lsp_ensure_capabilities({
     on_attach = function(client, bufnr)
         -- disable tsserver formatting if you plan on formatting via null-ls
-        client.resolved_capabilities.document_formatting = false
+        -- client.resolved_capabilities.document_formatting = false
 
         local ts_utils = require("nvim-lsp-ts-utils")
 
