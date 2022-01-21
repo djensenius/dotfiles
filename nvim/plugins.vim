@@ -15,7 +15,7 @@ Plug 'tpope/vim-fugitive'                                       " a Git wrapper 
 Plug 'tpope/vim-ragtag'                                         " Ghetto HTML/XML mappings (formerly allml.vim)
 Plug 'tpope/vim-repeat'							                            " repeat.vim: enable repeating supported plugin maps with '.'
 Plug 'vim-ruby/vim-ruby' 						                            " Vim/Ruby Configuration Files
-Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
+" Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
 Plug 'tmux-plugins/vim-tmux-focus-events'                       " Makes the autoread option work properly for terminal vim
 Plug 'kshenoy/vim-signature'                                    " Plugin to toggle, display and navigate marks
 Plug 'junegunn/fzf.vim'                                         " 🌸 A command-line fuzzy finder written in Go
@@ -41,13 +41,12 @@ Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/lsp_extensions.nvim'
 Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
-Plug 'jose-elias-alvarez/null-ls.nvim'
+" Plug 'jose-elias-alvarez/null-ls.nvim'
 Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-lua/completion-nvim'
+" Plug 'nvim-lua/completion-nvim'
 Plug 'mhinz/vim-startify'
 Plug 'mhartington/formatter.nvim'
 Plug 'nvim-lua/popup.nvim'
-Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
 Plug 'kblin/vim-fountain'
@@ -70,7 +69,8 @@ Plug 'windwp/nvim-autopairs'
 Plug 'David-Kunz/jester'
 Plug 'machakann/vim-sandwich'
 Plug 'metakirby5/codi.vim'
-
+Plug 'nvim-lualine/lualine.nvim'
+" Plug 'wyattjsmith1/weather.nvim', {'branch': 'main'}
 
 call plug#end()
 
