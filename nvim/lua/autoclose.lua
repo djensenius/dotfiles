@@ -35,3 +35,6 @@ MUtils.BS = function()
   end
 end
 remap('i', '<bs>', 'v:lua.MUtils.BS()', { expr = true, noremap = true })
+local sidebar = require("sidebar-nvim")
+local opts = {open = false}
+sidebar.setup(opts)

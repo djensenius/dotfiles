@@ -70,6 +70,7 @@ Plug 'David-Kunz/jester'
 Plug 'machakann/vim-sandwich'
 Plug 'metakirby5/codi.vim'
 Plug 'nvim-lualine/lualine.nvim'
+Plug 'sidebar-nvim/sidebar.nvim', { 'branch': 'main'}
 " Plug 'wyattjsmith1/weather.nvim', {'branch': 'main'}
 
 call plug#end()
