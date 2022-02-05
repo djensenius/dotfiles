@@ -1,5 +1,5 @@
 set runtimepath^=~/.vim runtimepath+=~/.vim/after
-set shell=/bin/bash
+set shell=/bin/zsh
 let g:custom_path = '~/.config/nvim/'
 let &packpath = &runtimepath
 let $NVIM_TUI_ENABLE_TRUE_COLOR=1

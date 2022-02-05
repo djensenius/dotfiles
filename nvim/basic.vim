@@ -92,8 +92,9 @@ autocmd BufNewFile,BufRead,BufEnter **/TLX/**.xml setlocal ts=4 sw=4 sts=0 expan
 
 " nvim
 if has('nvim')
-  let g:python_host_prog = '/Users/david/.pyenv/versions/neovim2/bin/python'
-  let g:python3_host_prog = '/Users/david/.pyenv/versions/neovim3/bin/python'
+  " let g:python_host_prog = '/Users/david/.pyenv/versions/neovim2/bin/python'
+  " let g:python3_host_prog = '/Users/david/.pyenv/versions/neovim3/bin/python'
+  let g:python3_host_prog = '/usr/bin/python3'
 
   " nmap <BS> <C-W>h
   " Fix c-h issue by https://github.com/neovim/neovim/issues/2048#issuecomment-162072750
