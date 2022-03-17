@@ -1,5 +1,33 @@
 local lspconfig = require 'lspconfig'
 -- require'navigator'.setup()
+require("trouble").setup {
+  -- your configuration comes here
+  -- or leave it empty to use the default settings
+  -- refer to the configuration section below
+}
+
+local extension_path = vim.env.HOME .. '/.vscode/extensions/vadimcn.vscode-lldb-1.7.0/'
+local codelldb_path = extension_path .. 'adapter/codelldb'
+local liblldb_path = extension_path .. 'lldb/lib/liblldb.so'
+
+local rust_opts = {
+    -- ... other configs
+    dap = {
+        adapter = require('rust-tools.dap').get_codelldb_adapter(
+            codelldb_path, liblldb_path)
+    }
+}
+
+
+require('rust-tools').setup(rust_opts)
+-- set inlay hints
+require('rust-tools.inlay_hints').set_inlay_hints()
+-- disable inlay hints
+require('rust-tools.inlay_hints').disable_inlay_hints()
+-- toggle inlay hints
+require('rust-tools.inlay_hints').toggle_inlay_hints()
+-- RustRunnables
+require('rust-tools.runnables').runnables()
 
 -- Use enhanced LSP stuff
 vim.lsp.handlers['textDocument/codeAction'] =
@@ -20,7 +48,11 @@ vim.lsp.handlers['workspace/symbol'] =
     require'lsputil.symbols'.workspace_handler
 vim.lsp.handlers["textDocument/publishDiagnostics"] =
     vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics,
-                 {underline = true, virtual_text = false, signs = true, update_in_insert = true})
+                 {underline = true, virtual_text = true, signs = true, update_in_insert = true})
+
+vim.diagnostic.config {
+  virtual_text = true
+}
 
 vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
 -- vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.diagnostic.show_line_diagnostics()]]
@@ -30,10 +62,16 @@ vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
 --  local hl = "LspDiagnosticsSign" .. type
 --  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 --end
-vim.fn.sign_define("DiagnosticSignError", { text = "✗", texthl = "DiagnosticSignError" })
-vim.fn.sign_define("DiagnosticSignWarn", { text = "!", texthl = "DiagnosticSignWarn" })
-vim.fn.sign_define("DiagnosticSignInformation", { text = "", texthl = "DiagnosticSignInfo" })
-vim.fn.sign_define("DiagnosticSignHint", { text = "", texthl = "DiagnosticSignHint" })
+
+-- vim.fn.sign_define("DiagnosticSignError", { text = "✗", texthl = "DiagnosticSignError" })
+-- vim.fn.sign_define("DiagnosticSignWarn", { text = "!", texthl = "DiagnosticSignWarn" })
+-- vim.fn.sign_define("DiagnosticSignInformation", { text = "", texthl = "DiagnosticSignInfo" })
+-- vim.fn.sign_define("DiagnosticSignHint", { text = "", texthl = "DiagnosticSignHint" })
+
+vim.fn.sign_define("DiagnosticSignError", { text = "❌", texthl = "DiagnosticSignError" })
+vim.fn.sign_define("DiagnosticSignWarn", { text = "⚠️", texthl = "DiagnosticSignWarn" })
+vim.fn.sign_define("DiagnosticSignInformation", { text = "💁", texthl = "DiagnosticSignInfo" })
+vim.fn.sign_define("DiagnosticSignHint", { text = "💡", texthl = "DiagnosticSignHint" })
 
 
 -- Prepare completion
@@ -125,7 +163,7 @@ lspconfig.tsserver.setup(coq.lsp_ensure_capabilities({
 
 local util = require 'lspconfig/util'
 
-lspconfig.rust_analyzer.setup(coq.lsp_ensure_capabilities({ on_attach=on_attach }))
+-- lspconfig.rust_analyzer.setup(coq.lsp_ensure_capabilities({ on_attach=on_attach }))
 
 lspconfig.eslint.setup(coq.lsp_ensure_capabilities({ on_attach=on_attach }))
 

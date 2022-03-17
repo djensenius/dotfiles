@@ -15,7 +15,6 @@ Plug 'tpope/vim-fugitive'                                       " a Git wrapper 
 Plug 'tpope/vim-ragtag'                                         " Ghetto HTML/XML mappings (formerly allml.vim)
 Plug 'tpope/vim-repeat'							                            " repeat.vim: enable repeating supported plugin maps with '.'
 Plug 'vim-ruby/vim-ruby' 						                            " Vim/Ruby Configuration Files
-Plug 'NTBBloodbath/galaxyline.nvim' , {'branch': 'main'}
 Plug 'tmux-plugins/vim-tmux-focus-events'                       " Makes the autoread option work properly for terminal vim
 Plug 'kshenoy/vim-signature'                                    " Plugin to toggle, display and navigate marks
 Plug 'junegunn/fzf.vim'                                         " 🌸 A command-line fuzzy finder written in Go
@@ -27,9 +26,6 @@ Plug 'Shougo/denite.nvim'                                       " Denite feature
 Plug 'supercollider/scvim', { 'branch': 'main' }                                      " Supercolldier
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rhysd/git-messenger.vim'                                  " Git
-Plug 'rakr/vim-one'
-Plug 'joshdick/onedark.vim'
-Plug 'sonph/onehalf', { 'rtp': 'vim/' }
 Plug 'marko-cerovac/material.nvim', { 'branch': 'main' }
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}
@@ -39,6 +35,8 @@ Plug 'folke/trouble.nvim'
 Plug 'folke/lsp-colors.nvim'
 Plug 'norcalli/nvim-colorizer.lua'
 Plug 'neovim/nvim-lspconfig'
+" Plug 'simrat39/rust-tools.nvim'
+Plug 'matze/rust-tools.nvim', { 'branch': 'fix-upstreamed-inlayhints' }
 Plug 'nvim-lua/lsp_extensions.nvim'
 Plug 'jose-elias-alvarez/nvim-lsp-ts-utils'
 " Plug 'jose-elias-alvarez/null-ls.nvim'
