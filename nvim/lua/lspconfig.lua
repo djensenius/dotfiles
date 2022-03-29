@@ -15,7 +15,18 @@ local rust_opts = {
     dap = {
         adapter = require('rust-tools.dap').get_codelldb_adapter(
             codelldb_path, liblldb_path)
-    }
+    },
+    server = {
+        settings = {
+            -- https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/user/generated_config.adoc
+            ["rust-analyzer"] = {
+                checkOnSave = {
+                    command = "clippy",
+                    allFeatures = true,
+                },
+            }
+        }
+    },
 }
 
 
