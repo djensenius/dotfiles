@@ -1,4 +1,2 @@
 # dotfiles
-My config files for Vim, Starship, and tmux.
-
-Fish config is in a private repository because it contains some work secrets. 😔
+My config files for Vim, Fish, Starship, and tmux.
