@@ -21,7 +21,7 @@ function install_homebrew() {
 }
 
 function setup_software() {
-    # sudo chsh -s /usr/bin/fish codespace
+    sudo chsh -s /usr/bin/fish codespace
     nvim --headless +PlugInstall +qa
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
