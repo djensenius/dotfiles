@@ -5,6 +5,9 @@
 # set -g fish_user_paths "$HOME/.cargo/bin" $fish_user_paths
 fish_add_path /home/linuxbrew/.linuxbrew/bin
 fish_add_path /home/linuxbrew/.linuxbrew/sbin:
+if test -e /workspaces/.codespaces/shared/.env
+  posix_source /workspaces/.codespaces/shared/.env
+end
 starship init fish | source
 # status --is-interactive; and source (rbenv init -|psub)
 # set -g fish_user_paths "/usr/local/opt/openssl@1.1/bin" $fish_user_paths
