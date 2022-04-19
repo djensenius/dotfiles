@@ -16,7 +16,7 @@ function install_homebrew() {
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     sudo apt-get update
-    sudo apt-get install build-essential python3-venv kitty-terminfo socat -y
+    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat -y
     brew bundle install --global
 }
 
