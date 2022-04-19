@@ -5,6 +5,7 @@ function link_files() {
         mkdir -p ~/.config
         ln -s $(pwd)/Brewfile.headless ~/.Brewfile
         ln -s $(pwd)/tmux.conf ~/.tmux.conf
+        ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/fish ~/.config/
         ln -s $(pwd)/starship.toml ~/.config/
         ln -s $(pwd)/nvim ~/.config/

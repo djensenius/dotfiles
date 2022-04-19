@@ -1,0 +1,44 @@
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    features = side-by-side line-numbers decorations
+    whitespace-error-style = 22 reverse
+
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+
+[user]
+	email = david@jensenius.com
+	name = David Jensenius
+	signingkey = 3C99585F0FFC7101
+
+[core]
+	editor = nvim
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[push]
+  default = current
+
+[init]
+	defaultBranch = main
+
+[commit]
+	gpgsign = true
+
+[github]
+	user = djensenius
+
+[credential]
+	helper = osxkeychain
+
