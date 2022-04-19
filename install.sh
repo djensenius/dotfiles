@@ -16,7 +16,7 @@ function install_homebrew() {
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     sudo apt-get update
-    sudo apt-get install build-essential python3-venv -y
+    sudo apt-get install build-essential python3-venv kitty-terminfo -y
     brew bundle install --global
 }
 
@@ -27,6 +27,8 @@ function setup_software() {
     nvim --headless +PlugInstall +qa
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+    cd ~/.vim/bundle/coq_nvim/
+    python3 -m coq deps
 }
 
 echo '🔗 Linking files.';
