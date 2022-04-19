@@ -16,13 +16,14 @@ function install_homebrew() {
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     sudo apt-get update
-    sudo apt-get install build-essential -y
+    sudo apt-get install build-essential python3-venv -y
     brew bundle install --global
 }
 
 function setup_software() {
     echo "/home/linuxbrew/.linuxbrew/bin/fish" | sudo tee -a /etc/shells
     sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish codespace
+    /usr/bin/pip3 install neovim
     nvim --headless +PlugInstall +qa
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh

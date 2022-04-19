@@ -69,8 +69,6 @@ Plug 'machakann/vim-sandwich'
 Plug 'metakirby5/codi.vim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'sidebar-nvim/sidebar.nvim', { 'branch': 'main'}
-" Plug 'wyattjsmith1/weather.nvim', {'branch': 'main'}
-Plug 'mrjones2014/dash.nvim', { 'do': 'make install' }
 
 call plug#end()
 
