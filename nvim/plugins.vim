@@ -69,6 +69,8 @@ Plug 'machakann/vim-sandwich'
 Plug 'metakirby5/codi.vim'
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'sidebar-nvim/sidebar.nvim', { 'branch': 'main'}
+Plug 'wincent/vim-clipper', { 'branch': 'main'}
+Plug 'github/copilot.vim', { 'branch': 'release' }
 
 call plug#end()
 
