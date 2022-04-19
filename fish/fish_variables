@@ -1,0 +1,58 @@
+# This file contains fish universal variable definitions.
+# VERSION: 3.0
+SETUVAR --export BELA_SYSROOT:/Users/david/Code/Generator/bela/root/
+SETUVAR --export DARK_MODE:true
+SETUVAR --export EDITOR:nvim
+SETUVAR --export FIREFOX_DEVELOPER_BIN:/Applications/Firefox\x20Developer\x20Edition\x2eapp/Contents/MacOS/firefox\x2dbin
+SETUVAR --export ITERM_PROFILE:Light
+SETUVAR --export LSCOLORS:Exfxcxdxbxegedabagacad
+SETUVAR --export PYENV_ROOT:/Users/david/\x2epyenv
+SETUVAR __fish_classic_git_prompt_initialized:\x1d
+SETUVAR __fish_init_2_39_8:\x1d
+SETUVAR __fish_init_2_3_0:\x1d
+SETUVAR __fish_init_3_x:\x1d
+SETUVAR __fish_initialized:3400
+SETUVAR _fish_abbr_brewu:brew\x20update\x3b\x20brew\x20upgrade\x3b\x20brew\x20upgrade\x20\x2d\x2dcask\x3b
+SETUVAR _fish_abbr_cat:bat
+SETUVAR _fish_abbr_du:dust
+SETUVAR _fish_abbr_grep:rg
+SETUVAR _fish_abbr_lls:exa\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d5
+SETUVAR _fish_abbr_ls:exa
+SETUVAR _fish_abbr_npmu:nom\x20\x2dg\x20outdated\x3b\x20npm\x20update\x20\x2dg
+SETUVAR _fish_abbr_ping:prettyping\x20\x2d\x2dnolegend
+SETUVAR _fish_abbr_preview:fzf\x20\x2d\x2dpreview\x20\x27bat\x20\x2d\x2dcolor\x20\x22always\x22\x20\x7b\x7d\x27
+SETUVAR _fish_abbr_restartdock:rm\x20/var/folders/\x2a/\x2a/\x2a/com\x2eapple\x2edock\x2eiconcache\x3b\x20killall\x20Dock
+SETUVAR _fish_abbr_top:btm
+SETUVAR _fish_abbr_vi:nvim
+SETUVAR --export djensenius:\x1d
+SETUVAR fish_color_autosuggestion:BD93F9
+SETUVAR fish_color_cancel:\x2dr
+SETUVAR fish_color_command:F8F8F2
+SETUVAR fish_color_comment:eab700
+SETUVAR fish_color_cwd:green
+SETUVAR fish_color_cwd_root:red
+SETUVAR fish_color_end:50FA7B
+SETUVAR fish_color_error:FFB86C
+SETUVAR fish_color_escape:00a6b2
+SETUVAR fish_color_history_current:\x2d\x2dbold
+SETUVAR fish_color_host:normal
+SETUVAR fish_color_host_remote:yellow
+SETUVAR fish_color_match:\x2d\x2dbackground\x3dbrblue
+SETUVAR fish_color_normal:normal
+SETUVAR fish_color_operator:00a6b2
+SETUVAR fish_color_param:4271ae
+SETUVAR fish_color_quote:F1FA8C
+SETUVAR fish_color_redirection:8BE9FD
+SETUVAR fish_color_search_match:bryellow\x1e\x2d\x2dbackground\x3dbrblack
+SETUVAR fish_color_selection:white\x1e\x2d\x2dbold\x1e\x2d\x2dbackground\x3dbrblack
+SETUVAR fish_color_status:red
+SETUVAR fish_color_user:brgreen
+SETUVAR fish_color_valid_path:\x2d\x2dunderline
+SETUVAR fish_greeting:\U0001f41f\x20HELLO\x20I\x20AM\x20FISH\x20TERMINAL\x20\U0001f41f
+SETUVAR fish_key_bindings:fish_default_key_bindings
+SETUVAR fish_pager_color_completion:normal
+SETUVAR fish_pager_color_description:B3A06D\x1eyellow
+SETUVAR fish_pager_color_prefix:white\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
+SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
+SETUVAR fish_pager_color_selected_background:\x2dr
+SETUVAR --export fish_user_paths:/opt/homebrew/bin\x1e/Users/david/\x2epyenv/bin\x1e/Users/david/\x2elocal/bin\x1e/usr/local/opt/openssl\x401\x2e1/bin\x1e/Users/david/\x2ecargo/bin\x1e/usr/local/sbin\x1e/usr/local/opt/fzf/bin
