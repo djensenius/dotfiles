@@ -6,7 +6,6 @@
 fish_add_path /home/linuxbrew/.linuxbrew/bin
 fish_add_path /home/linuxbrew/.linuxbrew/sbin:
 if test -e /workspaces/.codespaces/shared/.env
-  posix_source /workspaces/.codespaces/shared/.env
 end
 starship init fish | source
 # status --is-interactive; and source (rbenv init -|psub)

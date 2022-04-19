@@ -9,4 +9,6 @@ if vim.g.ClipperLoaded == 1 then
   else
     vim.fn['clipper#set_invocation']('')
   end
+else
+  print("Whatever")
 end
