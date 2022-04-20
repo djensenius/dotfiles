@@ -1,4 +1,4 @@
-if vim.g.ClipperLoaded == 1 then
+if (vim.g.ClipperLoaded == 1 and not vim.fn.has('macunix')) then
   vim.g.ClipperAddress = '~/.clipper.sock'
   vim.g.ClipperPort = 0
 
@@ -9,6 +9,4 @@ if vim.g.ClipperLoaded == 1 then
   else
     vim.fn['clipper#set_invocation']('')
   end
-else
-  print("Whatever")
 end
