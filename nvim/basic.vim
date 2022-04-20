@@ -54,8 +54,8 @@ set updatetime=100
 
 " Encoding configuration
 " set encoding=utf-8
-set fileencoding=utf-8
-set fileencodings=utf-8,ucs-bom,chinese
+" set fileencoding=utf-8
+" set fileencodings=utf-8,ucs-bom,chinese
 set formatoptions+=mM
 set conceallevel=2 concealcursor=i
 
