@@ -11,5 +11,5 @@ starship init fish | source
 # set -g fish_user_paths "/usr/local/opt/ncurses/bin" $fish_user_paths
 status --is-interactive; and rbenv init - fish | source
 if test -e /workspaces/.codespaces/shared/.env
-  posix-source /workspaces/.condespaces/shared/.env
+  # posix-source /workspaces/.condespaces/shared/.env
 end
