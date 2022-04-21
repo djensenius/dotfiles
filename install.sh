@@ -12,8 +12,13 @@ function link_files() {
 }
 
 function install_homebrew() {
-    NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-    NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]
+    then
+      echo "Brew alread installed"
+    else
+      NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+      NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     sudo apt-get update
@@ -23,7 +28,7 @@ function install_homebrew() {
 
 function setup_software() {
     echo "/home/linuxbrew/.linuxbrew/bin/fish" | sudo tee -a /etc/shells
-    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish codespace
+    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish $USER
     /usr/bin/pip3 install neovim
     nvim --headless +PlugInstall +qa
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
