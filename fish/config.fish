@@ -9,7 +9,9 @@ starship init fish | source
 # status --is-interactive; and source (rbenv init -|psub)
 # set -g fish_user_paths "/usr/local/opt/openssl@1.1/bin" $fish_user_paths
 # set -g fish_user_paths "/usr/local/opt/ncurses/bin" $fish_user_paths
-status --is-interactive; and rbenv init - fish | source
+thefuck --alias | source
 if test -e /workspaces/.codespaces/shared/.env
   # posix-source /workspaces/.condespaces/shared/.env
+else
+  status --is-interactive; and rbenv init - fish | source
 end

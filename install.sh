@@ -21,6 +21,7 @@ function install_homebrew() {
     fi
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    sleep 10
     sudo apt-get update
     sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat -y
     brew bundle install --global
@@ -28,13 +29,13 @@ function install_homebrew() {
 
 function setup_software() {
     echo "/home/linuxbrew/.linuxbrew/bin/fish" | sudo tee -a /etc/shells
-    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish $USER
     /usr/bin/pip3 install neovim
     nvim --headless +PlugInstall +qa
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     cd ~/.vim/bundle/coq_nvim/
     python3 -m coq deps
+    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish $USER
 }
 
 echo '🔗 Linking files.';
