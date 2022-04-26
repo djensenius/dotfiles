@@ -4,6 +4,7 @@
 function link_files() {
         mkdir -p ~/.config
         ln -s $(pwd)/Brewfile.headless ~/.Brewfile
+        ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/tmux.conf ~/.tmux.conf
         ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/fish ~/.config/
@@ -23,8 +24,9 @@ function install_homebrew() {
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     sleep 10
     sudo apt-get update
-    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat -y
+    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm -y
     brew bundle install --global
+    npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
 }
 
 function setup_software() {
@@ -35,7 +37,13 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     cd ~/.vim/bundle/coq_nvim/
     python3 -m coq deps
-    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish $USER
+    if [ -d "/home/vscode" ]
+      sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish vscode
+    fi
+
+    if [-d "/home/codespace "]
+      sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish codespace
+    fi
 }
 
 echo '🔗 Linking files.';

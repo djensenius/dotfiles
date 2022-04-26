@@ -40,5 +40,8 @@
 	user = djensenius
 
 [credential]
-	helper = osxkeychain
+	helper = cache
+
+[url "https://github.com.]
+  insteadOf = git@github.com:
 
