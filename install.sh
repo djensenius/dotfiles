@@ -38,10 +38,12 @@ function setup_software() {
     cd ~/.vim/bundle/coq_nvim/
     python3 -m coq deps
     if [ -d "/home/vscode" ]
+    then
       sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish vscode
     fi
 
     if [-d "/home/codespace "]
+    then
       sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish codespace
     fi
 }
