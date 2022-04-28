@@ -3,6 +3,7 @@
 
 function link_files() {
         mkdir -p ~/.config
+        rm ~/.gitconfig
         ln -s $(pwd)/Brewfile.headless ~/.Brewfile
         ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/tmux.conf ~/.tmux.conf
