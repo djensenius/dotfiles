@@ -3,9 +3,7 @@
 
 function link_files() {
         mkdir -p ~/.config
-        rm ~/.gitconfig
         ln -s $(pwd)/Brewfile.headless ~/.Brewfile
-        ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/tmux.conf ~/.tmux.conf
         ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/fish ~/.config/
@@ -36,6 +34,8 @@ function setup_software() {
     nvim --headless +PlugInstall +qa
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+    rm ~/.gitconfig
+    ln -s $(pwd)/gitconfig ~/.gitconfig
     cd ~/.vim/bundle/coq_nvim/
     python3 -m coq deps
     if [ -d "/home/vscode" ]
