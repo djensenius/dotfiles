@@ -25,7 +25,7 @@ function install_homebrew() {
     sudo apt-get update
     sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev -y
     brew bundle install --global
-    npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
+    sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
     # From https://www.reddit.com/r/neovim/comments/pu43bb/neovim_lsp_with_solargraph_issues/
     sudo gem install solargraph
     solargraph download-core
