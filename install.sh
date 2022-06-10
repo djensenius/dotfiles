@@ -35,6 +35,8 @@ function setup_software() {
     echo "/home/linuxbrew/.linuxbrew/bin/fish" | sudo tee -a /etc/shells
     /usr/bin/pip3 install neovim
     nvim --headless +PlugInstall +qa
+    mkdir -p ~/.config/github-copilot
+    echo '{"djensenius":{"version":"2021-10-14"}}' > ~/.config/github-copilot/terms.json
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     rm ~/.gitconfig
