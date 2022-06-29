@@ -25,11 +25,11 @@ function install_homebrew() {
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sleep 5
     # sudo apt-get update
-    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev -y
+    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux  -y
     echo "Apt get installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     brew bundle install --global
-    echo "Bundle installed" >> ~/install.log
+    echo "Brew bundle installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
     echo "NPM installed" >> ~/install.log
