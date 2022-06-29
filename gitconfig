@@ -1,6 +1,5 @@
 [core]
     pager = delta
-    fsmonitor = true
 
 [interactive]
     diffFilter = delta --color-only

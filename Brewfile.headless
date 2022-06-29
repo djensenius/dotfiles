@@ -1,6 +1,0 @@
-brew "fd"
-brew "fish"
-brew "git"
-brew "git-delta"
-brew "neovim"
-brew "starship"
