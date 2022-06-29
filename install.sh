@@ -21,8 +21,8 @@ function install_homebrew() {
     fi
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    sleep 10
-    sudo apt-get update
+    sleep 5
+    # sudo apt-get update
     sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev -y
     brew bundle install --global
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
