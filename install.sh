@@ -12,37 +12,16 @@ function link_files() {
 }
 
 function install_software() {
-    # sudo apt-get update
-    # sudo add-apt-repository universe
-    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse fish git-extras software-properties-common -y
-    echo "Apt get installed" >> ~/install.log
-    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # sudo add-apt-repository ppa:git-core/ppa -y
-    # sudo apt-get update
-    # sudo apt-get updrade
-    # echo "Apt updated" >> ~/install.log
-    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
     sudo mv nvim.appimage /usr/bin/nvim
     sudo chmod a+x /usr/bin/nvim
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-    echo "Other software installed" >> ~/install.log
-    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
+    sleep 5
+    sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse fish git-extras software-properties-common -y
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
-    echo "NPM installed" >> ~/install.log
-    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # From https://www.reddit.com/r/neovim/comments/pu43bb/neovim_lsp_with_solargraph_issues/
-    # sudo gem install solargraph
-    # echo "Solargraph installed" >> ~/install.log
-    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # solargraph download-core
-    # echo "Solargraph core downloaded" >> ~/install.log
-    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 }
 
 function setup_software() {
-    # echo "/home/linuxbrew/.linuxbrew/bin/fish" | sudo tee -a /etc/shells
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
