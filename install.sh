@@ -35,7 +35,7 @@ function install_homebrew() {
     # echo "Apt updated" >> ~/install.log
     # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
-    sudo chmod +x ~/nvim.appimage
+    sudo chmod a+x ~/nvim.appimage
     sudo mv nvim.appimage /usr/bin/nvim
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     echo "Other software installed" >> ~/install.log
@@ -80,7 +80,7 @@ function setup_software() {
       sudo chsh -s /usr/bin/fish vscode
     fi
 
-    if [-d "/home/codespace "]
+    if [ -d "/home/codespace" ]
     then
       sudo chsh -s /usr/bin/fish codespace
     fi
