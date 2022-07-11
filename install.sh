@@ -11,19 +11,7 @@ function link_files() {
         ln -s $(pwd)/nvim ~/.config/
 }
 
-function install_homebrew() {
-    if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]
-    then
-      echo "Brew alread installed" >> ~/install.log
-    else
-      NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-      NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ${HOME}/.profile
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    # echo "Homebrew installed" >> ~/install.log
-    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    sleep 5
+function install_software() {
     # sudo apt-get update
     # sudo add-apt-repository universe
     sudo apt-get install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse fish git-extras software-properties-common -y
@@ -35,13 +23,11 @@ function install_homebrew() {
     # echo "Apt updated" >> ~/install.log
     # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
-    sudo chmod a+x ~/nvim.appimage
     sudo mv nvim.appimage /usr/bin/nvim
+    sudo chmod a+x /usr/bin/nvim
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     echo "Other software installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # brew bundle install --global
-    # echo "Brew bundle installed" >> ~/install.log
     # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
     echo "NPM installed" >> ~/install.log
@@ -91,7 +77,7 @@ echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 link_files
 echo '💽 Installing software' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-install_homebrew
+install_software
 echo '👩<200d>🔧 configure software' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 setup_software
