@@ -1,4 +1,5 @@
 add_newline = false
+command_timeout = 3000
 
 [cmd_duration]
 min_time = 500
