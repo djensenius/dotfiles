@@ -1,4 +1,5 @@
 local lspconfig = require 'lspconfig'
+require("nvim-lsp-installer").setup()
 -- require'navigator'.setup()
 require("trouble").setup {
   -- your configuration comes here

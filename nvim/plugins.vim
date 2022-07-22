@@ -40,6 +40,7 @@ Plug 'kyazdani42/nvim-tree.lua'
 Plug 'folke/trouble.nvim'
 Plug 'folke/lsp-colors.nvim'
 Plug 'norcalli/nvim-colorizer.lua'
+Plug 'williamboman/nvim-lsp-installer'
 Plug 'neovim/nvim-lspconfig'
 " Plug 'simrat39/rust-tools.nvim'
 Plug 'matze/rust-tools.nvim', { 'branch': 'fix-upstreamed-inlayhints' }

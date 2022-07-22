@@ -22,6 +22,7 @@ function install_software() {
 
 function setup_software() {
     /usr/bin/pip3 install neovim
+    sudo gem install sorbet
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     nvim --headless +PlugInstall +qa
