@@ -23,16 +23,11 @@ source $HOME/.config/nvim/plugins/start-screen.vim
 source $HOME/.config/nvim/lua/vim-ultest.vim
 source $HOME/.config/nvim/plugins/telescope.vim
 luafile $HOME/.config/nvim/lua/plug-colorizer.lua
-luafile $HOME/.config/nvim/lua/prettier.lua
 luafile $HOME/.config/nvim/lua/treesitter.lua
-" luafile $HOME/.config/nvim/lua/galaxyline.lua
 luafile $HOME/.config/nvim/lua/gitsigns.lua
 luafile $HOME/.config/nvim/lua/coq.lua
 luafile $HOME/.config/nvim/lua/lspconfig.lua
 luafile $HOME/.config/nvim/lua/tabline.lua
 luafile $HOME/.config/nvim/lua/whichkey.lua
-luafile $HOME/.config/nvim/lua/autoclose.lua
 luafile $HOME/.config/nvim/lua/nvim-tree.lua
-" luafile $HOME/.config/nvim/lua/weather.lua
 luafile $HOME/.config/nvim/lua/lualine.lua
-" luafile $HOME/.config/nvim/lua/vim-clipper.lua
