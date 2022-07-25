@@ -22,8 +22,7 @@ function install_software() {
 
 function setup_software() {
     /usr/bin/pip3 install neovim
-    sudo gem install sorbet
-    fish_add_path /workspaces/github/bin
+    set -U fish_user_paths $fish_user_paths /workspaces/github/bin
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     nvim --headless +PlugInstall +qa
