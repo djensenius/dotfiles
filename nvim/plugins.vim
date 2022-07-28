@@ -14,6 +14,7 @@ Plug 'junegunn/fzf.vim'                                         " 🌸 A command
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'supercollider/scvim', { 'branch': 'main' }                                      " Supercolldier
 Plug 'marko-cerovac/material.nvim', { 'branch': 'main' }
+Plug 'EdenEast/nightfox.nvim',
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
@@ -47,6 +48,7 @@ Plug 'github/copilot.vim', { 'branch': 'release' }
 Plug 'jose-elias-alvarez/typescript.nvim', { 'branch': 'main' }
 Plug 'machakann/vim-sandwich'
 Plug 'windwp/nvim-autopairs'
+Plug 'pwntester/octo.nvim'
 
 call plug#end()
 

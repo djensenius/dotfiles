@@ -60,7 +60,7 @@ set formatoptions+=mM
 set conceallevel=2 concealcursor=i
 
 " Highlight trailing whitespace
-highlight ExtraWhitespace ctermbg=red guibg=red
+" highlight ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
 autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
 autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
@@ -115,8 +115,8 @@ if !has('nvim')
 endif
 
 " highlight Normal guibg=black guifg=white
-highlight Normal guibg=black
-highlight SignColumn guibg=black
+" highlight Normal guibg=black
+" highlight SignColumn guibg=black
 
 " Load all plugins now.
 " Plugins need to be added to runtimepath before helptags can be generated.
