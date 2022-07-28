@@ -16,7 +16,7 @@ function install_software() {
     # sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
     # sudo mv nvim.appimage /usr/bin/nvim
     # sudo chmod a+x /usr/bin/nvim
-    brew bundle install --global --file $(pwd)/Brewfile.headless
+    brew bundle install --global
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common -y
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
