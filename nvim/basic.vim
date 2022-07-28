@@ -88,7 +88,10 @@ autocmd BufNewFile,BufRead,BufEnter **/macross/** setlocal ts=4 sw=4 sts=4 expan
 autocmd BufNewFile,BufRead,BufEnter **/macross-brain/** setlocal ts=4 sw=4 sts=4 expandtab
 autocmd BufNewFile,BufRead,BufEnter **/TLX/**.xml setlocal ts=4 sw=4 sts=0 expandtab filetype=javascript
 
-" Filetype colorschemes
+" Linting
+autocmd BufWritePost,BufRead,InsertLeave,TextChanged *.md lua require('lint').try_lint()
+autocmd BufWritePost,BufRead,InsertLeave,TextChanged *.txt lua require('lint').try_lint()
+autocmd BufWritePost,BufRead,InsertLeave,TextChanged *.rb lua require('lint').try_lint()
 
 " nvim
 if has('nvim')

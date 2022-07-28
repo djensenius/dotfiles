@@ -49,6 +49,7 @@ Plug 'jose-elias-alvarez/typescript.nvim', { 'branch': 'main' }
 Plug 'machakann/vim-sandwich'
 Plug 'windwp/nvim-autopairs'
 Plug 'pwntester/octo.nvim'
+Plug 'mfussenegger/nvim-lint'
 
 call plug#end()
 

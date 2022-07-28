@@ -9,14 +9,16 @@ function link_files() {
         ln -s $(pwd)/fish ~/.config/
         ln -s $(pwd)/starship.toml ~/.config/
         ln -s $(pwd)/nvim ~/.config/
+        ln -s $(pwd)/vale.ini ~/.vale.ini
 }
 
 function install_software() {
-    sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
-    sudo mv nvim.appimage /usr/bin/nvim
-    sudo chmod a+x /usr/bin/nvim
+    # sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
+    # sudo mv nvim.appimage /usr/bin/nvim
+    # sudo chmod a+x /usr/bin/nvim
+    brew bundle install --global --file $(pwd)/Brewfile.headless
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse fish git-extras software-properties-common -y
+    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common -y
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
 }
 
@@ -49,6 +51,7 @@ function setup_software() {
     then
       sudo chsh -s /usr/bin/fish codespace
     fi
+    vale sync
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
