@@ -1,11 +1,6 @@
 local lspconfig = require 'lspconfig'
-require("nvim-lsp-installer").setup()
 -- require'navigator'.setup()
-require("trouble").setup {
-  -- your configuration comes here
-  -- or leave it empty to use the default settings
-  -- refer to the configuration section below
-}
+require("trouble").setup()
 
 local extension_path = vim.env.HOME .. '/.vscode/extensions/vadimcn.vscode-lldb-1.7.0/'
 local codelldb_path = extension_path .. 'adapter/codelldb'

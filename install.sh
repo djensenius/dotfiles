@@ -13,19 +13,15 @@ function link_files() {
 }
 
 function install_software() {
-    # sudo curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage > ~/nvim.appimage
-    # sudo mv nvim.appimage /usr/bin/nvim
-    # sudo chmod a+x /usr/bin/nvim
-    export HOMEBREW_INSTALL_FROM_API=true
-    brew bundle install --global
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common -y
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
 }
 
 function setup_software() {
+    sudo add-shell /home/linuxbrew/.linuxbrew/bin/fish
+    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish vscode
     /usr/bin/pip3 install neovim
-    set -U fish_user_paths $fish_user_paths /workspaces/github/bin
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     nvim --headless +PlugInstall +qa
@@ -43,16 +39,6 @@ function setup_software() {
     python3 -m coq deps
     echo "Python coq deps finished" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # if [ -d "/home/vscode" ]
-    # then
-    #  sudo chsh -s /usr/bin/fish vscode
-    #fi
-
-    #if [ -d "/home/codespace" ]
-    #then
-    #  sudo chsh -s /usr/bin/fish codespace
-    #fi
-    #vale sync
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
