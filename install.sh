@@ -43,16 +43,16 @@ function setup_software() {
     python3 -m coq deps
     echo "Python coq deps finished" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    if [ -d "/home/vscode" ]
-    then
-      sudo chsh -s /usr/bin/fish vscode
-    fi
+    # if [ -d "/home/vscode" ]
+    # then
+    #  sudo chsh -s /usr/bin/fish vscode
+    #fi
 
-    if [ -d "/home/codespace" ]
-    then
-      sudo chsh -s /usr/bin/fish codespace
-    fi
-    vale sync
+    #if [ -d "/home/codespace" ]
+    #then
+    #  sudo chsh -s /usr/bin/fish codespace
+    #fi
+    #vale sync
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
