@@ -1,5 +1,2 @@
-brew "fish"
-brew "git"
 brew "vale"
-brew "neovim"
 brew "git-delta"
