@@ -39,13 +39,13 @@ Plug 'ray-x/guihua.lua', {'do': 'cd lua/fzy && make' }
 Plug 'ray-x/navigator.lua'
 Plug 'alvarosevilla95/luatab.nvim'
 Plug 'folke/which-key.nvim'
-Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
-Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
-Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
+" Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
+" Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
+" Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'wincent/vim-clipper', { 'branch': 'main'}
 Plug 'github/copilot.vim', { 'branch': 'release' }
-Plug 'jose-elias-alvarez/typescript.nvim', { 'branch': 'main' }
+" Plug 'jose-elias-alvarez/typescript.nvim', { 'branch': 'main' }
 Plug 'machakann/vim-sandwich'
 Plug 'windwp/nvim-autopairs'
 Plug 'pwntester/octo.nvim'
