@@ -6,35 +6,35 @@ local extension_path = vim.env.HOME .. '/.vscode/extensions/vadimcn.vscode-lldb-
 local codelldb_path = extension_path .. 'adapter/codelldb'
 local liblldb_path = extension_path .. 'lldb/lib/liblldb.so'
 
-local rust_opts = {
+-- local rust_opts = {
     -- ... other configs
-    dap = {
-        adapter = require('rust-tools.dap').get_codelldb_adapter(
-            codelldb_path, liblldb_path)
-    },
-    server = {
-        settings = {
-            -- https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/user/generated_config.adoc
-            ["rust-analyzer"] = {
-                checkOnSave = {
-                    command = "clippy",
-                    allFeatures = true,
-                },
-            }
-        }
-    },
-}
+--    dap = {
+--        adapter = require('rust-tools.dap').get_codelldb_adapter(
+--            codelldb_path, liblldb_path)
+--    },
+--    server = {
+--        settings = {
+--            -- https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/user/generated_config.adoc
+--            ["rust-analyzer"] = {
+--                checkOnSave = {
+--                     command = "clippy",
+--                    allFeatures = true,
+--                },
+--            }
+--        }
+--    },
+ --}
 
 
-require('rust-tools').setup(rust_opts)
+-- require('rust-tools').setup(rust_opts)
 -- set inlay hints
-require('rust-tools.inlay_hints').set_inlay_hints()
+-- require('rust-tools.inlay_hints').set_inlay_hints()
 -- disable inlay hints
-require('rust-tools.inlay_hints').disable_inlay_hints()
+-- require('rust-tools.inlay_hints').disable_inlay_hints()
 -- toggle inlay hints
-require('rust-tools.inlay_hints').toggle_inlay_hints()
+-- require('rust-tools.inlay_hints').toggle_inlay_hints()
 -- RustRunnables
-require('rust-tools.runnables').runnables()
+-- require('rust-tools.runnables').runnables()
 
 -- Use enhanced LSP stuff
 vim.lsp.handlers['textDocument/codeAction'] =
@@ -61,7 +61,7 @@ vim.diagnostic.config {
   virtual_text = true
 }
 
-vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
+-- vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
 -- vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.diagnostic.show_line_diagnostics()]]
 -- local signs = { Error = " ", Warning = " ", Hint = " ", Information = " " }
 
@@ -109,17 +109,15 @@ local on_attach = function(client, bufnr)
     end
 end
 
-local coq = require "coq"
-require("typescript").setup({
-    disable_commands = false, -- prevent the plugin from creating Vim commands
-    debug = false, -- enable debug logging for commands
-    server = { -- pass options to lspconfig's setup method
-        on_attach = on_attach,
-    },
-})
+-- local coq = require "coq"
+-- require("typescript").setup({on_attach = on_attach})
+require('lspconfig')['tsserver'].setup{
+    on_attach = on_attach,
+    flags = lsp_flags,
+}
 
 local util = require 'lspconfig/util'
 
 -- lspconfig.rust_analyzer.setup(coq.lsp_ensure_capabilities({ on_attach=on_attach }))
 
-lspconfig.eslint.setup(coq.lsp_ensure_capabilities({ on_attach=on_attach }))
+require('lspconfig')['eslint'].setup({ on_attach=on_attach })

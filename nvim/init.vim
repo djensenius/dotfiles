@@ -25,7 +25,7 @@ source $HOME/.config/nvim/plugins/telescope.vim
 luafile $HOME/.config/nvim/lua/plug-colorizer.lua
 luafile $HOME/.config/nvim/lua/treesitter.lua
 luafile $HOME/.config/nvim/lua/gitsigns.lua
-luafile $HOME/.config/nvim/lua/coq.lua
+" luafile $HOME/.config/nvim/lua/coq.lua
 luafile $HOME/.config/nvim/lua/lspconfig.lua
 luafile $HOME/.config/nvim/lua/tabline.lua
 luafile $HOME/.config/nvim/lua/whichkey.lua
