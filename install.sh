@@ -14,18 +14,14 @@ function link_files() {
 
 function install_software() {
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common -y
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
+    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat npm ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common -y
 }
 
 function setup_software() {
-    sudo add-shell /home/linuxbrew/.linuxbrew/bin/fish
-    sudo chsh -s /home/linuxbrew/.linuxbrew/bin/fish vscode
+    sudo chsh -s /usr/bin/fish vscode
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
-    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    nvim --headless +PlugInstall +qa
-    echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     mkdir -p ~/.config/github-copilot
     echo '{"djensenius":{"version":"2021-10-14"}}' > ~/.config/github-copilot/terms.json
@@ -35,10 +31,13 @@ function setup_software() {
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     rm ~/.gitconfig
     ln -s $(pwd)/gitconfig ~/.gitconfig
-    cd ~/.vim/bundle/coq_nvim/
-    python3 -m coq deps
-    echo "Python coq deps finished" >> ~/install.log
+    nvim --headless +PlugInstall +qa
+    echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
+    # cd ~/.vim/bundle/coq_nvim/
+    # python3 -m coq deps
+    # echo "Python coq deps finished" >> ~/install.log
+    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
