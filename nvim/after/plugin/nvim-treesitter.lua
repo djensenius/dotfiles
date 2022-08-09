@@ -1,4 +1,4 @@
-require('nvim-treesitter.configs').setup({
+require'nvim-treesitter.configs'.setup({
 	ensure_installed = { "rust", "go", "lua", "bash", "css", "dockerfile", "fish", "graphql", "html", "javascript", "jsdoc", "json", "python", "ruby", "scss", "typescript", "vim", "supercollider"},
 
 	highlight = {
