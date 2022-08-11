@@ -116,6 +116,16 @@ require('lspconfig')['tsserver'].setup{
     flags = lsp_flags,
 }
 
+require('lspconfig')['sorbet'].setup{
+    on_attach = on_attach,
+    flags = lsp_flags,
+}
+
+require('lspconfig')['solargraph'].setup{
+    on_attach = on_attach,
+    flags = lsp_flags,
+}
+
 local util = require 'lspconfig/util'
 
 -- lspconfig.rust_analyzer.setup(coq.lsp_ensure_capabilities({ on_attach=on_attach }))
