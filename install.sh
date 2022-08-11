@@ -10,6 +10,7 @@ function link_files() {
         ln -s $(pwd)/starship.toml ~/.config/
         ln -s $(pwd)/nvim ~/.config/
         ln -s $(pwd)/vale.ini ~/.vale.ini
+        sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
 }
 
 function install_software() {

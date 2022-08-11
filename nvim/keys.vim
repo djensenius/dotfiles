@@ -72,7 +72,9 @@ command! InsertTime :normal a<c-r>=strftime('%F %H:%M:%S')<cr>
 command! InsertDate :normal a<c-r>=strftime('%F')<cr>
 
 " System clipboard copy/paste
-set clipboard=unnamedplus
+if has('macunix')
+  set clipboard=unnamedplus
+endif
 vmap <Leader>y "+y
 vmap <Leader>d "+d
 nmap <Leader>p "+p
@@ -92,3 +94,7 @@ map <leader>- :split<cr>
 " map <leader>ss :SClangStart
 
 map <F1> :NvimTreeToggle<CR>
+
+let g:oscyank_term = 'default'
+autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankReg "' | endif
+autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '+' | execute 'OSCYankReg +' | endif
