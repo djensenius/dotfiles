@@ -10,8 +10,6 @@ Plug 'benmills/vimux'                                           " Vim plugin to 
 Plug 'danro/rename.vim'                                         " Rename the current file in the vim buffer + retain relative path.
 Plug 'tpope/vim-endwise'                                        " wisely add 'end' in ruby, endfunction/endif/more in vim script, etc
 Plug 'tpope/vim-repeat'							                            " repeat.vim: enable repeating supported plugin maps with '.'
-Plug 'junegunn/fzf.vim'                                         " 🌸 A command-line fuzzy finder written in Go
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'supercollider/scvim', { 'branch': 'main' }                                      " Supercolldier
 Plug 'marko-cerovac/material.nvim', { 'branch': 'main' }
 Plug 'EdenEast/nightfox.nvim',
@@ -28,6 +26,7 @@ Plug 'simrat39/rust-tools.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'mhinz/vim-startify'
 Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
 Plug 'antoinemadec/FixCursorHold.nvim'

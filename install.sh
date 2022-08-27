@@ -5,6 +5,7 @@ function link_files() {
         mkdir -p ~/.config
         ln -s $(pwd)/Brewfile.headless ~/.Brewfile
         ln -s $(pwd)/tmux.conf ~/.tmux.conf
+        rm ~/.gitconfig
         ln -s $(pwd)/gitconfig ~/.gitconfig
         ln -s $(pwd)/fish ~/.config/
         ln -s $(pwd)/starship.toml ~/.config/
@@ -38,8 +39,7 @@ function setup_software() {
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     # rm ~/.gitconfig
     # ln -s $(pwd)/gitconfig ~/.gitconfig
-    nvim --headless +PlugInstall +qa &> /dev/null
-    sleep 5
+    /home/linuxbrew/.linuxbrew/bin/nvim --headless +PlugInstall +qa &> /dev/null
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     # cd ~/.vim/bundle/coq_nvim/
