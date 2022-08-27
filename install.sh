@@ -19,7 +19,7 @@ function install_software() {
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
     sudo apt-get install -y nodejs
-    curl https://github.com/dandavison/delta/releases/download/0.13.0/git-delta_0.13.0_amd64.deb > ~/git-delta.deb
+    curl https://github.com/dandavison/delta/releases/download/0.13.0/git-delta_0.13.0_amd64.deb > ~/git-delta_0.13.0_amd64.deb
     sudo dpkg -i ~/git-delta_0.13.0_amd64.deb
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
     sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common -y
@@ -36,9 +36,9 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    rm ~/.gitconfig
-    ln -s $(pwd)/gitconfig ~/.gitconfig
-    nvim --headless +PlugInstall +qa
+    # rm ~/.gitconfig
+    # ln -s $(pwd)/gitconfig ~/.gitconfig
+    nvim --headless +PlugInstall +qa &> /dev/null
     sleep 5
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
