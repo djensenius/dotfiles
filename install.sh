@@ -21,8 +21,8 @@ function install_software() {
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
     sudo apt-get install -y nodejs
-    curl -L https://github.com/dandavison/delta/releases/download/0.13.0/git-delta_0.13.0_amd64.deb > ~/git-delta_0.13.0_amd64.deb
-    sudo dpkg -i ~/git-delta_0.13.0_amd64.deb
+    curl -L https://github.com/dandavison/delta/releases/download/0.14.0/git-delta_0.14.0_amd64.deb > ~/git-delta_0.14.0_amd64.deb
+    sudo dpkg -i ~/git-delta_0.14.0_amd64.deb
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
 }
 
