@@ -13,6 +13,7 @@ Plug 'tpope/vim-repeat'							                            " repeat.vim: enable r
 Plug 'supercollider/scvim', { 'branch': 'main' }                                      " Supercolldier
 Plug 'marko-cerovac/material.nvim', { 'branch': 'main' }
 Plug 'EdenEast/nightfox.nvim',
+Plug 'catppuccin/nvim', {'as': 'catppuccin'}
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'lewis6991/gitsigns.nvim' , {'branch': 'main'}
 Plug 'kyazdani42/nvim-web-devicons' " Recommended (for coloured icons)
