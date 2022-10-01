@@ -3,4 +3,5 @@ nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
 nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
 nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 lua require('telescope').load_extension('fzf')
-
+lua vim.g.copilot_filetypes = vim.g.copilot_filetypes or {}
+lua vim.g.copilot_filetypes["TelescopeResults"] = false
