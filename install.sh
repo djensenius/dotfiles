@@ -13,6 +13,7 @@ function link_files() {
         ln -s $(pwd)/vale.ini ~/.vale.ini
         sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
         sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
+        sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
         sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
 }
 
