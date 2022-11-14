@@ -46,6 +46,7 @@ Plug 'windwp/nvim-autopairs'
 Plug 'pwntester/octo.nvim'
 Plug 'mfussenegger/nvim-lint'
 Plug 'ojroques/vim-oscyank', { 'branch': 'main' }
+Plug 'tpope/vim-obsession'
 
 call plug#end()
 

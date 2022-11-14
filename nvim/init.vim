@@ -22,3 +22,4 @@ source $HOME/.config/nvim/plugins/indent-guides.vim
 source $HOME/.config/nvim/plugins/start-screen.vim
 source $HOME/.config/nvim/lua/vim-ultest.vim
 source $HOME/.config/nvim/plugins/telescope.vim
+source $HOME/.config/nvim/plugins/obsession.vim

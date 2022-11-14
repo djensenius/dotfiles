@@ -7,6 +7,7 @@ function link_files() {
         ln -s $(pwd)/tmux.conf ~/.tmux.conf
         rm ~/.gitconfig
         ln -s $(pwd)/gitconfig ~/.gitconfig
+        ln -s $(pwd)/gitignore_local ~/.gitignore_local
         ln -s $(pwd)/fish ~/.config/
         ln -s $(pwd)/starship.toml ~/.config/
         ln -s $(pwd)/nvim ~/.config/
