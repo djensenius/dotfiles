@@ -2,20 +2,21 @@
 # GitHub codespaces setup.
 
 function link_files() {
-        mkdir -p ~/.config
-        ln -s $(pwd)/Brewfile.headless ~/.Brewfile
-        ln -s $(pwd)/tmux.conf ~/.tmux.conf
-        rm ~/.gitconfig
-        ln -s $(pwd)/gitconfig ~/.gitconfig
-        ln -s $(pwd)/gitignore_local ~/.gitignore_local
-        ln -s $(pwd)/fish ~/.config/
-        ln -s $(pwd)/starship.toml ~/.config/
-        ln -s $(pwd)/nvim ~/.config/
-        ln -s $(pwd)/vale.ini ~/.vale.ini
-        sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
-        sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
-        sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
-        sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
+    mkdir -p ~/.config
+    ln -s $(pwd)/Brewfile.headless ~/.Brewfile
+    ln -s $(pwd)/tmux.conf ~/.tmux.conf
+    rm ~/.gitconfig
+    ln -s $(pwd)/gitconfig ~/.gitconfig
+    ln -s $(pwd)/gitignore_local ~/.gitignore_local
+    ln -s $(pwd)/fish ~/.config/
+    ln -s $(pwd)/starship.toml ~/.config/
+    ln -s $(pwd)/nvim ~/.config/
+    ln -s $(pwd)/vale.ini ~/.vale.ini
+    sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
+    sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
+    sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
+    sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
+    sudo ln -s /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
 }
 
 function install_software() {
@@ -40,15 +41,9 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # rm ~/.gitconfig
-    # ln -s $(pwd)/gitconfig ~/.gitconfig
     /home/linuxbrew/.linuxbrew/bin/nvim --headless +PlugInstall +qa &> /dev/null
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    # cd ~/.vim/bundle/coq_nvim/
-    # python3 -m coq deps
-    # echo "Python coq deps finished" >> ~/install.log
-    # echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
