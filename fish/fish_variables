@@ -7,6 +7,7 @@ SETUVAR --export FIREFOX_DEVELOPER_BIN:/Applications/Firefox\x20Developer\x20Edi
 SETUVAR --export ITERM_PROFILE:Light
 SETUVAR --export LSCOLORS:Exfxcxdxbxegedabagacad
 SETUVAR --export PYENV_ROOT:/Users/david/\x2epyenv
+SETUVAR --export BAT_THEME:Catppuccin\x2dmocha
 SETUVAR __fish_classic_git_prompt_initialized:\x1d
 SETUVAR __fish_init_2_39_8:\x1d
 SETUVAR __fish_init_2_3_0:\x1d
@@ -16,7 +17,8 @@ SETUVAR _fish_abbr_brewu:brew\x20update\x3b\x20brew\x20upgrade\x3b\x20brew\x20up
 SETUVAR _fish_abbr_cat:bat
 SETUVAR _fish_abbr_du:dust
 SETUVAR _fish_abbr_grep:rg
-SETUVAR _fish_abbr_lls:exa\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d5
+SETUVAR _fish_abbr_tree:exa\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d2\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
+SETUVAR _fish_abbr_lls:exa\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
 SETUVAR _fish_abbr_ls:exa\x20\x2d\x2dicons
 SETUVAR _fish_abbr_npmu:npm\x20\x2dg\x20outdated\x3b\x20npm\x20update\x20\x2dg
 SETUVAR _fish_abbr_ping:gping
