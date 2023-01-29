@@ -7,7 +7,6 @@ SETUVAR --export FIREFOX_DEVELOPER_BIN:/Applications/Firefox\x20Developer\x20Edi
 SETUVAR --export ITERM_PROFILE:Light
 SETUVAR --export LSCOLORS:Exfxcxdxbxegedabagacad
 SETUVAR --export PYENV_ROOT:/Users/david/\x2epyenv
-SETUVAR --export BAT_THEME:Catppuccin\x2dmocha
 SETUVAR __fish_classic_git_prompt_initialized:\x1d
 SETUVAR __fish_init_2_39_8:\x1d
 SETUVAR __fish_init_2_3_0:\x1d
