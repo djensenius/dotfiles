@@ -11,6 +11,7 @@ function link_files() {
     ln -s $(pwd)/fish ~/.config/
     ln -s $(pwd)/starship.toml ~/.config/
     ln -s $(pwd)/nvim ~/.config/
+    ln -s $(pwd)/bat ~/.config/
     ln -s $(pwd)/vale.ini ~/.vale.ini
     sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
     sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
@@ -35,8 +36,6 @@ function setup_software() {
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    mkdir -p ~/.config/github-copilot
-    echo '{"djensenius":{"version":"2021-10-14"}}' > ~/.config/github-copilot/terms.json
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
