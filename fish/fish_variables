@@ -14,20 +14,20 @@ SETUVAR __fish_init_3_x:\x1d
 SETUVAR __fish_initialized:3400
 SETUVAR _fish_abbr_brewu:brew\x20update\x3b\x20brew\x20upgrade\x3b\x20brew\x20upgrade\x20\x2d\x2dcask\x3b
 SETUVAR _fish_abbr_cat:bat
+SETUVAR _fish_abbr_cd:z
 SETUVAR _fish_abbr_du:dust
 SETUVAR _fish_abbr_grep:rg
-SETUVAR _fish_abbr_tree:exa\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d2\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
 SETUVAR _fish_abbr_lls:exa\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
 SETUVAR _fish_abbr_ls:exa\x20\x2d\x2dicons
+SETUVAR _fish_abbr_more:most
 SETUVAR _fish_abbr_npmu:npm\x20\x2dg\x20outdated\x3b\x20npm\x20update\x20\x2dg
 SETUVAR _fish_abbr_ping:gping
-SETUVAR _fish_abbr_more:most
-SETUVAR _fish_abbr_cd:z
-SETUVAR _fish_abbr_weather:curl\x20https://wttr.in
 SETUVAR _fish_abbr_preview:fzf\x20\x2d\x2dpreview\x20\x27bat\x20\x2d\x2dcolor\x20\x22always\x22\x20\x7b\x7d\x27
 SETUVAR _fish_abbr_restartdock:rm\x20/var/folders/\x2a/\x2a/\x2a/com\x2eapple\x2edock\x2eiconcache\x3b\x20killall\x20Dock
 SETUVAR _fish_abbr_top:btm
+SETUVAR _fish_abbr_tree:exa\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d2\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
 SETUVAR _fish_abbr_vi:nvim
+SETUVAR _fish_abbr_weather:curl\x20https\x3a//wttr\x2ein
 SETUVAR --export djensenius:\x1d
 SETUVAR fish_color_autosuggestion:BD93F9
 SETUVAR fish_color_cancel:\x2dr
@@ -59,4 +59,4 @@ SETUVAR fish_pager_color_description:B3A06D\x1eyellow
 SETUVAR fish_pager_color_prefix:white\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
 SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
 SETUVAR fish_pager_color_selected_background:\x2dr
-SETUVAR --export fish_user_paths:/opt/homebrew/opt/node\x4016/bin\x1e/home/linuxbrew/\x2elinuxbrew/bin\x1e/opt/homebrew/bin\x1e/Users/david/\x2epyenv/bin\x1e/Users/david/\x2elocal/bin\x1e/usr/local/opt/openssl\x401\x2e1/bin\x1e/Users/david/\x2ecargo/bin\x1e/usr/local/sbin\x1e/usr/local/opt/fzf/bin
+SETUVAR --export fish_user_paths:/opt/homebrew/opt/node\x4018/bin\x1e/opt/homebrew/opt/node\x4016/bin\x1e/home/linuxbrew/\x2elinuxbrew/bin\x1e/opt/homebrew/bin\x1e/Users/david/\x2epyenv/bin\x1e/Users/david/\x2elocal/bin\x1e/usr/local/opt/openssl\x401\x2e1/bin\x1e/Users/david/\x2ecargo/bin\x1e/usr/local/sbin\x1e/usr/local/opt/fzf/bin
