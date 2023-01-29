@@ -17,7 +17,7 @@ SETUVAR _fish_abbr_cat:bat
 SETUVAR _fish_abbr_du:dust
 SETUVAR _fish_abbr_grep:rg
 SETUVAR _fish_abbr_lls:exa\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d5
-SETUVAR _fish_abbr_ls:exa
+SETUVAR _fish_abbr_ls:exa\x20\x2d\x2dicons
 SETUVAR _fish_abbr_npmu:npm\x20\x2dg\x20outdated\x3b\x20npm\x20update\x20\x2dg
 SETUVAR _fish_abbr_ping:gping
 SETUVAR _fish_abbr_more:most
