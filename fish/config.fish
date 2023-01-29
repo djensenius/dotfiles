@@ -11,7 +11,12 @@ starship init fish | source
 # set -g fish_user_paths "/usr/local/opt/openssl@1.1/bin" $fish_user_paths
 # set -g fish_user_paths "/usr/local/opt/ncurses/bin" $fish_user_paths
 thefuck --alias | source
-eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+if test -e /home/linuxbrew
+  eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+end
+
+zoxide init fish | source
+
 if test -e /workspaces/.codespaces/shared/.env
   # posix-source /workspaces/.condespaces/shared/.env
 else
