@@ -13,11 +13,13 @@ function link_files() {
     ln -s $(pwd)/nvim ~/.config/
     ln -s $(pwd)/bat ~/.config/
     ln -s $(pwd)/vale.ini ~/.vale.ini
-    sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
-    sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
-    sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
-    sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
-    sudo ln -s /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
+    if [ -d ~/workspaces/github ]; then
+      sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
+      sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
+      sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
+      sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
+      sudo ln -s /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
+    fi
 }
 
 function install_software() {
@@ -29,6 +31,15 @@ function install_software() {
     curl -L https://github.com/dandavison/delta/releases/download/0.15.1/git-delta-musl_0.15.1_amd64.deb > ~/git-delta-musl_0.15.1_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.15.1_amd64.deb
     sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
+}
+
+function setup_generic() {
+  sudo apt-get install build-essential
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  rm -rf "/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/homebrew/homebrew-core"
+  brew tap homebrew/core
+  brew install gcc fish neovim
 }
 
 function setup_software() {
@@ -48,6 +59,11 @@ function setup_software() {
 echo '🔗 Linking files.' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 link_files
+if [ ! -d ~/home/linuxbrew ]; then
+    echo '🍺 Installing brew software' >> ~/install.log;
+    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
+    setup_generic
+fi
 echo '💽 Installing software' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 install_software
