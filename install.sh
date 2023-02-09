@@ -59,7 +59,7 @@ function setup_software() {
 echo '🔗 Linking files.' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 link_files
-if [ ! -d ~/home/linuxbrew ]; then
+if [ ! -d /home/linuxbrew ]; then
     echo '🍺 Installing brew software' >> ~/install.log;
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     setup_generic
