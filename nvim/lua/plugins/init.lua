@@ -1,7 +1,32 @@
 return {
   { "catppuccin/nvim", name = "catppuccin" },
   { "folke/trouble.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
-  { "kyazdani42/nvim-tree.lua", dependencies = { "nvim-tree/nvim-web-devicons" } },
+  {
+    "rcarriga/nvim-notify",
+    event = "VeryLazy",
+    config = function()
+      require("notify").setup {
+        stages = 'fade_in_slide_out',
+        background_colour = 'FloatShadow',
+        timeout = 3000,
+      }
+      vim.notify = require('notify')
+    end,
+  },
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    dependencies = { 
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "MunifTanjim/nui.nvim",
+    },
+    keys = {
+      { "<F1>", "<cmd>Neotree toggle<cr>", desc = "NeoTree" },
+     },
+     config = function()
+       require("neo-tree").setup()
+    end,
+  },
   { "RishabhRD/nvim-lsputils", dependencies = { "RishabhRD/popfix" } },
   { "onsails/lspkind-nvim" },
   {
@@ -12,7 +37,6 @@ return {
       local gs = package.loaded.gitsigns
     end,
   },
-  { "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
   { "alvarosevilla95/luatab.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
   { "windwp/nvim-autopairs" },
   { "norcalli/nvim-colorizer.lua" },
@@ -58,17 +82,21 @@ return {
     },
   },
   { "folke/which-key.nvim" },
-  {
-    "benmills/vimux",
-    config = function()
-      vim.cmd("source $HOME/.config/nvim/plugins/vimux.vim")
-    end,
-  },
   { "danro/rename.vim" },
   { "tpope/vim-endwise" },
   { "tpope/vim-repeat" },
   { "supercollider/scvim" },
-  { "lukas-reineke/indent-blankline.nvim" },
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    event = { "BufReadPost", "BufNewFile" },
+    opts = {
+      -- char = "▏",
+      char = "│",
+      filetype_exclude = { "help", "alpha", "dashboard", "neo-tree", "Trouble", "lazy" },
+      show_trailing_blankline_indent = false,
+      show_current_context = false,
+    },
+  },
   { "folke/lsp-colors.nvim" },
   { "williamboman/mason.nvim" },
   { "simrat39/rust-tools.nvim", dependencies = { "neovim/nvim-lspconfig" } },

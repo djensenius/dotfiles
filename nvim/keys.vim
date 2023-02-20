@@ -93,8 +93,6 @@ map <leader>- :split<cr>
 " SuperCollider
 " map <leader>ss :SClangStart
 
-map <F1> :NvimTreeToggle<CR>
-
 let g:oscyank_term = 'default'
 autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankReg "' | endif
 autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '+' | execute 'OSCYankReg +' | endif
