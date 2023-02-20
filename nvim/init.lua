@@ -1,3 +1,4 @@
+vim.opt.termguicolors = true
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -13,7 +14,6 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader=","
 require("lazy").setup("plugins")
 vim.opt.shell = '/bin/zsh'
-vim.opt.termguicolors = true
 vim.cmd('source $HOME/.config/nvim/theme.vim')
 vim.cmd('source $HOME/.config/nvim/basic.vim')
 vim.cmd('source $HOME/.config/nvim/keys.vim')
