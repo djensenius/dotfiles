@@ -1,12 +1,7 @@
 return {
   { "RishabhRD/nvim-lsputils", dependencies = { "RishabhRD/popfix" } },
   { "onsails/lspkind-nvim" },
-  { "alvarosevilla95/luatab.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
-  { "windwp/nvim-autopairs" },
-  { "norcalli/nvim-colorizer.lua" },
-  { "mfussenegger/nvim-lint" },
   { "neovim/nvim-lspconfig" },
-  { "folke/which-key.nvim" },
   { "danro/rename.vim" },
   { "tpope/vim-endwise" },
   { "tpope/vim-repeat" },
@@ -18,6 +13,6 @@ return {
   { "ray-x/guihua.lua", build = "cd lua/fzy && make" },
   { "ray-x/navigator.lua" },
   { "github/copilot.vim" },
-  { "machakann/vim-sandwich" },
+  { "machakann/vim-sandwich", event = { "BufReadPost", "BufNewFile" }},
   { "ojroques/vim-oscyank" },
 }
