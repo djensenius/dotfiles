@@ -7,7 +7,6 @@ return {
       config = function()
         require("mason").setup()
         local tools = {
-          "rubocop",
           "css-lsp",
           "dockerfile-language-server",
           "eslint-lsp",
@@ -30,7 +29,6 @@ return {
           "typescript-language-server",
           "yaml-language-server",
           "solargraph",
-          "sorbet",
           "ruby-lsp",
         }
         local function check()
