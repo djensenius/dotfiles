@@ -1,16 +1,6 @@
-# set -Ux PYENV_ROOT $HOME/.pyenv
-# set -U fish_user_paths $PYENV_ROOT/bin $fish_user_paths
-# source $HOME/.cargo/env
-# set -g fish_user_paths "/usr/local/sbin" $fish_user_paths
-# set -g fish_user_paths "$HOME/.cargo/bin" $fish_user_paths
-# fish_add_path /home/linuxbrew/.linuxbrew/bin
-# fish_add_path /home/linuxbrew/.linuxbrew/sbin
-# fish_add_path /workspaces/github/bin
 starship init fish | source
-# status --is-interactive; and source (rbenv init -|psub)
-# set -g fish_user_paths "/usr/local/opt/openssl@1.1/bin" $fish_user_paths
-# set -g fish_user_paths "/usr/local/opt/ncurses/bin" $fish_user_paths
 thefuck --alias | source
+abbr --add 'monolith' 'gh cs create -R github/github -m xLargePremiumLinux  --devcontainer-path .devcontainer/devcontainer.json --status'
 if test -e /home/linuxbrew
   eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
