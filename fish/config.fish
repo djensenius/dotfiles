@@ -1,6 +1,7 @@
 starship init fish | source
 thefuck --alias | source
 abbr --add 'monolith' 'gh cs create -R github/github -m xLargePremiumLinux  --devcontainer-path .devcontainer/devcontainer.json --status'
+abbr --add 'youtub-dl' 'yt-dlp'
 if test -e /home/linuxbrew
   eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end

@@ -80,6 +80,8 @@ autocmd BufNewFile,BufRead *.less set filetype=css
 autocmd BufNewFile,BufRead *.mkd, *md set ai formatoptions=tcroqn2 comments=n:>
 autocmd BufNewFile,BufRead *.babel set filetype=javascript
 autocmd BufNewFile,BufRead **/TLX/**.xml set filetype=javascript
+autocmd BufNewFile,BufRead *.sc set filetype=supercollider
+autocmd BufNewFile,BufRead *.scd set filetype=supercollider
 autocmd Filetype gitcommit setlocal textwidth=72
 autocmd FileType c setlocal tabstop=8 shiftwidth=4 softtabstop=4
 autocmd FileType elm set ai ts=4 sw=4 sts=4 et

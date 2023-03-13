@@ -5,7 +5,6 @@ return {
   { "danro/rename.vim" },
   { "tpope/vim-endwise" },
   { "tpope/vim-repeat" },
-  { "supercollider/scvim" },
   { "folke/lsp-colors.nvim" },
   { "nvim-lua/plenary.nvim" },
   { "antoinemadec/FixCursorHold.nvim" },

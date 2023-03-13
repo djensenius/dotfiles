@@ -13,7 +13,6 @@ end
 return {
   "ojroques/vim-oscyank",
   init = function()
-    vim.g.oscyank_term = 'default'
     vim.g.oscyank_trim = 0
   end,
   config = function()
