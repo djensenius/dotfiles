@@ -13,4 +13,5 @@ return {
   { "ray-x/navigator.lua" },
   { "github/copilot.vim" },
   { "machakann/vim-sandwich", event = { "BufReadPost", "BufNewFile" }},
+  { "lukoshkin/trailing-whitespace", event = { "BufReadPost", "BufNewFile" }},
 }

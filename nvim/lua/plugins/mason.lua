@@ -28,7 +28,6 @@ return {
           "tailwindcss-language-server",
           "typescript-language-server",
           "yaml-language-server",
-          "solargraph",
           "ruby-lsp",
         }
         local function check()

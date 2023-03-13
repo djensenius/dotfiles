@@ -14,7 +14,6 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader=","
 require("lazy").setup("plugins")
 vim.opt.shell = '/bin/zsh'
-vim.cmd('source $HOME/.config/nvim/theme.vim')
-vim.cmd('source $HOME/.config/nvim/basic.vim')
-vim.cmd('source $HOME/.config/nvim/keys.vim')
+require("basic")
+require("keys")
 
