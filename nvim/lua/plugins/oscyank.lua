@@ -1,3 +1,4 @@
+-- luacheck: globals osccopy osccopyplus
 function osccopyplus()
   if vim.v.event.operator == 'y' and vim.v.event.regname == '+' then
     vim.cmd('OSCYankRegister +')

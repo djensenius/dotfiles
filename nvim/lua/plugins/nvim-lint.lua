@@ -4,9 +4,10 @@ return {
   event = { "BufReadPre", "BufNewFile" },
   config = function()
     require('lint').linters_by_ft = {
-      ruby = {'rubocop',}
+      ruby = {'rubocop',},
+      lua = {'luacheck',},
     }
-    vim.api.nvim_create_autocmd({ "BufWritePost, BufRead,InsertLeave,TextChanged" }, {
+    vim.api.nvim_create_autocmd({ "BufWritePost","BufRead","InsertLeave","TextChanged" }, {
       pattern='*.md,*.txt,*.rb,*.lua',
       callback = function()
         require("lint").try_lint()

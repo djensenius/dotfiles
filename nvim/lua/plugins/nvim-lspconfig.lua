@@ -4,7 +4,7 @@ return {
   event = { "BufReadPost", "BufNewFile" },
 
   config = function()
-    local lspconfig = require 'lspconfig'
+    require 'lspconfig'
     require("trouble").setup()
 
     -- Prepare completion
@@ -37,12 +37,10 @@ return {
 
     require('lspconfig')['tsserver'].setup{
       on_attach = on_attach,
-      flags = lsp_flags,
     }
 
     require('lspconfig')['sorbet'].setup{
       on_attach = on_attach,
-      flags = lsp_flags,
     }
 
     --[[
@@ -52,7 +50,7 @@ return {
     }
     --]]
 
-    local util = require 'lspconfig/util'
+    require 'lspconfig/util'
 
     require('lspconfig')['eslint'].setup({ on_attach=on_attach })
   end,

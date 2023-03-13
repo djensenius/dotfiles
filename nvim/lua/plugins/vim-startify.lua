@@ -1,3 +1,4 @@
+-- luacheck: globals CommandToStartifyTable
 function CommandToStartifyTable(command)
     return function()
         local cmd_output = vim.fn.systemlist(command .. " 2>/dev/null")
