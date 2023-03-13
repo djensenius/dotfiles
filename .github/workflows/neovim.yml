@@ -1,0 +1,17 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: lunarmodules/luacheck@v1.1.0
+    - name: Run Luacheck
+    - run: luacheck **.lua
