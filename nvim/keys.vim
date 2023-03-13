@@ -93,6 +93,6 @@ map <leader>- :split<cr>
 " SuperCollider
 " map <leader>ss :SClangStart
 
-let g:oscyank_term = 'default'
-autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankRegister "' | endif
-autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '+' | execute 'OSCYankRegister +' | endif
+" let g:oscyank_term = 'default'
+" autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankRegister "' | endif
+" autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '+' | execute 'OSCYankRegister +' | endif

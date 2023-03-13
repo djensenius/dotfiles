@@ -14,5 +14,4 @@ return {
   { "ray-x/navigator.lua" },
   { "github/copilot.vim" },
   { "machakann/vim-sandwich", event = { "BufReadPost", "BufNewFile" }},
-  { "ojroques/vim-oscyank" },
 }
