@@ -1,7 +1,7 @@
-name: Luacheck
+name: Lint Neovim
 on: [push, pull_request]
 jobs:
-  steps:
+  Lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
