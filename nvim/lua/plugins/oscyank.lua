@@ -12,9 +12,11 @@ end
 
 return {
   "ojroques/vim-oscyank",
-  config = function()
+  init = function()
     vim.g.oscyank_term = 'default'
     vim.g.oscyank_trim = 0
+  end,
+  config = function()
     vim.api.nvim_create_autocmd('TextYankPost', {callback = osccopy})
     vim.api.nvim_create_autocmd('TextYankPost', {callback = osccopyplus})
   end,
