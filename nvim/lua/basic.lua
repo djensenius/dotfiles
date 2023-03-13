@@ -1,3 +1,4 @@
+-- luacheck: globals noshowmode linebreak on
 vim.opt.syntax=on
 vim.opt.nu=true
 vim.opt.showmode=noshowmode

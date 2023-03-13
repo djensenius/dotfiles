@@ -39,7 +39,7 @@ return {
 		        end
 	        end
         end
-       	check()
+        check()
       end,
     },
     "neovim/nvim-lspconfig"

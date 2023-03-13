@@ -1,3 +1,4 @@
+-- luacheck: max_line_length 140
 return {
   "nvim-telescope/telescope.nvim",
   dependencies = {
