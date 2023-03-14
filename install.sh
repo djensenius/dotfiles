@@ -13,6 +13,8 @@ function link_files() {
     ln -s $(pwd)/nvim ~/.config/
     ln -s $(pwd)/bat ~/.config/
     ln -s $(pwd)/vale.ini ~/.vale.ini
+    cd /workspaces/github
+    git status
     if [ -d ~/workspaces/github ]; then
       sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
       sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
@@ -51,7 +53,7 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    nvim --headless "+Lazy! install" +qa
+    nvim +"lua require('lazy').sync({wait=true}); vim.cmd('qa!')"
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 }
