@@ -53,7 +53,7 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    runuser - vscode -c "nvim --headless \"+Lazy! install\" +qa"
+    nvim --headless "+Lazy! sync" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 }
