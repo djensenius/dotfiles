@@ -6,6 +6,10 @@ if test -e /home/linuxbrew
   eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
 
+if test -e ~/.fish_env
+  envsource ~/.fish_env
+end
+
 zoxide init fish | source
 
 if test -e /workspaces/.codespaces/shared/.env

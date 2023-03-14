@@ -1,5 +1,6 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR --export BAT_THEME:Catppuccin\x20mocha
 SETUVAR --export BELA_SYSROOT:/Users/david/Code/Generator/bela/root/
 SETUVAR --export DARK_MODE:true
 SETUVAR --export EDITOR:nvim
