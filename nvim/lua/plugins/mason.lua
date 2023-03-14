@@ -8,20 +8,15 @@ return {
         require("mason").setup()
         local tools = {
           "css-lsp",
-          "dockerfile-language-server",
           "eslint-lsp",
           "eslint_d",
           "firefox-debug-adapter",
-          "gofumpt",
-          "golangci-lint-langserver",
-          "gotestsum",
           "html-lsp",
           "js-debug-adapter",
           "json-lsp",
           "lua-language-server",
           "node-debug2-adapter",
           "prettierd",
-          "rust-analyzer",
           "shellcheck",
           "stylelint-lsp",
           "stylua",
@@ -48,10 +43,6 @@ return {
     require("mason-lspconfig").setup({
       ensure_installed = {
         "tsserver",
-        "gopls",
-        "graphql",
-        "html",
-        "marksman"
       }
     })
   end,
