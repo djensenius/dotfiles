@@ -51,6 +51,9 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
+    nvim --headless "+Lazy! install" +qa
+    echo "NVIM plugins installed" >> ~/install.log
+    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
