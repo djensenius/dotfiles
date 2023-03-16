@@ -27,11 +27,20 @@ vim.keymap.set('n', '<leader>nh', ':nohls<cr>')
 vim.keymap.set('n', '<leader>so', ':source ~/.config/nvim/init.lua<cr>')
 vim.keymap.set('n', '<leader>tt', ':TroubleToggle<cr>')
 
--- System clipboard copy/paste
-vim.keymap.set('v', '<leader>y', '"+y')
-vim.keymap.set('v', '<leader>d', '"+d')
-vim.keymap.set('n', '<leader>p', '"+p')
-vim.keymap.set('n', '<leader>P', '"+P')
+-- Copy and paste
+
+if vim.fn.has('macunix') == 1 then
+  vim.opt.clipboard = 'unnamedplus'
+end
+vim.cmd('vnoremap <silent> y y`]')
+vim.cmd('vnoremap <silent> p p`]')
+vim.cmd('nnoremap <silent> p p`]')
+vim.cmd('nnoremap <silent> x "_x')
+vim.keymap.set('v', '<Leader>y', '"+y')
+vim.keymap.set('v', '<Leader>d', '"+d')
+vim.keymap.set('n', '<Leader>p', '"+p')
+vim.keymap.set('n', '<Leader>P', '"+P')
+
 
 -- Split
 vim.keymap.set('', '<leader>sp', ':split<cr>')
