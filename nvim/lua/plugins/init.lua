@@ -10,7 +10,7 @@ return {
   { "kosayoda/nvim-lightbulb", event = { "BufReadPost", "BufNewFile" } },
   { "ray-x/guihua.lua", build = "cd lua/fzy && make" },
   { "ray-x/navigator.lua" },
-  { "github/copilot.vim" },
+  { "github/copilot.vim", event = { "InsertEnter" } },
   { "machakann/vim-sandwich", event = { "BufReadPost", "BufNewFile" }},
   { "lukoshkin/trailing-whitespace", event = { "BufReadPost", "BufNewFile" }},
 }
