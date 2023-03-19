@@ -18,6 +18,7 @@ vim.opt.visualbell=true
 vim.opt.wildmenu=true
 vim.opt.mouse:append('a')
 vim.opt.statusline:append('%f')
+vim.opt.cursorline=true
 
 -- Tab/indent configuration
 vim.opt.tabstop=2
