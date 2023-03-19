@@ -14,6 +14,7 @@ return {
           "html-lsp",
           "js-debug-adapter",
           "json-lsp",
+          "luacheck",
           "lua-language-server",
           "node-debug2-adapter",
           "prettierd",
@@ -43,6 +44,7 @@ return {
     require("mason-lspconfig").setup({
       ensure_installed = {
         "tsserver",
+        "lua_ls",
       }
     })
   end,

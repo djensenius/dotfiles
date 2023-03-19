@@ -49,9 +49,11 @@ return {
       flags = lsp_flags,
     }
     --]]
-
     require 'lspconfig/util'
 
     require('lspconfig')['eslint'].setup({ on_attach=on_attach })
+    require('lspconfig')['lua_ls'].setup{
+      on_attach = on_attach,
+    }
   end,
 }
