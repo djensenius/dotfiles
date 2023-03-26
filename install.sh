@@ -56,6 +56,7 @@ function setup_software() {
     nvim --headless "+Lazy! sync" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
+    bat cache --build
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
