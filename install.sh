@@ -32,7 +32,6 @@ function install_software() {
     sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.15.1/git-delta-musl_0.15.1_amd64.deb > ~/git-delta-musl_0.15.1_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.15.1_amd64.deb
-    sudo npm install -g typescript-language-server typescript vscode-langservers-extracted eslint_d
 }
 
 function setup_generic() {
@@ -56,7 +55,6 @@ function setup_software() {
     nvim --headless "+Lazy! sync" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    bat cache --build
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
