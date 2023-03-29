@@ -34,7 +34,7 @@ function install_software() {
     sudo dpkg -i ~/git-delta-musl_0.15.1_amd64.deb
     if [ -d /home/linuxbrew ]; then
       brew install exa bat
-    end
+    fi
 }
 
 function setup_generic() {
