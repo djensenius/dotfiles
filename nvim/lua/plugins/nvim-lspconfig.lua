@@ -35,8 +35,10 @@ return {
       end
     end
 
+    local util = require 'lspconfig/util'
     require('lspconfig')['tsserver'].setup{
       on_attach = on_attach,
+      root_dir = util.root_pattern("tsconfig.json")
     }
 
     require('lspconfig')['sorbet'].setup{
@@ -49,9 +51,12 @@ return {
       flags = lsp_flags,
     }
     --]]
-    require 'lspconfig/util'
 
-    require('lspconfig')['eslint'].setup({ on_attach=on_attach })
+    require('lspconfig')['eslint'].setup({
+      on_attach=on_attach,
+      root_dir = util.root_pattern("package.json")
+    })
+
     require('lspconfig')['lua_ls'].setup{
       on_attach = on_attach,
     }
