@@ -26,7 +26,7 @@ function link_files() {
 
 function install_software() {
     sleep 20
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev bat exa jq ripgrep thefuck tmux libfuse2 fuse software-properties-common zoxide most -y
+    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev jq ripgrep thefuck tmux libfuse2 fuse software-properties-common zoxide most -y
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -
     sudo apt-get install -y nodejs

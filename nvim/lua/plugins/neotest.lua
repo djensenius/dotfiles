@@ -11,9 +11,14 @@ return {
     require("neotest").setup({
       adapters = {
         require('neotest-jest')({
-          jestCommand = "npx jest --watch",
+          jestCommand = "npx jest",
+          jestConfigFile = 'jest.config.js',
         }),
-      }
+      },
+      status = {
+        virtual_text = false,
+        signs = true,
+      },
     })
     vim.cmd [[
       command! NeotestSummary lua require("neotest").summary.toggle()
