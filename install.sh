@@ -26,15 +26,12 @@ function link_files() {
 
 function install_software() {
     sleep 20
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev jq ripgrep thefuck tmux libfuse2 fuse software-properties-common zoxide most -y
+    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev jq ripgrep thefuck tmux libfuse2 fuse software-properties-common exa zoxide most -y
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -
     sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.15.1/git-delta-musl_0.15.1_amd64.deb > ~/git-delta-musl_0.15.1_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.15.1_amd64.deb
-    if [ -d /home/linuxbrew ]; then
-      brew install exa bat
-    fi
 }
 
 function setup_generic() {
@@ -55,10 +52,10 @@ function setup_software() {
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    nvim --headless "+Lazy! sync" +qa
+    nvim --headless "+Lazy! sync" +"sleep 15" +qa
+    nvim --headless "+Mason" +"sleep 20" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    bat cache --build
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
