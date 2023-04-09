@@ -5,7 +5,6 @@ return {
 
   config = function()
     require 'lspconfig'
-    require("trouble").setup()
 
     -- Prepare completion
     local on_attach = function(client, bufnr)
@@ -58,7 +57,42 @@ return {
     })
 
     require('lspconfig')['lua_ls'].setup{
+      settings = {
+        Lua = {
+          runtime = {
+            -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+            version = 'LuaJIT',
+          },
+          diagnostics = {
+            globals = {'vim'},
+          },
+          workspace = {
+            -- Make the server aware of Neovim runtime files
+            library = vim.api.nvim_get_runtime_file("", true),
+          },
+          telemetry = {
+            enable = false,
+          },
+        },
+      },
       on_attach = on_attach,
     }
+
+    local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
+    for type, icon in pairs(signs) do
+      local hl = "DiagnosticSign" .. type
+      vim.fn.sign_define(hl, { text = icon, texthl= hl, numhl = hl })
+    end
+
+    require("trouble").setup({
+      signs = {
+        -- icons / text used for a diagnostic
+        error = "",
+        warning = "",
+        hint = "",
+        information = "",
+        other = "﫠"
+      },
+    })
   end,
 }
