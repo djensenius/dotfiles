@@ -69,6 +69,7 @@ return {
           workspace = {
             -- Make the server aware of Neovim runtime files
             library = vim.api.nvim_get_runtime_file("", true),
+            checkThirdParty = false,
           },
           telemetry = {
             enable = false,
@@ -78,7 +79,7 @@ return {
       on_attach = on_attach,
     }
 
-    local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
+    local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
     for type, icon in pairs(signs) do
       local hl = "DiagnosticSign" .. type
       vim.fn.sign_define(hl, { text = icon, texthl= hl, numhl = hl })
@@ -87,11 +88,11 @@ return {
     require("trouble").setup({
       signs = {
         -- icons / text used for a diagnostic
-        error = "",
-        warning = "",
-        hint = "",
+        error = "",
+        warning = "",
+        hint = "",
         information = "",
-        other = "﫠"
+        other = ""
       },
     })
   end,
