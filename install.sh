@@ -32,6 +32,7 @@ function install_software() {
     sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.15.1/git-delta-musl_0.15.1_amd64.deb > ~/git-delta-musl_0.15.1_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.15.1_amd64.deb
+    go install github.com/arl/gitmux@latest
 }
 
 function setup_generic() {
