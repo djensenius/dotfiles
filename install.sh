@@ -13,6 +13,7 @@ function link_files() {
     ln -s $(pwd)/nvim ~/.config/
     ln -s $(pwd)/bat ~/.config/
     ln -s $(pwd)/vale.ini ~/.vale.ini
+    ln -s $(pwd)/prettierrc.json /workspaces/github/.prettierrc.json
     cd /workspaces/github
     git status
     if [ -d ~/workspaces/github ]; then

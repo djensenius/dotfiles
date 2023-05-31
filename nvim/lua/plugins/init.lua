@@ -1,6 +1,5 @@
 return {
   { "RishabhRD/nvim-lsputils", dependencies = { "RishabhRD/popfix" } },
-  { "onsails/lspkind-nvim", event = { "BufReadPost", "BufNewFile" } },
   { "neovim/nvim-lspconfig" },
   { "danro/rename.vim", event = { "BufReadPost", "BufNewFile" } },
   { "tpope/vim-endwise", event = { "BufReadPost", "BufNewFile" } },

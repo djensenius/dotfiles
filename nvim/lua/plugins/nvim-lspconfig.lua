@@ -1,6 +1,6 @@
 return {
   "neovim/nvim-lspconfig",
-  dependencies = { "nvim-tree/nvim-web-devicons", "folke/trouble.nvim" },
+  dependencies = { "nvim-tree/nvim-web-devicons", "folke/trouble.nvim", "hrsh7th/cmp-nvim-lsp" },
   event = { "BufReadPost", "BufNewFile" },
 
   config = function()
@@ -35,13 +35,16 @@ return {
     end
 
     local util = require 'lspconfig/util'
+    local capabilities = require('cmp_nvim_lsp').default_capabilities()
     require('lspconfig')['tsserver'].setup{
       on_attach = on_attach,
-      root_dir = util.root_pattern("tsconfig.json")
+      root_dir = util.root_pattern("tsconfig.json"),
+      capabilities = capabilities,
     }
 
     require('lspconfig')['sorbet'].setup{
       on_attach = on_attach,
+      capabilities = capabilities,
     }
 
     --[[
@@ -53,7 +56,8 @@ return {
 
     require('lspconfig')['eslint'].setup({
       on_attach=on_attach,
-      root_dir = util.root_pattern("package.json")
+      root_dir = util.root_pattern("package.json"),
+      capabilities = capabilities,
     })
 
     require('lspconfig')['lua_ls'].setup{
@@ -77,6 +81,7 @@ return {
         },
       },
       on_attach = on_attach,
+      capabilities = capabilities,
     }
 
     local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
