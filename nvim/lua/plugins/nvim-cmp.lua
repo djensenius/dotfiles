@@ -17,6 +17,10 @@ return {
     local cmp = require("cmp")
     local lspkind = require('lspkind')
     cmp.setup({
+      completion = {
+        keyword_length = 0,  -- Min word length before showing result
+        autocomplete = false,  -- Dont auto popup, use <C-n> to open
+      },
       formatting = {
         format = lspkind.cmp_format(),
         mode = "symbol_text",
