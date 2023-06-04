@@ -15,6 +15,9 @@ return {
       debug = false,
       sources = {
         null_ls.builtins.formatting.prettierd.with({
+          condition = function(utils)
+            return utils.has_file({ ".prettierrc.js" })
+          end,
           env = {
             PRETTIERD_DEFAULT_CONFIG = vim.fn.expand("~/.config/prettierrc.json"),
           },
