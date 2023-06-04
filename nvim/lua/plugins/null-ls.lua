@@ -3,7 +3,6 @@ return {
   event = { "BufReadPre", "BufNewFile" },
   config = function()
     local null_ls = require "null-ls"
-    local formatting = null_ls.builtins.formatting
     -- local diagnostics = null_ls.builtins.diagnostics
     local conditional = function(fn)
       local utils = require("null-ls.utils").make_conditional_utils()
@@ -15,7 +14,14 @@ return {
     null_ls.setup({
       debug = false,
       sources = {
-        formatting.prettier,
+        null_ls.builtins.formatting.prettierd.with({
+          condition = function(utils)
+            return utils.has_file({ ".prettierrc.js" })
+          end,
+          env = {
+            PRETTIERD_DEFAULT_CONFIG = vim.fn.expand("~/.config/prettierrc.json"),
+          },
+        }),
         conditional(function(utils)
           return utils.root_has_file("Gemfile")
             and null_ls.builtins.formatting.rubocop.with({
