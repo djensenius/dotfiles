@@ -14,6 +14,7 @@ function link_files() {
     ln -s $(pwd)/bat ~/.config/
     ln -s $(pwd)/vale.ini ~/.vale.ini
     ln -s $(pwd)/prettierrc.json ~/.config/prettierrc.json
+    ln -s $(pwd)/gitmux.conf ~/.config/gitmux.conf
     cd /workspaces/github
     git status
     if [ -d ~/workspaces/github ]; then
