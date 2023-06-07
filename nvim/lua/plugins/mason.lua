@@ -7,7 +7,6 @@ return {
       config = function()
         require("mason").setup()
         local tools = {
-          "css-lsp",
           "eslint-lsp",
           "eslint_d",
           "firefox-debug-adapter",
