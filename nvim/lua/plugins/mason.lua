@@ -1,6 +1,6 @@
 return {
   "williamboman/mason-lspconfig.nvim",
-  event = { "BufReadPre", "BufNewFile" },
+  build = ":MasonUpdate",
   dependencies = {
     {
       "williamboman/mason.nvim",
@@ -9,13 +9,8 @@ return {
         local tools = {
           "eslint-lsp",
           "eslint_d",
-          "firefox-debug-adapter",
-          "html-lsp",
-          "js-debug-adapter",
-          "json-lsp",
           "luacheck",
           "lua-language-server",
-          "node-debug2-adapter",
           "prettierd",
           "shellcheck",
           "stylelint-lsp",
