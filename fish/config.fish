@@ -12,7 +12,7 @@ if test -e ~/.fish_env
 end
 
 if test -e ~/.cargo/bin
-  fish_add_path ~/.cargo/bin
+  fish_add_path --path --append ~/.cargo/bin
   zoxide init fish | source
 end
 
