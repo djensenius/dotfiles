@@ -11,11 +11,10 @@ if test -e ~/.fish_env
   envsource ~/.fish_env
 end
 
-if test -e $HOME/.cargo/bin
-  fish_add_path $HOME/.cargo/bin
+if test -e ~/.cargo/bin
+  fish_add_path ~/.cargo/bin
+  zoxide init fish | source
 end
-
-zoxide init fish | source
 
 if test -e /workspaces/.codespaces/shared/.env
   # posix-source /workspaces/.condespaces/shared/.env
