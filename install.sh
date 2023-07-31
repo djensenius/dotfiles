@@ -51,7 +51,6 @@ function setup_generic() {
 }
 
 function setup_software() {
-    sudo chsh -s /usr/bin/fish vscode
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
@@ -62,6 +61,7 @@ function setup_software() {
     nvim --headless "+Lazy! sync" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
+    sudo chsh -s /usr/bin/fish vscode
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
