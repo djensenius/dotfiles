@@ -11,6 +11,10 @@ if test -e ~/.fish_env
   envsource ~/.fish_env
 end
 
+if test -e $HOME/.cargo/bin
+  fish_add_path $HOME/.cargo/bin
+end
+
 zoxide init fish | source
 
 if test -e /workspaces/.codespaces/shared/.env
