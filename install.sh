@@ -34,11 +34,10 @@ function install_software() {
     sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.16.5/git-delta-musl_0.16.5_amd64.deb > ~/git-delta-musl_0.16.5_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.16.5_amd64.deb
-    sudo -i -u vscode cargo install exa
-    sudo -i -u vscode cargo install zoxide --locked
-    sudo -i -u vscode cargo install ripgrep
-    sudo -i -u vscode fish_add_path ~/.cargo/bin
-    sudo -i -u vscode go install github.com/arl/gitmux@latest
+    cargo install exa
+    cargo install zoxide --locked
+    cargo install ripgrep
+    go install github.com/arl/gitmux@latest
 }
 
 function setup_generic() {
