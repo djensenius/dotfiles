@@ -15,6 +15,7 @@ function link_files() {
     ln -s $(pwd)/vale.ini ~/.vale.ini
     ln -s $(pwd)/prettierrc.json ~/.config/prettierrc.json
     ln -s $(pwd)/gitmux.conf ~/.config/gitmux.conf
+    ln -s $(pwd)/tmuxinator ~/.config/tmuxinator
     cd /workspaces/github
     git status
     if [ -d ~/workspaces/github ]; then
@@ -38,6 +39,8 @@ function install_software() {
     cargo install zoxide --locked
     cargo install ripgrep
     go install github.com/arl/gitmux@latest
+    sudo gem install tmuxinator
+    wget https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish ~/.config/fish/completions/
 }
 
 function setup_generic() {

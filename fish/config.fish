@@ -21,3 +21,5 @@ if test -e /workspaces/.codespaces/shared/.env
 else
   status --is-interactive; and rbenv init - fish | source
 end
+
+alias gt="tmuxinator start github"
