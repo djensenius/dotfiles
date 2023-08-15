@@ -40,7 +40,7 @@ function install_software() {
     cargo install ripgrep
     go install github.com/arl/gitmux@latest
     sudo gem install tmuxinator
-    wget https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish ~/.config/fish/completions/
+    curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
 }
 
 function setup_generic() {
