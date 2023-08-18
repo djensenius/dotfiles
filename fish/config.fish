@@ -23,3 +23,5 @@ else
 end
 
 alias gt="tmuxinator start github"
+alias pt="tmuxinator start personal"
+alias st="tmuxinator start server"
