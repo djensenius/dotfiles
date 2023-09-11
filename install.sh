@@ -24,6 +24,7 @@ function link_files() {
       sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
       sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
       sudo ln -s /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
+      sudo update-locale LANG=en_US.UTF-8 LC_TYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8
     fi
 }
 
@@ -39,6 +40,7 @@ function install_software() {
     cargo install exa
     cargo install zoxide --locked
     cargo install ripgrep
+    cargo install fd-find
     cargo install bat --locked
     bat cache --build
     go install github.com/arl/gitmux@latest
