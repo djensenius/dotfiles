@@ -40,6 +40,7 @@ function install_software() {
     cargo install zoxide --locked
     cargo install ripgrep
     cargo install bat --locked
+    bat cache --build
     go install github.com/arl/gitmux@latest
     sudo gem install tmuxinator
     curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
