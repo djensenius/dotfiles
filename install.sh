@@ -18,7 +18,7 @@ function link_files() {
     ln -s $(pwd)/tmuxinator ~/.config/tmuxinator
     cd /workspaces/github
     git status
-    if [ -d ~/workspaces/github ]; then
+    if [ -d /workspaces/github ]; then
       sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
       sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
       sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
@@ -42,10 +42,10 @@ function install_software() {
     cargo install ripgrep
     cargo install fd-find
     cargo install bat --locked
-    bat cache --build
     go install github.com/arl/gitmux@latest
     sudo gem install tmuxinator
     curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
+    bat cache --build
 }
 
 function setup_generic() {
