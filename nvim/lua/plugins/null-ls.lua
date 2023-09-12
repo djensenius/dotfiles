@@ -16,23 +16,19 @@ return {
       sources = {
         null_ls.builtins.formatting.prettierd.with({
           env = {
-            PRETTIERD_DEFAULT_CONFIG = vim.fn.expand("~/.config/prettierrc.json"),
+            string.format('PRETTIERD_DEFAULT_CONFIG=%s', vim.fn.expand("~/.config/prettierrc.json")),
           },
         }),
         conditional(function(utils)
           return utils.root_has_file("Gemfile")
-            and null_ls.builtins.formatting.rubocop.with({
-              command = "bin/rubocop",
-          })
+            and null_ls.builtins.formatting.rubocop.with({})
           or null_ls.builtins.formatting.rubocop
         end),
 
         -- Same as above, but with diagnostics.rubocop to make sure we use the proper rubocop version for the project
         conditional(function(utils)
           return utils.root_has_file("Gemfile")
-           and null_ls.builtins.diagnostics.rubocop.with({
-             command = "bin/rubocop",
-          })
+           and null_ls.builtins.diagnostics.rubocop.with({})
           or null_ls.builtins.diagnostics.rubocop
       end),
       },
