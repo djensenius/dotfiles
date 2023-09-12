@@ -55,11 +55,13 @@ return {
           --]]
         end
 
+        --[[
         if client.supports_method("textDocument/rangeFormatting") then
           vim.keymap.set("x", "<Leader>fmt", function()
             vim.lsp.buf.format({ bufnr = vim.api.nvim_get_current_buf() })
           end, { buffer = bufnr, desc = "[lsp] format" })
         end
+        --]]
       end,
     })
   end
