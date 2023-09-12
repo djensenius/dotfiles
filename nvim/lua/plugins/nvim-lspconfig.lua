@@ -1,7 +1,7 @@
 return {
   "neovim/nvim-lspconfig",
   dependencies = { "nvim-tree/nvim-web-devicons", "folke/trouble.nvim", "hrsh7th/cmp-nvim-lsp" },
-  event = { "BufReadPost", "BufNewFile" },
+  event = "VeryLazy",
 
   config = function()
     require 'lspconfig'
