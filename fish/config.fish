@@ -17,7 +17,7 @@ if test -e ~/.cargo/bin
 end
 
 if test -e /workspaces
-  fish_add_path $(npm config get prefix)/bin
+  fish_add_path $(npm config get prefix)
 end
 
 if test -e /workspaces/.codespaces/shared/.env
