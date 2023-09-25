@@ -33,7 +33,12 @@ function install_software() {
     sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
     sudo apt remove bat ripgrep -y
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-    curl -sL https://deb.nodesource.com/setup_18.x | sudo bash -
+    sudo apt-get install -y ca-certificates curl gnupg
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+    NODE_MAJOR=20
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+    sudo apt-get update
     sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.16.5/git-delta-musl_0.16.5_amd64.deb > ~/git-delta-musl_0.16.5_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.16.5_amd64.deb
