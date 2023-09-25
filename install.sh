@@ -49,6 +49,7 @@ function install_software() {
     cargo install bat --locked
     go install github.com/arl/gitmux@latest
     sudo gem install tmuxinator
+    npm install -g @fsouza/prettierd
     curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
     ~/.cargo/bin/bat cache --build
 }
