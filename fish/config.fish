@@ -1,6 +1,6 @@
 starship init fish | source
 thefuck --alias | source
-abbr --add 'monolith' 'gh cs create -R github/github -m xLargePremiumLinux  --devcontainer-path .devcontainer/devcontainer.json --status'
+abbr --add 'monolith' 'gh cs create -R github/github -m xLargePremiumLinux --devcontainer-path .devcontainer/devcontainer.json --status'
 abbr --add 'youtub-dl' 'yt-dlp'
 abbr --add 'vim' 'nvim'
 if test -e /home/linuxbrew
@@ -14,6 +14,10 @@ end
 if test -e ~/.cargo/bin
   fish_add_path --path --append ~/.cargo/bin
   zoxide init fish | source
+end
+
+if test -e /workspaces
+  fish_add_path $(npm config get prefix)/bin
 end
 
 if test -e /workspaces/.codespaces/shared/.env
