@@ -16,8 +16,9 @@ if test -e ~/.cargo/bin
   zoxide init fish | source
 end
 
-if test -e /workspaces
+if test -d /workspaces
   fish_add_path $(npm config get prefix)
+  fish_add_path $(npm config get prefix)/bin
 end
 
 if test -e /workspaces/.codespaces/shared/.env

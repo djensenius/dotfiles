@@ -1,4 +1,4 @@
-return  {
+return {
   "nvim-treesitter/nvim-treesitter",
   build = ":TSUpdate",
   event = { "BufReadPost", "BufNewFile" },
@@ -20,6 +20,7 @@ return  {
         "javascript",
         "jsdoc",
         "json",
+        "lua",
         "python",
         "ruby",
         "scss",
@@ -28,14 +29,18 @@ return  {
         "vim",
         "supercollider"
       },
+      auto_install = true,
+      sync_install = false,
+      ignore_install = {},
+      modules = {},
       incremental_selection = {
-	      enable = true,
-	      keymaps = {
+        enable = true,
+        keymaps = {
           init_selection = "gnn",
           node_incremental = "gnn",
           scope_incremental = "gnc",
           node_decremental = "gnd",
-	      },
+        },
       },
     }
   end,
