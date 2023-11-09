@@ -13,8 +13,8 @@ end
 
 if test -e ~/.cargo/bin
   fish_add_path --path --append ~/.cargo/bin
-  zoxide init fish | source
 end
+zoxide init fish | source
 
 if test -d /workspaces
   fish_add_path $(npm config get prefix)
