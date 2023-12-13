@@ -47,6 +47,6 @@ return {
         },
       }
     })
-    vim.keymap.set('n', '<leader>tf', '<cmd>NeoTreeFocusToggle<CR>')
+    vim.keymap.set('n', '<leader>tf', '<cmd>Neotree toggle<CR>')
   end,
 }
