@@ -41,7 +41,7 @@ return {
     hostname =string.gsub(hostname, ".lan$", "")
 
     local v = vim.version()
-    local version = ' v' .. v.major .. '.' .. v.minor .. '.' .. v.patch
+    local version = ' v' .. v.major .. '.' .. v.minor .. '.' .. v.patch
     local machine = '󰌢  ' .. vim.fn.expand('$USER') .. '@' .. hostname
 
     vim.api.nvim_create_autocmd('User', {
