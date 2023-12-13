@@ -6,7 +6,7 @@ return {
       vim.keymap.set('n', '<leader>a', ':Alpha<CR>', opts)
 			local dashboard = require("alpha.themes.dashboard")
 			local logo = [[
-    (q\_/p)               
+    (q\_/p)
 .-.  |. .|                            (\
    \ =\,/=                           (\_\_^__o
     )/ _ \                 ___        `-'/ `_/
