@@ -6,13 +6,13 @@ return {
       vim.keymap.set('n', '<leader>a', ':Alpha<CR>', opts)
 			local dashboard = require("alpha.themes.dashboard")
 			local logo = [[
-    (q\_/p)
-.-.  |. .|
-   \ =\,/=
-    )/ _ \
-   (/\):(/\
-    \_   _/
-    `""^""`
+    (q\_/p)               
+.-.  |. .|                            (\
+   \ =\,/=                           (\_\_^__o
+    )/ _ \                 ___        `-'/ `_/
+   (/\):(/\               '`--\________/   |
+    \_   _/          '        /            |
+    `""^""`      `    .  ' `-`/.----------'\^-'
     ]]
 
     local status_ok, alpha = pcall(require, 'alpha')
