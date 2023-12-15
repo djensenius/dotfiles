@@ -39,9 +39,9 @@ return {
     })
   end,
 
-    opts = {
-      provider_selector = function()
-        return { "treesitter", "indent" }
-      end,
-    },
-  }
+  opts = {
+    provider_selector = function()
+      return { "treesitter", "indent" }
+    end,
+  },
+}
