@@ -7,7 +7,33 @@ return {
     },
     presets = {
       inc_rename = true,
-    }
+    },
+    routes = {
+      {
+        filter = {
+          event = "msg_show",
+          kind = "",
+          find = "written",
+        },
+        opts = { skip = true },
+      },
+      {
+        filter = {
+          event = "msg_show",
+          kind = "wmsg",
+          find = "BOTTOM",
+        },
+        opts = { skip = true },
+      },
+      {
+        filter = {
+          event = "msg_show",
+          kind = "emsg",
+          find = "E486",
+        },
+        opts = { skip = true },
+      },
+    },
     -- add any options here
   },
   dependencies = {
