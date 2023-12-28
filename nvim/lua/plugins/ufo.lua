@@ -34,9 +34,7 @@ return {
     vim.o.foldlevelstart = 99
     vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
     vim.o.foldenable = true
-    require("ufo").setup({
-      close_fold_kinds = { "imports" },
-    })
+    require("ufo").setup()
   end,
 
   opts = {
