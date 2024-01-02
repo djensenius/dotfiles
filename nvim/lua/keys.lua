@@ -45,3 +45,19 @@ vim.keymap.set('n', '<Leader>P', '"+P')
 -- Split
 vim.keymap.set('', '<leader>sp', ':split<cr>')
 vim.keymap.set('', '<leader>sv', ':vsplit<cr>')
+
+
+-- File operations
+vim.api.nvim_create_user_command("CopyFullPath", function()
+    local path = vim.fn.expand("%:p")
+    vim.fn.setreg("+", path)
+    vim.cmd('OSCYankRegister +')
+end, {})
+vim.keymap.set('n', '<leader>cf', ':CopyFullPath<cr>')
+
+vim.api.nvim_create_user_command("CopyRelativePath", function()
+    local path = vim.fn.expand("%:.")
+    vim.fn.setreg("+", path)
+    vim.cmd('OSCYankRegister +')
+end, {})
+vim.keymap.set('n', '<leader>cr', ':CopyRelativePath<cr>')
