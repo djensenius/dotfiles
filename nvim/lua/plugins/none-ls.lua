@@ -14,11 +14,8 @@ return {
     null_ls.setup({
       debug = false,
       sources = {
-        null_ls.builtins.formatting.prettierd.with({
-          env = {
-            string.format('PRETTIERD_DEFAULT_CONFIG=%s', vim.fn.expand("~/.config/prettierrc.json")),
-          },
-        }),
+        null_ls.builtins.formatting.stylua,
+        null_ls.builtins.formatting.eslint,
         conditional(function(utils)
           return utils.root_has_file("Gemfile")
             and null_ls.builtins.formatting.rubocop.with({})

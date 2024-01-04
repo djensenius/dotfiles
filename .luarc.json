@@ -34,5 +34,8 @@
         "/Users/djensenius/.local/share/nvim/lazy/catppuccin/after",
         "${3rd}/luassert/library",
         "${3rd}/luv/library"
+    ],
+    "diagnostics.globals": [
+        "vim"
     ]
 }
