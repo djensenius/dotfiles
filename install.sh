@@ -3,7 +3,6 @@
 
 function link_files() {
     mkdir -p ~/.config
-    ln -s $(pwd)/Brewfile.headless ~/.Brewfile
     ln -s $(pwd)/tmux.conf ~/.tmux.conf
     rm ~/.gitconfig
     ln -s $(pwd)/gitconfig ~/.gitconfig
@@ -54,15 +53,6 @@ function install_software() {
     ~/.cargo/bin/bat cache --build
 }
 
-function setup_generic() {
-  sudo apt-get install build-essential
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-  rm -rf "/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/homebrew/homebrew-core"
-  brew tap homebrew/core
-  brew install gcc fish neovim
-}
-
 function setup_software() {
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
@@ -80,11 +70,6 @@ function setup_software() {
 echo '🔗 Linking files.' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 link_files
-if [ ! -d /home/linuxbrew ]; then
-    echo '🍺 Installing brew software' >> ~/install.log;
-    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    setup_generic
-fi
 echo '💽 Installing software' >> ~/install.log;
 echo `date +"%Y-%m-%d %T"` >> ~/install.log;
 install_software
