@@ -26,7 +26,7 @@ return {
 			dashboard.button("r", " " .. " Recent files", ":Telescope oldfiles <CR>"),
       dashboard.button("R", " " .. " Restore session", ":so Session.vim<CR>"),
 			dashboard.button("g", " " .. " Find text", ":Telescope live_grep <CR>"),
-      dashboard.button('n', '  Open file tree', ':NvimTreeOpen <CR>'),
+      dashboard.button('t', '  Open file tree', ':Neotree<CR>'),
 			dashboard.button("l", "󰒲 " .. " Lazy", ":Lazy<CR>"),
 			dashboard.button("q", " " .. " Quit", ":qa<CR>"),
 		}

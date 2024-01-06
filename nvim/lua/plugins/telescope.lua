@@ -1,6 +1,7 @@
 -- luacheck: max_line_length 140
 return {
   "nvim-telescope/telescope.nvim",
+  event = "VeryLazy",
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-lua/popup.nvim",
