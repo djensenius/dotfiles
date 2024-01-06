@@ -41,10 +41,25 @@ return {
 			},
 			-- Add this section only if you've configured source selector.
 			source_selector = {
+				winbar = true,
 				sources = {
-					{ source = "filesystem", display_name = " 󰉓 Files " },
-					{ source = "git_status", display_name = " 󰊢 Git " },
+					{ source = "filesystem", display_name = "󰉓 Files" },
+					{ source = "git_status", display_name = "󰊢 Git" },
+					{ source = "buffers", display_name = "󰉋 Buffers" },
+					{ source = "document_symbols", display_name = " Symbols" },
 				},
+				content_layout = "center",
+				highlight_tab = "NeoTreeTabInactive", -- string
+				highlight_tab_active = "NeoTreeTabActive", -- string
+				highlight_background = "NeoTreeTabInactive", -- string
+				highlight_separator = "ActiveWindow", -- string
+				highlight_separator_active = "NeoTreeTabSeparatorActive", -- string
+			},
+			sources = {
+				"filesystem",
+				"buffers",
+				"git_status",
+				"document_symbols",
 			},
 		})
 		vim.keymap.set("n", "<leader>tg", ":Neotree toggle<CR>", {})

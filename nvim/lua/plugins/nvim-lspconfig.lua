@@ -42,13 +42,6 @@ return {
 			capabilities = capabilities,
 		})
 
-		--[[
-    require('lspconfig')['solargraph'].setup{
-      on_attach = on_attach,
-      flags = lsp_flags,
-    }
-    --]]
-
 		require("lspconfig")["eslint"].setup({
 			on_attach = on_attach,
 			root_dir = util.root_pattern("package.json"),
