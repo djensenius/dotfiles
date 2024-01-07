@@ -1,22 +1,23 @@
 return {
   "folke/which-key.nvim",
+  event = "VeryLazy",
   config = function()
     local wk = require("which-key")
     wk.register({
       f = {
-        name = "Finding"
+        name = "Finding",
       },
       ["<space>"] = {
-        name = "Diagnostics"
+        name = "Diagnostics",
       },
       _ = {
-        name = "Comments"
+        name = "Comments",
       },
       g = {
-        name = "Git"
+        name = "Git",
       },
       h = {
-        name = "Git signs"
+        name = "Git signs",
       },
       k = "which_key_ignore",
       ["<C-K>"] = "which_key_ignore",
@@ -25,11 +26,11 @@ return {
       P = "which_key_ignore",
       r = "Relative line numbering",
       s = {
-        name = "Split / Source"
+        name = "Split / Source",
       },
       t = {
-        name = "Testing"
-      }
+        name = "Testing",
+      },
     }, { prefix = "<leader>" })
   end,
 }
