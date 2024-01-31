@@ -41,9 +41,6 @@ function install_software() {
     # sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.16.5/git-delta-musl_0.16.5_amd64.deb > ~/git-delta-musl_0.16.5_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.16.5_amd64.deb
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-    chmod u+x nvim.appimage
-    sudo mv nvim.appimage /usr/bin/nvim
     cargo install exa
     cargo install zoxide --locked
     cargo install ripgrep
