@@ -7,4 +7,5 @@ return {
 		"sindrets/diffview.nvim", -- optional
 	},
 	config = true,
+  vim.keymap.set("n", "<Leader>gc", ":Neogit commit<CR>", { noremap = true, silent = true })
 }
