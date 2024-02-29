@@ -12,7 +12,6 @@ return {
 			debug = false,
 			sources = {
 				null_ls.builtins.formatting.stylua,
-				null_ls.builtins.formatting.eslint,
 				conditional(function(utils)
 					return utils.root_has_file("Gemfile") and null_ls.builtins.formatting.rubocop.with({})
 						or null_ls.builtins.formatting.rubocop
