@@ -24,7 +24,6 @@
 
 
 // Short versions
-#define WIN_SC  LG(LS(S))
 #define OSX_SC  LG(LS(N4))
 #define OSX_BOL LG(LEFT)
 #define OSX_EOL LG(RIGHT)
@@ -51,11 +50,6 @@
 / {
     conditional_layers {
         compatible = "zmk,conditional-layers";
-        adjust_win_layer {
-            if-layers = <1 2>;
-            then-layer = <3>;
-        };
-        
         adjust_osx_layer {
             if-layers = <5 6>;
             then-layer = <7>;
@@ -65,13 +59,6 @@
     combos {
         compatible = "zmk,combos";
 
-        combo_win_ESC {
-            timeout-ms = <50>;
-            key-positions = <0 1>;
-            layers = <QW_M>;
-            bindings = <&kp ESC>;
-        };
-
         combo_osx_ESC {
             timeout-ms = <50>;
             key-positions = <0 1>;
@@ -79,19 +66,6 @@
             bindings = <&kp ESC>;
         };
 
-        combo_win_LGUI {
-            timeout-ms = <50>;
-            key-positions = <0 12>;
-            layers = <QW_M>;
-            bindings = <&kp LGUI>;
-        };
-
-        combo_win_RGUI {
-            timeout-ms = <50>;
-            key-positions = <11 23>;
-            layers = <QW_M>;
-            bindings = <&kp RGUI>;
-        };
     };
 
     macros {
@@ -190,46 +164,6 @@
 
     keymap {
         compatible = "zmk,keymap";
-
-        default_win_layer {
-            label = " Win 11";
-            bindings = <
-&kp TAB    &tdw_Q     &kp W      &kp E      &kp R      &kp T                            &kp Y      &kp U      &kp I      &kp O      &kp P         &kp BSLH
-&kp CAPS   &kp A      &kp S      &kp D      &kp F      &kp G                            &kp H      &kp J      &kp K      &kp L      &kp SEMI      &kp SQT
-&kp LSHFT  &mt LSFT Z &kp X      &kp C      &kp V      &kp B                            &kp N      &kp M      &kp COMMA  &kp DOT    &mt RSFT FSLH &kp RSHFT
-                              &kp LALT &kp LCTRL  &lt 1 RET  &lt 2 MINUS    &lt 2 EQUAL &lt 1 SPACE  &kp BSPC &mo QC_F
-            >;
-        };
-
-        lower_win_layer {
-            label = " Lower";
-            bindings = <
-&kp ESC    &kp N1     &kp N2     &kp N3     &kp N4     &kp N5                           &kp N6     &kp N7     &kp N8     &kp N9     &kp N0     &trans
-&trans     &tdx_LRA   &tdw_LRP   &tdx_LRB   &tdx_LRR   &trans                           &trans     &trans     &trans     &trans     &kp QUOT   &trans
-&trans     &kp LSHFT  &trans     &trans     &trans     &trans                           &enDSH_W   &emDSH_W   &trans     &trans     &kp RSHFT  &trans
-                                 &trans     &trans     &trans     &trans      &trans    &trans     &trans     &trans
-            >;
-        };
-
-        raise_win_layer {
-            label = " Raise";
-            bindings = <
-&trans     &trans     &trans     &trans     &kp WIN_SC &trans                           &kp PG_UP  &kp HOME   &kp UP     &kp END    &kp BSLH       &trans
-&trans     &trans     &trans     &trans     &trans     &trans                           &kp PG_DN  &kp LEFT   &kp DOWN   &kp RIGHT  &kp GRAVE      &kp GRAVE
-&trans     &kp LSHFT  &trans     &trans     &trans     &trans                           &trans     &trans     &trans     &trans     &mt RSFT TILDE &trans
-                                 &trans     &trans     &trans     &trans      &trans    &trans     &kp DEL    &trans
-            >;
-        };
-
-        adjust_win_layer {
-            label = " Adjust";
-            bindings = <
-&trans     &kp F1     &kp F2     &kp F3     &kp F4     &kp F5                           &none      &none      &kp VOLUP  &none      &none      &none
-&trans     &kp F6     &kp F7     &kp F8     &kp F9     &kp F10                          &none      &none      &kp VOLDN  &kp LOCK_W &none      &none 
-&trans     &kp F11    &kp F12    &none      &none      &none                            &none      &kp VOLMT  &none      &none      &none      &trans
-                                 &trans     &trans     &trans     &trans      &trans    &trans     &trans     &tog QX_M
-            >;
-        };
 
         default_osx_layer {
             label = " OSX";
