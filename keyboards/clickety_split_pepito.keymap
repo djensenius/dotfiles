@@ -169,7 +169,7 @@
             label = " OSX";
             bindings = <
 &kp TAB    &tdx_Q     &kp W      &kp E      &kp R      &kp T                            &kp Y      &kp U      &kp I      &kp O      &kp P         &kp BSLH
-&kp CAPS   &kp A      &kp S      &kp D      &kp F      &kp G                            &kp H      &kp J      &kp K      &kp L      &kp SEMI      &kp SQT
+&kp ESC   &kp A      &kp S      &kp D      &kp F      &kp G                            &kp H      &kp J      &kp K      &kp L      &kp SEMI      &kp SQT
 &kp LSHFT  &mt LSFT Z &kp X      &kp C      &kp V      &kp B                            &kp N      &kp M      &kp COMMA  &kp DOT    &mt RSFT FSLH &kp RSHFT
                             &kp LALT   &kp LGUI   &lt 5 RET  &lt 6 MINUS    &lt 6 EQUAL &lt 5 SPACE  &kp BSPC   &mo QC_F
             >;
