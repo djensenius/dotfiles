@@ -1,0 +1,29 @@
+name: Build ZMK Firmware
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+      
+    - name: Install West
+      run: |
+        pip install west
+
+    - name: Checkout ZMK
+      uses: actions/checkout@v3
+      with:
+        repository: 'zmkfirmware/zmk'
+        path: 'zmk'
+
+    - name: Build ZMK Firmware
+      run: |
+        docker pull zmkfirmware/zmk-build-arm:3.5-branch
+        docker run --rm -v "$(pwd)":/workdir -u "$(id -u)":"$(id -g)" zmkfirmware/zmk-build-arm:3.5-branch /bin/bash -c "cd zmk/app && west build -b clickity_split -s app/boards/shields/clickity_split"
+
