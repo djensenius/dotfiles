@@ -7,17 +7,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      uses: docker/setup-buildx-action@v3
       
     - name: Install West
       run: |
         pip install west
 
+    - name: Build ZMK Firmware
+      run: |
+        cd keyboards/pepito_v1.13
+        west update
+        west build -d build/pepito/left -p -b seeeduino_xiao_ble -- -DSHIELD=clickety_split_pepito_left
+
     - name: Checkout ZMK
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: 'zmkfirmware/zmk'
         path: 'zmk'
@@ -25,5 +31,5 @@ jobs:
     - name: Build ZMK Firmware
       run: |
         docker pull zmkfirmware/zmk-build-arm:3.5-branch
-        docker run --rm -v "$(pwd)":/workdir -u "$(id -u)":"$(id -g)" zmkfirmware/zmk-build-arm:3.5-branch /bin/bash -c "cd zmk/app && west build -b clickity_split -s app/boards/shields/clickity_split"
+        docker run --rm -v "$(pwd)":/workdir -u "$(id -u)":"$(id -g)" zmkfirmware/zmk-build-arm:3.5-branch /bin/bash -c "pip3 install3 --user -U west && west update && cd /workdir/keyboards/pepito_v1.13 && west build -d build/pepito/left -p -b seeeduino_xiao_ble -- -DSHIELD=clickety_split_pepito_left"
 
