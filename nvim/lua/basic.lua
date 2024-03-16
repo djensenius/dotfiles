@@ -2,6 +2,7 @@
 vim.opt.syntax = on
 vim.opt.nu = true
 vim.opt.showmode = noshowmode
+vim.opt.showcmdloc = "statusline"
 vim.opt.ruler = true
 vim.opt.showcmd = true
 vim.opt.writebackup = false
