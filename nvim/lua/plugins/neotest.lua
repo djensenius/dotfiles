@@ -5,6 +5,7 @@ return {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
 		"haydenmeade/neotest-jest",
+    "nvim-neotest/nvim-nio",
 	},
 	config = function()
 		require("neotest").setup({
