@@ -1,4 +1,4 @@
-name: Lint Neovim
+name: Lint Lua files
 on: [push, pull_request]
 jobs:
   Lint:
