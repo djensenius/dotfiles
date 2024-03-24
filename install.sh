@@ -15,6 +15,7 @@ function link_files() {
     ln -s $(pwd)/prettierrc.json ~/.config/prettierrc.json
     ln -s $(pwd)/gitmux.conf ~/.config/gitmux.conf
     ln -s $(pwd)/tmuxinator ~/.config/tmuxinator
+    ln -s $(pwd)/neofetch ~/.config/neofetch
     cd /workspaces/github
     git status
     if [ -d /workspaces/github ]; then
