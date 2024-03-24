@@ -101,11 +101,20 @@ wezterm.on(
     return title
   end
 )
+config.hide_tab_bar_if_only_one_tab = true
+
+config.window_decorations = "RESIZE"
 
 -- Other stuff
 config.quit_when_all_windows_are_closed = false
 config.window_close_confirmation = "NeverPrompt"
 config.initial_rows = 40
 config.initial_cols = 120
+config.window_padding = {
+  left = 0,
+  right = 0,
+  top = 0,
+  bottom = 0,
+}
 
 return config
