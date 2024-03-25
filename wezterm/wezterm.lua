@@ -76,7 +76,7 @@ local function tab_title(tab_info)
   end
   -- Otherwise, use the title from the active pane
   -- in that tab
-  if tab_info.active_pane.title and tab_info.active_pane.title:find("^gh ssh") ~= nil then
+  if tab_info.active_pane.title and tab_info.active_pane.title:find("codespaces") ~= nil then
     return ''
   elseif tab_info.active_pane.title and tab_info.active_pane.title:find("^pt") ~= nil then
     return ''
@@ -113,8 +113,8 @@ config.initial_cols = 120
 config.window_padding = {
   left = 0,
   right = 0,
-  top = 0,
-  bottom = 0,
+  top = 10,
+  bottom = 10,
 }
 
 return config
