@@ -1,6 +1,6 @@
 -- I use a custom icon from: git@github.com:mikker/wezterm-icon.git
 -- Pull in the wezterm API
-local wezterm = require 'wezterm'
+local wezterm = require("wezterm")
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -13,14 +13,13 @@ custom.tab_bar.background = "#040404"
 custom.tab_bar.inactive_tab.bg_color = "#0f0f0f"
 custom.tab_bar.new_tab.bg_color = "#080808"
 config.color_schemes = {
-    ["OLEDppuccin"] = custom,
+  ["OLEDppuccin"] = custom,
 }
 config.color_scheme = "OLEDppuccin"
 
-
 -- Fonts
 -- config.experimental_svg_fonts = true
-config.font = wezterm.font_with_fallback {
+config.font = wezterm.font_with_fallback({
   "Monaspace Neon Var",
   "JetBrains Mono",
   "Fira Code",
@@ -29,38 +28,38 @@ config.font = wezterm.font_with_fallback {
     family = "Apple Color Emoji",
     assume_emoji_presentation = true,
     scale = 2,
-  }
-}
+  },
+})
 config.line_height = 1.2
 
-config.allow_square_glyphs_to_overflow_width = 'Always'
+config.allow_square_glyphs_to_overflow_width = "Always"
 
 config.font_rules = {
   {
-    intensity = 'Bold',
+    intensity = "Bold",
     italic = true,
-    font = wezterm.font {
-      family = 'Monaspace Xenon Var',
-      weight = 'Bold',
-      style = 'Italic',
-    },
+    font = wezterm.font({
+      family = "Monaspace Xenon Var",
+      weight = "Bold",
+      style = "Italic",
+    }),
   },
   {
     italic = true,
-    intensity = 'Half',
-    font = wezterm.font {
-      family = 'Monaspace Xenon Var',
-      weight = 'DemiBold',
-      style = 'Italic',
-    },
+    intensity = "Half",
+    font = wezterm.font({
+      family = "Monaspace Xenon Var",
+      weight = "DemiBold",
+      style = "Italic",
+    }),
   },
   {
     italic = true,
-    intensity = 'Normal',
-    font = wezterm.font {
-      family = 'Monaspace Xenon Var',
-      style = 'Italic',
-    },
+    intensity = "Normal",
+    font = wezterm.font({
+      family = "Monaspace Xenon Var",
+      style = "Italic",
+    }),
   },
 }
 
@@ -77,30 +76,27 @@ local function tab_title(tab_info)
   -- Otherwise, use the title from the active pane
   -- in that tab
   if tab_info.active_pane.title and tab_info.active_pane.title:find("codespaces") ~= nil then
-    return ''
+    return ""
   elseif tab_info.active_pane.title and tab_info.active_pane.title:find("^pt") ~= nil then
-    return ''
+    return ""
   elseif tab_info.active_pane.title and tab_info.active_pane.title:find("server") ~= nil then
-    return '  ' .. tab_info.active_pane.title
+    return "  " .. tab_info.active_pane.title
   elseif tab_info.active_pane.title and tab_info.active_pane.title:find("pi") ~= nil then
-    return '  ' .. tab_info.active_pane.title
+    return "  " .. tab_info.active_pane.title
   end
 
-  return '  ' .. tab_info.active_pane.title
+  return "  " .. tab_info.active_pane.title
 end
 
-wezterm.on(
-  'format-tab-title',
-  function(tab)
-    local title = tab_title(tab)
-    if tab.is_active then
-      return {
-        { Text = ' ' .. title .. ' ' },
-      }
-    end
-    return title
+wezterm.on("format-tab-title", function(tab)
+  local title = tab_title(tab)
+  if tab.is_active then
+    return {
+      { Text = " " .. title .. " " },
+    }
   end
-)
+  return title
+end)
 config.hide_tab_bar_if_only_one_tab = true
 
 config.window_decorations = "RESIZE"
