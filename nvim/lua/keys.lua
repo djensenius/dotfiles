@@ -1,8 +1,8 @@
 -- Move around splits with <c-hjkl>
-vim.keymap.set("n", "<C-k>", "<C-w><Up>")
-vim.keymap.set("n", "<C-j>", "<C-w><Down>")
-vim.keymap.set("n", "<C-l>", "<C-w><Right>")
-vim.keymap.set("n", "<C-h>", "<C-w><Left>")
+-- vim.keymap.set("n", "<C-k>", "<C-w><Up>")
+-- vim.keymap.set("n", "<C-j>", "<C-w><Down>")
+-- vim.keymap.set("n", "<C-l>", "<C-w><Right>")
+-- vim.keymap.set("n", "<C-h>", "<C-w><Left>")
 
 vim.keymap.set("i", "<C-k>", "<Up>")
 vim.keymap.set("i", "<C-j>", "<Down>")
@@ -43,6 +43,7 @@ vim.keymap.set("n", "<Leader>P", '"+P')
 
 -- Split
 vim.keymap.set("", "<leader>sp", ":split<cr>")
+vim.keymap.set("", "<leader>sh", ":split<cr>")
 vim.keymap.set("", "<leader>sv", ":vsplit<cr>")
 
 -- File operations
