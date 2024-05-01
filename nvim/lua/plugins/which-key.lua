@@ -19,6 +19,12 @@ return {
 			h = {
 				name = "Git signs",
 			},
+			c = {
+				name = "Path / Copilot Chat",
+				c = {
+					name = "Copilot Chat",
+				},
+			},
 			k = "which_key_ignore",
 			["<C-K>"] = "which_key_ignore",
 			n = "Line numbering",
@@ -29,7 +35,7 @@ return {
 				name = "Split / Source",
 			},
 			t = {
-				name = "Testing",
+				name = "Testing / Tree",
 			},
 		}, { prefix = "<leader>" })
 	end,
