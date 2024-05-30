@@ -3,19 +3,19 @@
 
 function link_files() {
     mkdir -p ~/.config
-    ln -s $(pwd)/tmux.conf ~/.tmux.conf
+    ln -sf $(pwd)/tmux.conf ~/.tmux.conf
     rm ~/.gitconfig
     ln -s $(pwd)/gitconfig ~/.gitconfig
-    ln -s $(pwd)/gitignore_local ~/.gitignore_local
-    ln -s $(pwd)/fish ~/.config/
-    ln -s $(pwd)/starship.toml ~/.config/
-    ln -s $(pwd)/nvim ~/.config/
-    ln -s $(pwd)/bat ~/.config/
-    ln -s $(pwd)/vale.ini ~/.vale.ini
-    ln -s $(pwd)/prettierrc.json ~/.config/prettierrc.json
-    ln -s $(pwd)/gitmux.conf ~/.config/gitmux.conf
-    ln -s $(pwd)/tmuxinator ~/.config/tmuxinator
-    ln -s $(pwd)/neofetch ~/.config/neofetch
+    ln -sf $(pwd)/gitignore_local ~/.gitignore_local
+    ln -sf $(pwd)/fish ~/.config/
+    ln -sf $(pwd)/starship.toml ~/.config/
+    ln -sf $(pwd)/nvim ~/.config/
+    ln -sf $(pwd)/bat ~/.config/
+    ln -sf $(pwd)/vale.ini ~/.vale.ini
+    ln -sf $(pwd)/prettierrc.json ~/.config/prettierrc.json
+    ln -sf $(pwd)/gitmux.conf ~/.config/gitmux.conf
+    ln -sf $(pwd)/tmuxinator ~/.config/tmuxinator
+    ln -sf $(pwd)/neofetch ~/.config/neofetch
     cd /workspaces/github
     git status
     if [ -d /workspaces/github ]; then
@@ -30,7 +30,7 @@ function link_files() {
 
 function install_software() {
     sleep 20
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv kitty-terminfo socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
+    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
     sudo apt remove bat ripgrep -y
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     # sudo apt-get install -y ca-certificates curl gnupg
