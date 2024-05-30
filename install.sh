@@ -7,6 +7,7 @@ function link_files() {
     rm ~/.gitconfig
     ln -s $(pwd)/gitconfig ~/.gitconfig
     ln -sf $(pwd)/gitignore_local ~/.gitignore_local
+    rm -rf ~/.config/fish
     ln -sf $(pwd)/fish ~/.config/
     ln -sf $(pwd)/starship.toml ~/.config/
     ln -sf $(pwd)/nvim ~/.config/
@@ -16,14 +17,12 @@ function link_files() {
     ln -sf $(pwd)/gitmux.conf ~/.config/gitmux.conf
     ln -sf $(pwd)/tmuxinator ~/.config/tmuxinator
     ln -sf $(pwd)/neofetch ~/.config/neofetch
-    cd /workspaces/github
-    git status
     if [ -d /workspaces/github ]; then
-      sudo ln -s /workspaces/github/bin/rubocop /usr/local/bin/rubocop
-      sudo ln -s /workspaces/github/bin/srb /usr/local/bin/srb
-      sudo ln -s /workspaces/github/bin/bundle /usr/local/bin/bundle
-      sudo ln -s /workspaces/github/bin/solargraph /usr/local/bin/solargraph
-      sudo ln -s /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
+      sudo ln -sf /workspaces/github/bin/rubocop /usr/local/bin/rubocop
+      sudo ln -sf /workspaces/github/bin/srb /usr/local/bin/srb
+      sudo ln -sf /workspaces/github/bin/bundle /usr/local/bin/bundle
+      sudo ln -sf /workspaces/github/bin/solargraph /usr/local/bin/solargraph
+      sudo ln -sf /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
       sudo update-locale LANG=en_US.UTF-8 LC_TYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8
     fi
 }
@@ -66,6 +65,8 @@ function setup_software() {
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     sudo chsh -s /usr/bin/fish vscode
+    cd /workspaces/github
+    git status
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
