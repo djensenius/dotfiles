@@ -15,7 +15,18 @@ return {
 					{ "mode", separator = { left = "" }, right_padding = 2 },
 				},
 				lualine_b = { "filename", "branch", "diff", "diagnostics" },
-				lualine_c = { "fileformat" },
+				lualine_c = {
+          { "fileformat" },
+          {
+                        function()
+                            return require("nvim-navic").get_location()
+                        end,
+                        cond = function()
+                            return package.loaded["nvim-navic"] and require("nvim-navic").is_available()
+                        end,
+                        color = utils.get_hlgroup("Comment", nil),
+                    },
+        },
         lualine_x = {
                       {
                         require("lazy.status").updates,
