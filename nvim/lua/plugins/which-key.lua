@@ -32,7 +32,7 @@ return {
 			P = "which_key_ignore",
 			r = "Relative line numbering",
 			s = {
-				name = "Split / Source",
+				name = "Split / Search / Source",
 			},
 			t = {
 				name = "Testing / Tree",
