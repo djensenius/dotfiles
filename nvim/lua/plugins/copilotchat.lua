@@ -14,7 +14,37 @@ return {
 		},
 		event = "VeryLazy",
 		config = function()
-			require("CopilotChat").setup()
+      require("CopilotChat.integrations.cmp").setup()
+        vim.api.nvim_create_autocmd("BufEnter", {
+            pattern = "copilot-chat",
+            callback = function()
+                vim.opt_local.relativenumber = false
+                vim.opt_local.number = false
+            end,
+        })
+      require("CopilotChat").setup({
+            auto_insert_mode = true,
+            show_help = false,
+            show_folds = false,
+            question_header = "  David ",
+            answer_header = "  Copilot ",
+            window = {
+                layout = "float",
+                width = 0.6,
+                height = 0.7,
+                border = "rounded",
+            },
+            mappings = {
+                close = {
+                    normal = "q",
+                    insert = "C-q",
+                },
+            },
+            selection = function(source)
+                local select = require("CopilotChat.select")
+                return select.visual(source) or select.buffer(source)
+            end,
+        })
 		end,
 		keys = {
 			{ "<leader>cce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
