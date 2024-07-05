@@ -47,4 +47,5 @@
   insteadOf = git@github.com:
 
 [alias]
-  m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout && git pull origin $(git rev-parse --abbrev-ref HEAD)
+  m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout
+  mp = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout && git pull origin $(git rev-parse --abbrev-ref HEAD)
