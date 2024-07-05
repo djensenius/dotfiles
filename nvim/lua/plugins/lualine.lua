@@ -89,7 +89,7 @@ return {
             on_click = function()
               vim.cmd(":Copilot status")
             end,
-            color = utils.get_hlgroup("Comment"),
+            color = utils.get_hlgroup("String"),
           },
         },
 				lualine_y = {
