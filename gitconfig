@@ -1,18 +1,18 @@
 [core]
-    pager = delta
-    excludesfile = ~/.gitignore_local
+  pager = delta
+  excludesfile = ~/.gitignore_local
 
 [interactive]
-    diffFilter = delta --color-only
+  diffFilter = delta --color-only
 
 [delta]
-    features = side-by-side line-numbers decorations
-    whitespace-error-style = 22 reverse
+  features = side-by-side line-numbers decorations
+  whitespace-error-style = 22 reverse
 
 [delta "decorations"]
-    commit-decoration-style = bold yellow box ul
-    file-style = bold yellow ul
-    file-decoration-style = none
+  commit-decoration-style = bold yellow box ul
+  file-style = bold yellow ul
+  file-decoration-style = none
 
 [user]
 	email = david@jensenius.com
@@ -46,3 +46,5 @@
 [url "https://github.com"]
   insteadOf = git@github.com:
 
+[alias]
+  m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout && git pull origin $(git rev-parse --abbrev-ref HEAD)
