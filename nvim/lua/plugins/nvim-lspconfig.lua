@@ -31,6 +31,12 @@ return {
 
 		local util = require("lspconfig/util")
 		local capabilities = require("cmp_nvim_lsp").default_capabilities()
+    local yaml_capabilities = vim.lsp.protocol.make_client_capabilities()
+    yaml_capabilities.textDocument.foldingRange = {
+      dynamicRegistration = false,
+      lineFoldingOnly = true,
+    }
+
 		require("lspconfig")["tsserver"].setup({
 			on_attach = on_attach,
 			root_dir = util.root_pattern("tsconfig.json"),
@@ -50,6 +56,11 @@ return {
 		require("lspconfig")["eslint"].setup({
 			on_attach = on_attach,
 			root_dir = util.root_pattern("package.json"),
+			capabilities = capabilities,
+		})
+
+		require("lspconfig")["eslint_d"].setup({
+			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 
@@ -76,6 +87,21 @@ return {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
+
+		require("lspconfig")["yamlls"].setup({
+			on_attach = on_attach,
+			capabilities = yaml_capabilities,
+		})
+
+		require("lspconfig")["jqls"].setup({
+			on_attach = on_attach,
+			capabilities = capabilities,
+		})
+
+    require("lspconfig")["jsonls"].setup({
+      on_attach = on_attach,
+      capabilities = capabilities,
+    })
 
 		local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
 		for type, icon in pairs(signs) do

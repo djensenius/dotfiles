@@ -20,6 +20,8 @@ return {
 					"typescript-language-server",
 					"yaml-language-server",
 					"ruby-lsp",
+          "jq-lsp",
+          "json-lsp",
 				}
 				local function check()
 					local mr = require("mason-registry")
