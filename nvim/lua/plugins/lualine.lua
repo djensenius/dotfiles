@@ -4,6 +4,31 @@ return {
 	event = "VeryLazy",
 	opts = function()
     local utils = require("core.utils")
+    local function lualine_mason_updates()
+      local registry = require("mason-registry")
+      local installed_packages = registry.get_installed_package_names()
+      local upgrades_available = false
+      local packages_outdated = 0
+      local function myCallback(success, _)
+        if success then
+          upgrades_available = true
+          packages_outdated = packages_outdated + 1
+        end
+      end
+
+      for _, pkg in pairs(installed_packages) do
+        local p = registry.get_package(pkg)
+        if p then
+          p:check_new_version(myCallback)
+        end
+      end
+
+      if upgrades_available then
+        return packages_outdated
+      else
+        return ""
+      end
+    end
 		return {
 			options = {
 				theme = "catppuccin",
@@ -61,6 +86,13 @@ return {
             color = utils.get_hlgroup("String"),
             on_click = function()
               vim.cmd(":Lazy")
+            end,
+          },
+          {
+            lualine_mason_updates,
+            icon     = "󱊈",
+            on_click = function()
+              vim.cmd("Mason")
             end,
           },
           {
