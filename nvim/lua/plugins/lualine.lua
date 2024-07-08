@@ -90,10 +90,11 @@ return {
           },
           {
             lualine_mason_updates,
-            icon     = "󱊈",
+            icon = "󱊈",
             on_click = function()
               vim.cmd("Mason")
             end,
+            color = utils.get_hlgroup("String")
           },
           {
             function()
