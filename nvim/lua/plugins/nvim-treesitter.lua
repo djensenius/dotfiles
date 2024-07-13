@@ -10,6 +10,7 @@ return {
 			ensure_installed = {
 				"bash",
 				"css",
+        "diff",
 				"dockerfile",
 				"fish",
 				"go",
@@ -20,6 +21,7 @@ return {
 				"json",
 				"lua",
 				"python",
+        "regex",
 				"ruby",
 				"rust",
 				"scss",

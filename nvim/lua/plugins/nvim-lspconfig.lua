@@ -59,11 +59,6 @@ return {
 			capabilities = capabilities,
 		})
 
-		require("lspconfig")["eslint_d"].setup({
-			on_attach = on_attach,
-			capabilities = capabilities,
-		})
-
 		require("lspconfig")["lua_ls"].setup({
 			settings = {
 				Lua = {
