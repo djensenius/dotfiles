@@ -24,7 +24,6 @@ vim.keymap.set("n", "<leader>nu", ":set nu<cr>")
 vim.keymap.set("n", "<leader>rn", ":set rnu<cr>")
 vim.keymap.set("n", "<leader>nrn", ":set nornu<cr>")
 vim.keymap.set("n", "<leader>nh", ":nohls<cr>")
-vim.keymap.set("n", "<leader>so", ":source ~/.config/nvim/init.lua<cr>")
 vim.keymap.set("n", "<leader>tt", ":TroubleToggle<cr>")
 
 -- Copy and paste
