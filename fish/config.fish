@@ -27,6 +27,8 @@ else
   status --is-interactive; and rbenv init - fish | source
 end
 
+fzf --fish | source
+
 alias gt="tmuxinator start github"
 alias pt="tmuxinator start personal"
 alias st="tmuxinator start server"
