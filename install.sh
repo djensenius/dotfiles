@@ -29,7 +29,7 @@ function link_files() {
 
 function install_software() {
     sleep 20
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
+    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most fzf -y
     sudo apt remove bat ripgrep -y
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     # sudo apt-get install -y ca-certificates curl gnupg
