@@ -41,7 +41,7 @@ function install_software() {
     # sudo apt-get install -y nodejs
     curl -L https://github.com/dandavison/delta/releases/download/0.17.0/git-delta-musl_0.17.0_amd64.deb > ~/git-delta-musl_0.17.0_amd64.deb
     sudo dpkg -i ~/git-delta-musl_0.17.0_amd64.deb
-    cargo install exa
+    cargo install eza
     cargo install zoxide --locked
     cargo install ripgrep
     cargo install fd-find
