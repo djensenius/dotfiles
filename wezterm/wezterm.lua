@@ -39,7 +39,7 @@ config.font_rules = {
     intensity = "Bold",
     italic = true,
     font = wezterm.font({
-      family = "Monaspace Xenon Var",
+      family = "Monaspace Radon Var",
       weight = "Bold",
       style = "Italic",
     }),
@@ -48,7 +48,7 @@ config.font_rules = {
     italic = true,
     intensity = "Half",
     font = wezterm.font({
-      family = "Monaspace Xenon Var",
+      family = "Monaspace Radon Var",
       weight = "DemiBold",
       style = "Italic",
     }),
@@ -57,7 +57,16 @@ config.font_rules = {
     italic = true,
     intensity = "Normal",
     font = wezterm.font({
+      family = "Monaspace Radon Var",
+      style = "Italic",
+    }),
+  },
+  {
+    intensity = "Bold",
+    italic = false,
+    font = wezterm.font({
       family = "Monaspace Xenon Var",
+      weight = "Bold",
       style = "Italic",
     }),
   },
