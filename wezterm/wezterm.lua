@@ -39,7 +39,7 @@ config.font_rules = {
     intensity = "Bold",
     italic = true,
     font = wezterm.font({
-      family = "Monaspace Radon Var",
+      family = "Monaspace Xenon Var",
       weight = "Bold",
       style = "Italic",
     }),
