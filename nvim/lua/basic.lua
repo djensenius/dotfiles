@@ -18,6 +18,7 @@ vim.opt.showbreak = " "
 vim.opt.visualbell = true
 vim.opt.wildmenu = true
 vim.opt.mouse:append("a")
+vim.opt.mousemoveevent = true
 vim.opt.statusline:append("%f")
 vim.opt.cursorline = true
 
