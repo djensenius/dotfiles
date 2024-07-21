@@ -6,6 +6,6 @@ windows:
       layout: main-horizontal
       panes:
         - btm --battery
-        - gping google.com
+        - gping -c blue google.com -c red aka.ms -c green github.com
         - gh pf
   - Code: nvim
