@@ -33,3 +33,7 @@ fzf --fish | source
 alias gt="tmuxinator start github"
 alias pt="tmuxinator start personal"
 alias st="tmuxinator start server"
+
+if status is-interactive
+  atuin init fish | source
+end

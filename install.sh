@@ -17,6 +17,7 @@ function link_files() {
     ln -sf $(pwd)/gitmux.conf ~/.config/gitmux.conf
     ln -sf $(pwd)/tmuxinator ~/.config/tmuxinator
     ln -sf $(pwd)/neofetch ~/.config/neofetch
+    ln -sf $(pwd)/atuin ~/.config/atuin
     if [ -d /workspaces/github ]; then
       sudo ln -sf /workspaces/github/bin/rubocop /usr/local/bin/rubocop
       sudo ln -sf /workspaces/github/bin/srb /usr/local/bin/srb
@@ -46,6 +47,7 @@ function install_software() {
     cargo install ripgrep
     cargo install fd-find
     cargo install bat --locked
+    cargo install atuin
     go install github.com/arl/gitmux@latest
     sudo gem install tmuxinator neovim-ruby-host
     npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
@@ -56,6 +58,8 @@ function install_software() {
 }
 
 function setup_software() {
+    echo "Log in to atuin"
+    atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
