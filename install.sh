@@ -63,7 +63,7 @@ function install_software() {
 
 function setup_software() {
     echo "Log in to atuin"
-    atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+    ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
     /usr/bin/pip3 install neovim
     echo "PIP install neovim complete" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
