@@ -36,4 +36,10 @@ alias st="tmuxinator start server"
 
 if status is-interactive
   atuin init fish | source
+  if test -d /workspaces
+    if not test -e ~/.atuin_logged_in
+      ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+      touch ~/.atuin_logged_in
+    end
+  end
 end
