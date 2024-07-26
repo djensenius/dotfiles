@@ -68,6 +68,11 @@ return {
 				lualine_c = {
           { "fileformat" },
           {
+            require('tmux-status').tmux_windows,
+            cond = require('tmux-status').show,
+            padding = { left = 1, right = 1 },
+          },
+          {
             function()
               return require("nvim-navic").get_location()
             end,
@@ -124,8 +129,13 @@ return {
             end,
             color = utils.get_hlgroup("String"),
           },
+          {
+            require('tmux-status').tmux_battery,
+            cond = require('tmux-status').show,
+            padding = { left = 1, right = 1 },
+          },
         },
-				lualine_y = {
+        lualine_y = {
           {
             function()
               local icon = ""
@@ -148,8 +158,8 @@ return {
             end,
           },
         },
-				lualine_z = {
-					{
+        lualine_z = {
+          {
             "location",
             on_click = function()
               vim.cmd(":AerialToggle")
