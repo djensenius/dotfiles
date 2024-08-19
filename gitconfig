@@ -4,14 +4,17 @@
 	editor = nvim
 
 [include]
-  path = ~/.config/themes.gitconfig
+  path = ~/.config/delta-themes.gitconfig
 
 [interactive]
   diffFilter = delta --color-only
 
 [delta]
-  features = side-by-side line-numbers Catppuccin-mocha
+  features = side-by-side line-numbers decorations
   whitespace-error-style = 22 reverse
+
+[delta "decorations"]
+  syntax-theme = Catppuccin-mocha
 
 [user]
 	email = david@jensenius.com
