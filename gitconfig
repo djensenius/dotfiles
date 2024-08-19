@@ -1,26 +1,22 @@
 [core]
   pager = delta
   excludesfile = ~/.gitignore_local
+	editor = nvim
+
+[include]
+  path = ~/.config/themes.gitconfig
 
 [interactive]
   diffFilter = delta --color-only
 
 [delta]
-  features = side-by-side line-numbers decorations
+  features = side-by-side line-numbers Catppuccin-mocha
   whitespace-error-style = 22 reverse
-
-[delta "decorations"]
-  commit-decoration-style = bold yellow box ul
-  file-style = bold yellow ul
-  file-decoration-style = none
 
 [user]
 	email = david@jensenius.com
 	name = David Jensenius
 	signingkey = 3C99585F0FFC7101
-
-[core]
-	editor = nvim
 
 [filter "lfs"]
 	clean = git-lfs clean -- %f
