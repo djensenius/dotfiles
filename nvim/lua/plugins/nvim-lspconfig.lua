@@ -37,9 +37,14 @@ return {
       lineFoldingOnly = true,
     }
 
-		require("lspconfig")["tsserver"].setup({
+		require("lspconfig")["ts_ls"].setup({
 			on_attach = on_attach,
 			root_dir = util.root_pattern("tsconfig.json"),
+			capabilities = capabilities,
+		})
+
+		require("lspconfig")["gopls"].setup({
+			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 

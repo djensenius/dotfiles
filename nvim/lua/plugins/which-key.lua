@@ -63,6 +63,15 @@ return {
         { "<leader>ts", desc = "Test suite", icon="󱞊" },
         { "<leader>tt", desc = "Trouble", icon="󰙅" },
         { "<leader>tv", desc = "Test visit" },
+        { "<leader><space>5", desc = "Continue", icon="" },
+        { "<leader><space>0", desc = "Step over", icon="" },
+        { "<leader><space>1", desc = "Step into", icon="󰆹" },
+        { "<leader><space>2", desc = "Step out", icon="" },
+        { "<Leader><space>b", desc = "Toggle breakpoint", icon="󰃤" },
+        { "<Leader><space>B", desc = "Set breakpoint", icon="󰃤" },
+        { "<Leader><space>pr",desc = "Open REPL", icon="" },
+        { "<Leader><space>pl", desc = "Run last", icon="󰘁" },
+        { "<Leader><space>p", desc = "More DAP" },
       }
     )
 	end,
