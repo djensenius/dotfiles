@@ -4,10 +4,14 @@
 function link_files() {
     mkdir -p ~/.config
     ln -sf $(pwd)/tmux.conf ~/.tmux.conf
-    rm ~/.gitconfig
+    if [ -e ~/.gitconfig ]; then
+      rm ~/.gitconfig
+    fi
     ln -s $(pwd)/gitconfig ~/.gitconfig
     ln -sf $(pwd)/gitignore_local ~/.gitignore_local
-    rm -rf ~/.config/fish
+    if [ -e ~/.config/fish ]; then
+      rm -rf ~/.config/fish
+    fi
     ln -sf $(pwd)/fish ~/.config/
     ln -sf $(pwd)/starship.toml ~/.config/
     ln -sf $(pwd)/nvim ~/.config/

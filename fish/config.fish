@@ -43,3 +43,12 @@ if status is-interactive
     end
   end
 end
+
+if test -d /home/linuxbrew/.linuxbrew/opt/asdf
+  source /home/linuxbrew/.linuxbrew/opt/asdf/libexec/asdf.fish
+end
+
+if test -d ~/.asdf/plugins/golang
+  source ~/.asdf/plugins/golang/set-env.fish
+end
+
