@@ -22,6 +22,7 @@ function link_files() {
     ln -sf $(pwd)/tmuxinator ~/.config/tmuxinator
     ln -sf $(pwd)/neofetch ~/.config/neofetch
     ln -sf $(pwd)/atuin ~/.config/atuin
+    ln -sf $(pwd)/yazi ~/.config/yazi
     if [ -d /workspaces/github ]; then
       sudo ln -sf /workspaces/github/bin/rubocop /usr/local/bin/rubocop
       sudo ln -sf /workspaces/github/bin/srb /usr/local/bin/srb
