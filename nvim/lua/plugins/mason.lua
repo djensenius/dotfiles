@@ -5,36 +5,41 @@ return {
 	dependencies = {
 		{
 			"williamboman/mason.nvim",
+      dependencies = {
+        "WhoIsSethDaniel/mason-tool-installer.nvim",
+      },
 			config = function()
 				require("mason").setup()
-				local tools = {
-					"eslint-lsp",
-					"eslint_d",
-					"luacheck",
-					"lua-language-server",
-					"prettierd",
-					"shellcheck",
-					"stylelint-lsp",
-					"stylua",
-					"tailwindcss-language-server",
-					"typescript-language-server",
-					"yaml-language-server",
-					"ruby-lsp",
-          "jq-lsp",
-          "json-lsp",
-          "gopls",
-          "delve",
-				}
-				local function check()
-					local mr = require("mason-registry")
-					for _, tool in ipairs(tools) do
-						local p = mr.get_package(tool)
-						if not p:is_installed() then
-							p:install()
-						end
-					end
-				end
-				check()
+        local mason_tool_installer = require("mason-tool-installer")
+        mason_tool_installer.setup({
+			    ensure_installed = {
+            "black",
+            "delve",
+            "eslint-lsp",
+            "eslint_d",
+            "goimports",
+            "golangci-lint",
+            "gopls",
+            "isort",
+            "jq-lsp",
+            "jsonlint",
+            "json-lsp",
+            "luacheck",
+            "lua-language-server",
+            "prettierd",
+            "prettier",
+            "pylint",
+            "rubocop",
+            "ruby-lsp",
+            "rustfmt",
+            "shellcheck",
+            "stylelint-lsp",
+            "stylua",
+            "tailwindcss-language-server",
+            "typescript-language-server",
+            "yaml-language-server",
+          },
+				})
 			end,
 		},
 		"neovim/nvim-lspconfig",
@@ -105,7 +110,7 @@ return {
 	config = function()
 		require("mason-lspconfig").setup({
 			ensure_installed = {
-				"tsserver",
+				"ts_ls",
 				"lua_ls",
         "gopls",
 			},
