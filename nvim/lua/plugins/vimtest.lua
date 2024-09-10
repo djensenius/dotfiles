@@ -1,5 +1,6 @@
 return {
 	"vim-test/vim-test",
+	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"preservim/vimux",
 	},
