@@ -24,6 +24,12 @@ return {
 		vim.keymap.set("n", "<leader>fb", '<cmd>lua require("telescope.builtin").buffers()<cr>')
 		vim.keymap.set("n", "<leader>fh", '<cmd>lua require("telescope.builtin").help_tags()<cr>')
 		vim.keymap.set("n", "<leader>fn", "<cmd>Telescope notify<cr>")
+		vim.keymap.set("n", "<leader>fd", function()
+      require("telescope.builtin").lsp_definitions({ jump_type = "never" })
+    end)
+		vim.keymap.set("n", "<leader>fr", function()
+      require("telescope.builtin").lsp_references()
+    end)
 		require("telescope").load_extension("fzf")
 		require("telescope").load_extension("ui-select")
 	end,
