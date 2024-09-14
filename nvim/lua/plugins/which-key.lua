@@ -25,6 +25,8 @@ return {
         { "<leader>f", group = "Finding & Format" },
         { "<leader>fb", desc = "Buffers" },
         { "<leader>ff", desc = "Files" },
+        { "<leader>fr", desc = "References" },
+        { "<leader>fd", desc = "Declarations" },
         { "<leader>fg", desc = "Search (grep)" },
         { "<leader>fh", desc = "Help", icon="󰋖" },
         { "<leader>fm", group = "Format" },
