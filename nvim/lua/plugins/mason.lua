@@ -31,7 +31,6 @@ return {
             "pylint",
             "rubocop",
             "ruby-lsp",
-            "rustfmt",
             "shellcheck",
             "stylelint-lsp",
             "stylua",
