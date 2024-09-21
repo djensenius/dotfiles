@@ -34,45 +34,44 @@ function link_files() {
 }
 
 function install_software() {
-    sleep 20
-    sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
-    sudo apt remove bat ripgrep -y
-    curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-    # sudo apt-get install -y ca-certificates curl gnupg
-    # sudo mkdir -p /etc/apt/keyrings
-    # curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-    # NODE_MAJOR=20
-    # echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-    # sudo apt-get update
-    # sudo apt-get install -y nodejs
-    curl -L https://github.com/dandavison/delta/releases/download/0.18.1/git-delta-musl_0.18.1_amd64.deb > ~/git-delta-musl_0.18.1_amd64.deb
-    sudo dpkg -i ~/git-delta-musl_0.18.1_amd64.deb
-    wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
-    PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-    curl -L $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip > ~/protoc.zip
-    unzip ~/protoc.zip -d $HOME/.local
-    export PATH="$PATH:$HOME/.local/bin"
-    cargo install eza
-    cargo install zoxide --locked
-    cargo install ripgrep
-    cargo install fd-find
-    cargo install bat --locked
-    cargo install atuin
-    go install github.com/arl/gitmux@latest
-    sudo gem install tmuxinator neovim-ruby-host
-    npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
-    curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
-    ~/.cargo/bin/bat cache --build
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install --all
+    if [ -d /workspaces/github ]; then
+      sleep 20
+      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
+      sudo apt remove bat ripgrep -y
+      curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
+      # sudo apt-get install -y ca-certificates curl gnupg
+      # sudo mkdir -p /etc/apt/keyrings
+      # curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+      # NODE_MAJOR=20
+      # echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+      # sudo apt-get update
+      # sudo apt-get install -y nodejs
+      curl -L https://github.com/dandavison/delta/releases/download/0.18.1/git-delta-musl_0.18.1_amd64.deb > ~/git-delta-musl_0.18.1_amd64.deb
+      sudo dpkg -i ~/git-delta-musl_0.18.1_amd64.deb
+      wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
+      PB_REL="https://github.com/protocolbuffers/protobuf/releases"
+      curl -L $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip > ~/protoc.zip
+      unzip ~/protoc.zip -d $HOME/.local
+      export PATH="$PATH:$HOME/.local/bin"
+      cargo install eza
+      cargo install zoxide --locked
+      cargo install ripgrep
+      cargo install fd-find
+      cargo install bat --locked
+      cargo install atuin
+      go install github.com/arl/gitmux@latest
+      sudo gem install tmuxinator neovim-ruby-host
+      npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
+      curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
+      ~/.cargo/bin/bat cache --build
+      git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+      ~/.fzf/install --all
+      fi
 }
 
 function setup_software() {
     echo "Log in to atuin"
     ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-    /usr/bin/pip3 install neovim
-    echo "PIP install neovim complete" >> ~/install.log
-    echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
@@ -80,9 +79,11 @@ function setup_software() {
     nvim --headless "+Lazy! sync" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
-    sudo chsh -s /usr/bin/fish vscode
-    cd /workspaces/github
-    git status
+    if [ -d /workspaces/github ]; then
+      sudo chsh -s /usr/bin/fish vscode
+      cd /workspaces/github
+      git status
+    fi
 }
 
 echo '🔗 Linking files.' >> ~/install.log;
