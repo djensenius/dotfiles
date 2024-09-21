@@ -1,0 +1,7 @@
+{
+  "name": "Linux",
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu24.04",
+  "features": {
+    "ghcr.io/djensenius/dfj-container/dfj-container:latest": {}
+	}
+}
