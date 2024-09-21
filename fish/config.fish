@@ -22,6 +22,10 @@ if test -d /workspaces
   fish_add_path --path ~/.fzf/bin
 end
 
+if test -e /etc/dfj-container
+  fish_add_path /opt/nvim-linux64/bin
+end
+
 if test -e /workspaces/.codespaces/shared/.env
   # posix-source /workspaces/.condespaces/shared/.env
 else
