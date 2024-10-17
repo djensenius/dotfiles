@@ -47,7 +47,7 @@ function install_software() {
       # echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
       # sudo apt-get update
       # sudo apt-get install -y nodejs
-      curl -L https://github.com/dandavison/delta/releases/download/0.18.1/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
+      curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
       sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
       wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
       PB_REL="https://github.com/protocolbuffers/protobuf/releases"
