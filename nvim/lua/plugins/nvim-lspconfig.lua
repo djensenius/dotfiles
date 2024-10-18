@@ -52,6 +52,7 @@ return {
 			capabilities = capabilities,
 		})
 
+    vim.env.SRB_SKIP_GEM_RBIS = 1
 		require("lspconfig")["sorbet"].setup({
 			on_attach = on_attach,
 			capabilities = capabilities,

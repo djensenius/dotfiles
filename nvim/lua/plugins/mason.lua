@@ -13,7 +13,6 @@ return {
         local mason_tool_installer = require("mason-tool-installer")
         mason_tool_installer.setup({
 			    ensure_installed = {
-            "black",
             "delve",
             "eslint-lsp",
             "eslint_d",
@@ -24,13 +23,10 @@ return {
             "jq-lsp",
             "jsonlint",
             "json-lsp",
-            "luacheck",
             "lua-language-server",
             "prettierd",
             "prettier",
-            "pylint",
             "rubocop",
-            "ruby-lsp",
             "shellcheck",
             "stylelint-lsp",
             "stylua",
