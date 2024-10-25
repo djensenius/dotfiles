@@ -2,3 +2,4 @@ Session.vim
 .prettierrc.json
 .prettierrc.js
 .DS_Store
+.eslint_d
