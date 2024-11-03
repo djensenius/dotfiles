@@ -3,3 +3,4 @@ Session.vim
 .prettierrc.js
 .DS_Store
 .eslint_d
+**/tmp/rubocop_cache
