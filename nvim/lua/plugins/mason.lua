@@ -34,6 +34,7 @@ return {
             "typescript-language-server",
             "yaml-language-server",
           },
+          debounce_hours = 96,
 				})
 			end,
 		},
