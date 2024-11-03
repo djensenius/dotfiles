@@ -21,7 +21,6 @@ return {
         { "<leader>cc", desc = "Copilot Chat", icon="" },
         { "<leader>cf", desc = "Copy full path", icon="" },
         { "<leader>cp", desc = "Copilot Panel", icon="" },
-        { "<leader>cr", desc = "Copy relative path", "" },
         { "<leader>f", group = "Finding & Format" },
         { "<leader>fb", desc = "Buffers" },
         { "<leader>ff", desc = "Files" },

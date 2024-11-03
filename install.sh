@@ -78,6 +78,7 @@ function setup_software() {
     echo "TMUX plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     nvim --headless "+Lazy! sync" +qa
+    nvim --headless /tmp/tmp  "+MasonToolsInstallSync" +qa
     echo "NVIM plugins installed" >> ~/install.log
     echo `date +"%Y-%m-%d %T"` >> ~/install.log;
     if [ -d /workspaces/github ]; then
