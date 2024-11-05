@@ -1,9 +1,3 @@
---[[
---
--- pip install python-dotenv requests pynvim==0.5.0 prompt-toolkit
--- https://github.com/jellydn/CopilotChat.nvim
--- ]]
-
 return {
 	{
 		"CopilotC-Nvim/CopilotChat.nvim",
@@ -14,37 +8,37 @@ return {
 		},
 		event = "VeryLazy",
 		config = function()
-      require("CopilotChat.integrations.cmp").setup()
-        vim.api.nvim_create_autocmd("BufEnter", {
-            pattern = "copilot-chat",
-            callback = function()
-                vim.opt_local.relativenumber = false
-                vim.opt_local.number = false
-            end,
-        })
-      require("CopilotChat").setup({
-            auto_insert_mode = true,
-            show_help = false,
-            show_folds = false,
-            question_header = "  David ",
-            answer_header = "  Copilot ",
-            window = {
-                layout = "float",
-                width = 0.6,
-                height = 0.7,
-                border = "rounded",
-            },
-            mappings = {
-                close = {
-                    normal = "q",
-                    insert = "C-q",
-                },
-            },
-            selection = function(source)
-                local select = require("CopilotChat.select")
-                return select.visual(source) or select.buffer(source)
-            end,
-        })
+			require("CopilotChat.integrations.cmp").setup()
+			vim.api.nvim_create_autocmd("BufEnter", {
+				pattern = "copilot-chat",
+				callback = function()
+					vim.opt_local.relativenumber = false
+					vim.opt_local.number = false
+				end,
+			})
+			require("CopilotChat").setup({
+				auto_insert_mode = true,
+				show_help = false,
+				show_folds = false,
+				question_header = "  David ",
+				answer_header = "  Copilot ",
+				window = {
+					layout = "vertical",
+					width = 0.3,
+					height = 0.7,
+					border = "rounded",
+				},
+				mappings = {
+					close = {
+						normal = "q",
+						insert = "C-q",
+					},
+				},
+				selection = function(source)
+					local select = require("CopilotChat.select")
+					return select.visual(source) or select.buffer(source)
+				end,
+			})
 		end,
 		keys = {
 			{ "<leader>cce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
@@ -53,10 +47,27 @@ return {
 			{ "<leader>cco", "<cmd>CopilotChatOptimize<cr>", desc = "CopilotChat - Optimize" },
 			{ "<leader>ccd", "<cmd>CopilotChatDocs<cr>", desc = "CopilotChat - Add Documentation" },
 			{ "<leader>cct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
-			{ "<leader>ccd", "<cmd>CopilotChatFixDiagnostic<cr>", desc = "CopilotChat - diagnostic issue in file" },
+			{ "<leader>ccD", "<cmd>CopilotChatFixDiagnostic<cr>", desc = "CopilotChat - diagnostic issue in file" },
 			{ "<leader>ccc", "<cmd>CopilotChatCommit<cr>", desc = "CopilotChat - Commit message" },
 			{ "<leader>ccs", "<cmd>CopilotChatCommitStaged<cr>", desc = "CopilotChat - Commit message" },
 			{ "<leader>ccT", "<cmd>CopilotChatToggle<cr>", desc = "Toggle Copilot Chat" },
+			{
+				"<leader>cch",
+				function()
+					local actions = require("CopilotChat.actions")
+					require("CopilotChat.integrations.telescope").pick(actions.help_actions())
+				end,
+				desc = "CopilotChat - Help actions",
+			},
+			-- Show prompts actions with telescope
+			{
+				"<leader>ccp",
+				function()
+					local actions = require("CopilotChat.actions")
+					require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+				end,
+				desc = "CopilotChat - Prompt actions",
+			},
 		},
 	},
 }
