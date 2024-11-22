@@ -6,38 +6,16 @@ return {
 			{ "github/copilot.vim" }, -- or github/copilot.vim
 			{ "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
 		},
+    build = "make tiktoken",
 		event = "VeryLazy",
 		config = function()
-			require("CopilotChat.integrations.cmp").setup()
-			vim.api.nvim_create_autocmd("BufEnter", {
-				pattern = "copilot-chat",
-				callback = function()
-					vim.opt_local.relativenumber = false
-					vim.opt_local.number = false
-				end,
-			})
 			require("CopilotChat").setup({
 				auto_insert_mode = true,
+        chat_autocomplete = true,
 				show_help = false,
 				show_folds = false,
 				question_header = "  David ",
 				answer_header = "  Copilot ",
-				window = {
-					layout = "vertical",
-					width = 0.3,
-					height = 0.7,
-					border = "rounded",
-				},
-				mappings = {
-					close = {
-						normal = "q",
-						insert = "C-q",
-					},
-				},
-				selection = function(source)
-					local select = require("CopilotChat.select")
-					return select.visual(source) or select.buffer(source)
-				end,
 			})
 		end,
 		keys = {
