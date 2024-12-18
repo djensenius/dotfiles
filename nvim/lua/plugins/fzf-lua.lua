@@ -5,15 +5,17 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
     -- calling `setup` is optional for customization
-    require("fzf-lua").setup({})
+    require("fzf-lua").setup({'default-title'})
+    vim.keymap.set("n", "<c-G>", require('fzf-lua').live_grep, { desc = "Files" })
+    vim.keymap.set("n", "<c-P>", require('fzf-lua').files, { desc = "Files" })
+    vim.keymap.set("n", "<leader>fzg", require('fzf-lua').live_grep, { desc = "Live grep" })
+    vim.keymap.set("n", "<leader>fzf", require('fzf-lua').files, { desc = "Files" })
+    vim.keymap.set("n", "<leader>fzr", require('fzf-lua').resume, { desc = "Resume" })
+    vim.keymap.set("n", "<leader>fzg", require('fzf-lua').git_status, { desc = "Git Status" })
+    vim.keymap.set("n", "<leader>fzq", require('fzf-lua').quickfix, { desc = "Quickfix" })
+    vim.keymap.set("n", "<leader>fzlr", require('fzf-lua').lsp_references, { desc = "References" })
+    vim.keymap.set("n", "<leader>fzlD", require('fzf-lua').lsp_references, { desc = "Definitions" })
+    vim.keymap.set("n", "<leader>fzlc", require('fzf-lua').lsp_declarations, { desc = "Declarations" })
+    vim.keymap.set("n", "<leader>fzlt", require('fzf-lua').lsp_typedefs, { desc = "Type Definitions" })
   end,
-  vim.keymap.set("n", "<leader>fzg", ":FzfLua live_grep<CR>", { desc = "Live grep" }),
-  vim.keymap.set("n", "<leader>fzf", ":FzfLua files<CR>", { desc = "Files" }),
-  vim.keymap.set("n", "<leader>fzr", ":FzfLua resume<CR>", { desc = "Resume" }),
-  vim.keymap.set("n", "<leader>fzg", ":FzfLua git_status<CR>", { desc = "Git Status" }),
-  vim.keymap.set("n", "<leader>fzq", ":FzfLua quickfix<CR>", { desc = "Quickfix" }),
-  vim.keymap.set("n", "<leader>fzlr", ":FzfLua lsp_references<CR>", { desc = "References" }),
-  vim.keymap.set("n", "<leader>fzlD", ":FzfLua lsp_definitions<CR>", { desc = "Definitions" }),
-  vim.keymap.set("n", "<leader>fzlc", ":FzfLua lsp_declarations<CR>", { desc = "Declarations" }),
-  vim.keymap.set("n", "<leader>fzlt", ":FzfLua lsp_typedefs<CR>", { desc = "Type Definitions" }),
 }

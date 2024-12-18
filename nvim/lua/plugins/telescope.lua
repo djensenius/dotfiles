@@ -19,11 +19,11 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<leader>ff", '<cmd>lua require("telescope.builtin").find_files()<cr>')
-		vim.keymap.set("n", "<leader>fg", '<cmd>lua require("telescope.builtin").live_grep()<cr>')
-		vim.keymap.set("n", "<leader>fb", '<cmd>lua require("telescope.builtin").buffers()<cr>')
-		vim.keymap.set("n", "<leader>fh", '<cmd>lua require("telescope.builtin").help_tags()<cr>')
-		vim.keymap.set("n", "<leader>fn", "<cmd>Telescope notify<cr>")
+		vim.keymap.set("n", "<leader>ff", require("telescope.builtin").find_files)
+		vim.keymap.set("n", "<leader>fg", require("telescope.builtin").live_grep)
+		vim.keymap.set("n", "<leader>fb", require("telescope.builtin").buffers)
+		vim.keymap.set("n", "<leader>fh", require("telescope.builtin").help_tags)
+		vim.keymap.set("n", "<leader>fn", require('telescope').extensions.notify.notify)
 		vim.keymap.set("n", "<leader>fd", function()
       require("telescope.builtin").lsp_definitions({ jump_type = "never" })
     end)
