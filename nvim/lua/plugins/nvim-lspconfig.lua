@@ -1,6 +1,6 @@
 return {
 	"neovim/nvim-lspconfig",
-	dependencies = { "nvim-tree/nvim-web-devicons", "folke/trouble.nvim", "hrsh7th/cmp-nvim-lsp" },
+	dependencies = { "nvim-tree/nvim-web-devicons", "folke/trouble.nvim", "saghen/blink.cmp" },
 	event = "VeryLazy",
 
 	config = function()
@@ -34,7 +34,7 @@ return {
 		end
 
 		local util = require("lspconfig/util")
-		local capabilities = require("cmp_nvim_lsp").default_capabilities()
+    local capabilities = require('blink.cmp').get_lsp_capabilities()
     local yaml_capabilities = vim.lsp.protocol.make_client_capabilities()
     yaml_capabilities.textDocument.foldingRange = {
       dynamicRegistration = false,
