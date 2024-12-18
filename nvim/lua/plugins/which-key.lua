@@ -29,6 +29,8 @@ return {
         { "<leader>fg", desc = "Search (grep)" },
         { "<leader>fh", desc = "Help", icon="󰋖" },
         { "<leader>fm", group = "Format" },
+        { "<Leader>fz", group = "fzf" },
+        { "<Leader>fzl", group = "LSP" },
         { "<leader>fmt", desc = "Format [LSP]" },
         { "<leader>fn", desc = "Notify" },
         { "<leader>g", group = "Git" },
