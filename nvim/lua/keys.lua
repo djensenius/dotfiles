@@ -24,7 +24,6 @@ vim.keymap.set("n", "<leader>nu", ":set nu<cr>")
 vim.keymap.set("n", "<leader>rn", ":set rnu<cr>")
 vim.keymap.set("n", "<leader>nrn", ":set nornu<cr>")
 vim.keymap.set("n", "<leader>nh", ":nohls<cr>")
-vim.keymap.set("n", "<leader>tt", ":TroubleToggle<cr>")
 
 -- Copy and paste
 
@@ -39,6 +38,10 @@ vim.keymap.set("v", "<Leader>y", '"+y')
 vim.keymap.set("v", "<Leader>d", '"+d')
 vim.keymap.set("n", "<Leader>p", '"+p')
 vim.keymap.set("n", "<Leader>P", '"+P')
+
+-- Save and quit
+vim.keymap.set('n', '<leader>w', ':w<CR>', { silent = true })
+vim.keymap.set('n', '<leader>q', ':q<CR>', { silent = true })
 
 -- Split
 vim.keymap.set("", "<leader>sp", ":split<cr>")

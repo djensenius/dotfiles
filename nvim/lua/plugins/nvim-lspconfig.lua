@@ -113,16 +113,5 @@ return {
 			local hl = "DiagnosticSign" .. type
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
 		end
-
-		require("trouble").setup({
-			signs = {
-				-- icons / text used for a diagnostic
-				error = "",
-				warning = "",
-				hint = "",
-				information = "",
-				other = "",
-			},
-		})
 	end,
 }

@@ -32,7 +32,7 @@ return {
 		return {
 			options = {
 				theme = "catppuccin",
-				component_separators = "|",
+        component_separators = { left = '|', right = '|' },
 				section_separators = { left = "", right = "" },
 			},
 			sections = {
@@ -138,17 +138,34 @@ return {
         lualine_y = {
           {
             function()
-              local icon = ""
+              local icon = ""
               return icon
             end,
             on_click = function()
               vim.cmd(":Gitsigns toggle_current_line_blame")
             end,
+            draw_empty = false,
           },
           {
             "filetype",
             on_click = function()
               vim.cmd(":LspInfo")
+            end,
+            cond = function()
+              return vim.bo.filetype and #vim.bo.filetype > 0
+            end,
+            draw_empty = false,
+          },
+          {
+            function()
+              local mode = vim.fn.mode()
+              return #mode > 0 and '%S' or ''
+            end,
+            padding = { left = 1, right = 1 },
+            draw_empty = false,
+            cond = function()
+              local mode = vim.fn.mode()
+              return #mode > 0
             end,
           },
           {
@@ -156,6 +173,10 @@ return {
             on_click = function()
               vim.cmd(":AerialToggle")
             end,
+            cond = function()
+              return vim.fn.line('$') > 1 or #vim.fn.getline(1) > 0
+            end,
+            draw_empty = false,
           },
         },
         lualine_z = {
