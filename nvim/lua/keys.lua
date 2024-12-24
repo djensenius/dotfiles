@@ -39,6 +39,10 @@ vim.keymap.set("v", "<Leader>d", '"+d')
 vim.keymap.set("n", "<Leader>p", '"+p')
 vim.keymap.set("n", "<Leader>P", '"+P')
 
+-- Save and quit
+vim.keymap.set('n', '<leader>w', ':w<CR>', { silent = true })
+vim.keymap.set('n', '<leader>q', ':q<CR>', { silent = true })
+
 -- Split
 vim.keymap.set("", "<leader>sp", ":split<cr>")
 vim.keymap.set("", "<leader>sh", ":split<cr>")

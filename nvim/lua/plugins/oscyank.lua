@@ -1,23 +1,21 @@
--- luacheck: globals osccopy osccopyplus
-function osccopyplus()
-	if vim.v.event.operator == "y" and vim.v.event.regname == "+" then
-		vim.cmd("OSCYankRegister +")
-	end
-end
-
-function osccopy()
-	if vim.v.event.operator == "y" and vim.v.event.regname == "" then
-		vim.cmd('OSCYankRegister "')
-	end
-end
-
 return {
-	"ojroques/vim-oscyank",
-	init = function()
-		vim.g.oscyank_trim = 0
-	end,
-	config = function()
-		vim.api.nvim_create_autocmd("TextYankPost", { callback = osccopy })
-		vim.api.nvim_create_autocmd("TextYankPost", { callback = osccopyplus })
-	end,
+  "ojroques/vim-oscyank",
+  init = function()
+    ---@diagnostic disable-next-line: inject-field
+    vim.g.oscyank_trim = 0
+  end,
+  config = function()
+    -- Single autocmd with a combined callback function
+    vim.api.nvim_create_autocmd("TextYankPost", {
+      callback = function()
+        -- Handle both default and '+' register cases in a single function
+        if vim.v.event.operator ~= "y" then return end
+
+        local register = vim.v.event.regname
+        if register == "" or register == "+" then
+          vim.cmd(string.format('OSCYankRegister %s', register == "" and '"' or "+"))
+        end
+      end
+    })
+  end,
 }
