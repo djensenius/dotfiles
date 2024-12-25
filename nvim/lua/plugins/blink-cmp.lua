@@ -1,7 +1,9 @@
 return {
   'saghen/blink.cmp',
   lazy = false, -- lazy loading handled internally
-  dependencies = { 'rafamadriz/friendly-snippets' }, -- dependencies should be in a table
+  dependencies = {
+    'rafamadriz/friendly-snippets',
+  }, -- dependencies should be in a table
 
   version = 'v0.*',
 
@@ -9,8 +11,27 @@ return {
     keymap = { preset = 'default' },
 
     appearance = {
-      use_nvim_cmp_as_default = true,
       nerd_font_variant = 'mono'
+    },
+
+    completion = {
+      menu = {
+        border = 'rounded'
+      },
+      documentation = {
+        auto_show = true,
+        auto_show_delay_ms = 250,
+        treesitter_highlighting = true,
+        window = {
+          border = 'rounded',
+        },
+      },
+    },
+    signature = {
+      enabled = true,
+      window = {
+        border = 'rounded',
+      },
     },
 
     sources = {
