@@ -1,0 +1,48 @@
+{
+  "Podcasts": [
+    {
+      "Directory": "/mnt/plates/podcasts/rf",
+      "Title": "Rare Frequencies",
+      "ShortTitle": "rf",
+      "Image": "https://farm1.staticflickr.com/742/21709331051_913ccb063a_m.jpg",
+      "URL": "https://podcasts.fluxhaus.io/rf/",
+      "PodcastURL": "https://spinitron.com/WZBC/show/792/Rare-Frequency",
+      "SourceURL": "https://stream.wzbc.org/wzbc",
+      "Length": 7320,
+      "Extension": "mp3"
+    },
+    {
+      "Directory": "/mnt/plates/podcasts/taz",
+      "Title": "Temporary Autonomous Zone",
+      "ShortTitle": "taz",
+      "Image": "https://spinitron.com/images/Show/20/51/205173-img_show.225x225.jpg",
+      "URL": "https://podcasts.fluxhaus.io/taz/",
+      "PodcastURL": "https://spinitron.com/WZBC/show/205173/temporary-autonomous-zone",
+      "SourceURL": "https://stream.wzbc.org/wzbc",
+      "Length": 7320,
+      "Extension": "mp3"
+    },
+    {
+      "Directory": "/mnt/plates/podcasts/vf",
+      "Title": "Vocal Fry",
+      "ShortTitle": "vf",
+      "Image": "https://blogfiles.wfmu.org/VF/VFNWW_Final.jpg",
+      "URL": "https://podcasts.fluxhaus.io/vf/",
+      "PodcastURL": "https://www.wfmu.org/playlists/VF",
+      "SourceURL": "https://stream0.wfmu.org/freeform-high.aac",
+      "Length": 3720,
+      "Extension": "aac"
+    },
+    {
+      "Directory": "/mnt/plates/podcasts/fo",
+      "Title": "Freak Out",
+      "ShortTitle": "fo",
+      "Image": "https://wfmu.org/Gfx/playlist_images/F8/FREAKING-OUT-ARCHIVE_7205369910424118_pt.jpg",
+      "URL": "https://podcasts.fluxhaus.io/fo/",
+      "PodcastURL": "https://www.wfmu.org/playlists/F8",
+      "SourceURL": "https://stream0.wfmu.org/freeform-high.aac",
+      "Length": 10920,
+      "Extension": "aac"
+    }
+  ]
+}
