@@ -1,8 +1,8 @@
-function rgp
+function rgp --description "ripgrep with (delta) pager"
   rg --json $argv | delta
 end
 
-function rgf
+function rgf --description "ripgrep with fzf"
   rg --color=always --line-number --no-heading --smart-case "$argv" |
   fzf --ansi \
       --color "hl:-1:underline,hl+:-1:underline:reverse" \
