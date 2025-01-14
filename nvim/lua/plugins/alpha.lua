@@ -3,7 +3,7 @@ return {
 	event = "VimEnter",
 	config = function()
 		local opts = { noremap = true, silent = true }
-		vim.keymap.set("n", "<leader>a", ":Alpha<CR>", opts)
+		vim.keymap.set("n", "<leader>aA", ":Alpha<CR>", opts)
 		local dashboard = require("alpha.themes.dashboard")
 		local logo = [[
     (q\_/p)

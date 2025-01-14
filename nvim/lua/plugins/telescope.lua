@@ -5,6 +5,7 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-lua/popup.nvim",
+    "stevearc/aerial.nvim",
 		"nvim-telescope/telescope-ui-select.nvim",
 		{
 			"nvim-telescope/telescope-fzf-native.nvim",
@@ -31,6 +32,7 @@ return {
       require("telescope.builtin").lsp_references()
     end)
 		require("telescope").load_extension("fzf")
+		require("telescope").load_extension("aerial")
 		require("telescope").load_extension("ui-select")
 	end,
 }
