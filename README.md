@@ -88,12 +88,11 @@ Vale is a syntax-aware linter for prose built with speed and extensibility in mi
 Yazi is a terminal file manager.
 - **Directory**: `yazi/`
 
-# Codespaces details
-# `install.sh` Script Summary
+## Codespaces `install.sh` Script Summary
 
 The `install.sh` script is designed to set up and configure a development environment, particularly for use in GitHub Codespaces. It performs the following tasks:
 
-## 1. Link Configuration Files
+### 1. Link Configuration Files
 
 - Creates necessary directories and creates symbolic links for various configuration files:
   - `tmux.conf`
@@ -113,7 +112,7 @@ The `install.sh` script is designed to set up and configure a development enviro
 
 - If running within a GitHub Codespace, it links executables (e.g., `rubocop`, `srb`, `bundle`, `solargraph`, `safe-ruby`) to `/usr/local/bin` and updates locale settings.
 
-## 2. Install Software
+### 2. Install Software
 
 - Installs various software packages required for the development environment, including:
   - `build-essential`
@@ -154,7 +153,7 @@ The `install.sh` script is designed to set up and configure a development enviro
   - `fzf`
   - `lazygit`
 
-## 3. Setup Software
+### 3. Setup Software
 
 - Logs into `atuin` using provided credentials.
 - Installs `tmux` plugins.
@@ -163,7 +162,7 @@ The `install.sh` script is designed to set up and configure a development enviro
   - Changes the default shell to `fish` for the `vscode` user.
   - Checks the status of the repository.
 
-## 4. Logging
+### 4. Logging
 
 - Logs the progress of file linking, software installation, and software setup to `~/install.log`.
 
