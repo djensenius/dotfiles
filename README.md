@@ -2,6 +2,17 @@
 
 My config files for various applications to enhance development efficiency and experience. All configurations use the [Catppuccin Mocha theme](https://github.com/catppuccin/catppuccin) for a consistent and visually appealing look across all tools and applications.
 
+## Local installation
+
+TMUX is a little special and needs this:
+```
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+~/.tmux/plugins/tpm/scripts/install_plugins.sh
+```
+
+Otherwise you *mostly* just symlink to your `~/.config` directory. Take a look at [install.sh](install.sh)
+which is used for setting up codespaces if you run into any problems.
+
 ## Applications
 
 ### [atuin](https://atuin.sh) ([repo](https://github.com/ellie/atuin))
@@ -76,3 +87,86 @@ Vale is a syntax-aware linter for prose built with speed and extensibility in mi
 ### [yazi](https://github.com/yazi-shell/yazi)
 Yazi is a terminal file manager.
 - **Directory**: `yazi/`
+
+# Codespaces details
+# `install.sh` Script Summary
+
+The `install.sh` script is designed to set up and configure a development environment, particularly for use in GitHub Codespaces. It performs the following tasks:
+
+## 1. Link Configuration Files
+
+- Creates necessary directories and creates symbolic links for various configuration files:
+  - `tmux.conf`
+  - `gitconfig`
+  - `fish`
+  - `starship.toml`
+  - `nvim`
+  - `bat`
+  - `vale.ini`
+  - `prettierrc.json`
+  - `gitmux.conf`
+  - `tmuxinator`
+  - `neofetch`
+  - `atuin`
+  - `yazi`
+  - `bottom`
+
+- If running within a GitHub Codespace, it links executables (e.g., `rubocop`, `srb`, `bundle`, `solargraph`, `safe-ruby`) to `/usr/local/bin` and updates locale settings.
+
+## 2. Install Software
+
+- Installs various software packages required for the development environment, including:
+  - `build-essential`
+  - `python3-venv`
+  - `socat`
+  - `ncat`
+  - `ruby-dev`
+  - `jq`
+  - `thefuck`
+  - `tmux`
+  - `libfuse2`
+  - `fuse`
+  - `software-properties-common`
+  - `most`
+
+- Removes potentially conflicting packages (`bat`, `ripgrep`).
+
+- Installs additional tools via `curl`, `wget`, `cargo`, `go`, `gem`, and `npm`:
+  - `starship`
+  - `delta`
+  - `protobuf`
+  - `eza`
+  - `zoxide`
+  - `ripgrep`
+  - `fd-find`
+  - `bat`
+  - `atuin`
+  - `gitmux`
+  - `tmuxinator`
+  - `neovim-ruby-host`
+  - `prettierd`
+  - `yaml-language-server`
+  - `vscode-langservers-extracted`
+  - `eslint_d`
+  - `prettier`
+  - `tree-sitter`
+  - `neovim`
+  - `fzf`
+  - `lazygit`
+
+## 3. Setup Software
+
+- Logs into `atuin` using provided credentials.
+- Installs `tmux` plugins.
+- Synchronizes and installs `nvim` plugins.
+- If running within a GitHub Codespace
+  - Changes the default shell to `fish` for the `vscode` user.
+  - Checks the status of the repository.
+
+## 4. Logging
+
+- Logs the progress of file linking, software installation, and software setup to `~/install.log`.
+
+---
+
+This script automates the setup process to ensure a consistent and efficient development environment, particularly optimized for GitHub Codespaces.
