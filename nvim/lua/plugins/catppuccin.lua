@@ -17,7 +17,27 @@ return {
 				enabled = true,
 			},
 			integrations = {
-				treesitter = true,
+				aerial = true,
+				alpha = true,
+				blink_cmp = true,
+				copilot_vim = true,
+				dap = {
+					enabled = true,
+					enable_ui = true,
+				},
+				fzf = true,
+				gitsigns = true,
+				indent_blankline = {
+					enabled = true,
+					colored_indent_levels = false,
+				},
+				lsp_trouble = true,
+				mason = true,
+				neotree = {
+					enabled = true,
+					show_root = true,
+					transparent_panel = false,
+				},
 				native_lsp = {
 					enabled = true,
 					virtual_text = {
@@ -33,22 +53,13 @@ return {
 						information = { "underline" },
 					},
 				},
-				gitsigns = true,
-				lsp_trouble = true,
-				dap = {
+				neogit = true,
+				noice = true,
+				telescope = {
 					enabled = true,
-					enable_ui = true,
 				},
-				neotree = {
-					enabled = true,
-					show_root = true,
-					transparent_panel = false,
-				},
+				treesitter = true,
 				which_key = true,
-				indent_blankline = {
-					enabled = true,
-					colored_indent_levels = false,
-				},
 			},
 		})
 		vim.cmd([[colorscheme catppuccin]])

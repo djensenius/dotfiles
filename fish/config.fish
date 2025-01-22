@@ -37,6 +37,7 @@ fzf --fish | source
 alias gt="tmuxinator start github"
 alias pt="tmuxinator start personal"
 alias st="tmuxinator start server"
+alias fzg="rgf"
 
 if status is-interactive
   atuin init fish | source
@@ -56,3 +57,9 @@ if test -d ~/.asdf/plugins/golang
   source ~/.asdf/plugins/golang/set-env.fish
 end
 
+set -Ux FZF_DEFAULT_OPTS "\
+--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+--color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
+--color=selected-bg:#45475a \
+--multi"
