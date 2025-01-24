@@ -3,6 +3,7 @@
 
 add_newline = false
 palette = "catppuccin_mocha"
+command_timeout = 5000
 
 [aws]
 disabled = true
@@ -62,6 +63,7 @@ symbol = " "
 min_time = 500
 format = "took [$duration]($style) "
 
+[conda]
 symbol = " "
 
 [crystal]
