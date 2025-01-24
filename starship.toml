@@ -6,6 +6,13 @@ palette = "catppuccin_mocha"
 
 [aws]
 disabled = true
+symbol = "  "
+
+[azure]
+disabled = false
+format = "on [$symbol($username)]($style) "
+symbol = "󰠅 "
+style = "blue bold"
 
 [battery]
 charging_symbol = "🔌 "
@@ -42,17 +49,54 @@ style = "bold yellow"
 discharging_symbol = "󰁾 "
 charging_symbol = "󰢝 "
 
+[buf]
+symbol = " "
+
+[c]
+symbol = " "
+
+[cmake]
+symbol = " "
+
 [cmd_duration]
 min_time = 500
 format = "took [$duration]($style) "
+
+symbol = " "
+
+[crystal]
+symbol = " "
+
+[dart]
+symbol = " "
 
 [directory]
 truncate_to_repo = true
 truncation_symbol = '…/'
 style = "bold lavender"
+read_only = " 󰌾"
+
+[docker_context]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[fennel]
+symbol = " "
+
+[fossil_branch]
+symbol = " "
 
 [git_branch]
 style = "bold mauve"
+symbol = " "
+
+[git_commit]
+tag_symbol = '  '
 
 [git_metrics]
 disabled = false
@@ -60,16 +104,91 @@ disabled = false
 [golang]
 symbol = " "
 
+[guix_shell]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[haxe]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+[hostname]
+ssh_symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[kotlin]
+symbol = " "
+
+[lua]
+symbol = " "
+
+[memory_usage]
+symbol = "󰍛 "
+
+[meson]
+symbol = "󰔷 "
+
+[nim]
+symbol = "󰆥 "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+symbol = " "
+
+[ocaml]
+symbol = " "
+
 [os]
 format = "$symbol($style)"
 style = "bold blue"
 disabled = false
 
 [package]
-symbol = ''
+symbol = "󰏗 "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[pijul_channel]
+symbol = " "
+
+[python]
+symbol = " "
+
+[rlang]
+symbol = "󰟔 "
+
+[ruby]
+symbol = " "
 
 [rust]
-symbol = " "
+symbol = "󱘗 "
+
+[scala]
+symbol = " "
+
+[swift]
+symbol = " "
+
+[zig]
+symbol = " "
+
+[gradle]
+symbol = " "
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
@@ -101,53 +220,51 @@ crust = "#11111b"
 
 
 [os.symbols]
-AIX = "➿ "
-Alpaquita = "🔔 "
-AlmaLinux = "💠 "
+Alpaquita = " "
 Alpine = " "
-Amazon = " "
-Android = " "
-Arch = "󰣇 "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+Arch = " "
 Artix = " "
+CachyOS = " "
 CentOS = " "
-Debian = " "
-DragonFly = "🐉 "
-Emscripten = "🔗 "
-EndeavourOS = "🚀 "
-Fedora = " "
-FreeBSD = " "
-Garuda = "🦅 "
+Debian = " "
+DragonFly = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
 Gentoo = " "
-HardenedBSD = "🛡️ "
-Illumos = "🐦 "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
 Kali = " "
-Linux = " "
-Mabox = "📦 "
-Macos = " "
+Linux = " "
+Mabox = " "
+Macos = " "
 Manjaro = " "
-Mariner = "🌊 "
-MidnightBSD = "🌘 "
-Mint = "🌿 "
-NetBSD = "🚩 "
-NixOS = "❄️ "
-OpenBSD = "🐡 "
-OpenCloudOS = "☁️ "
-openEuler = "🦉 "
-openSUSE = " "
-OracleLinux = "🦴 "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
 Pop = " "
-Raspbian = " "
-Redhat = " "
-RedHatEnterprise = " "
-RockyLinux = "💠 "
-Redox = "🧪 "
-Solus = "⛵ "
-SUSE = "🦎 "
-Ubuntu = " "
-Ultramarine = "🔷 "
-Unknown = "❓ "
-Void = "  "
-Windows = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
 
 [palettes.catppuccin_frappe]
 rosewater = "#f2d5cf"
