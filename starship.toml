@@ -9,7 +9,7 @@ disabled = true
 symbol = "  "
 
 [azure]
-disabled = false
+disabled = true
 format = "on [$symbol($username)]($style) "
 symbol = "󰠅 "
 style = "blue bold"
