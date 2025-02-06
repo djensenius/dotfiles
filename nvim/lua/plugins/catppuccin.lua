@@ -13,6 +13,7 @@ return {
 			compile = {
 				enabled = true,
 			},
+			copilot = true,
 			dim_inactive = {
 				enabled = true,
 			},
@@ -54,6 +55,7 @@ return {
 					},
 				},
 				neogit = true,
+				notify = true,
 				noice = true,
 				telescope = {
 					enabled = true,
