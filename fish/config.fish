@@ -3,6 +3,9 @@ thefuck --alias | source
 abbr --add 'monolith' 'gh cs create -R github/github -m xLargePremiumLinux --devcontainer-path .devcontainer/devcontainer.json --status'
 abbr --add 'youtub-dl' 'yt-dlp'
 abbr --add 'vim' 'nvim'
+abbr --add 'vi' 'nvim'
+abbr --add 'clear-tmux-window' 'tmux set-window-option -t1 automatic-rename on'
+
 if test -e /home/linuxbrew
   eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
