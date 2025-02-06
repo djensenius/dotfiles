@@ -4,7 +4,7 @@
 	editor = nvim
 
 [include]
-  path = ~/.config/delta-themes.gitconfig
+  path = ~/.config/delta/delta-themes.gitconfig
 
 [interactive]
   diffFilter = delta --color-only
