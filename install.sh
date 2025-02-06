@@ -24,6 +24,7 @@ function link_files() {
     ln -sf $(pwd)/atuin ~/.config/atuin
     ln -sf $(pwd)/yazi ~/.config/yazi
     ln -sf $(pwd)/bottom ~/.config/bottom
+    ln -sf $(pwd)/tmux ~/.config/tmux
     if [ -d /workspaces/github ]; then
       sudo ln -sf /workspaces/github/bin/rubocop /usr/local/bin/rubocop
       sudo ln -sf /workspaces/github/bin/srb /usr/local/bin/srb
