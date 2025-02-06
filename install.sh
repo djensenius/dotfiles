@@ -44,6 +44,8 @@ function install_software() {
       curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
       sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
       wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
+      sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+      sudo chmod +x /usr/bin/yq
       PB_REL="https://github.com/protocolbuffers/protobuf/releases"
       curl -L $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip > ~/protoc.zip
       unzip ~/protoc.zip -d $HOME/.local
