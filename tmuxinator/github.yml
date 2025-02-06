@@ -7,4 +7,4 @@ windows:
       layout: main-vertical
       panes:
         - tmux set-window-option -t1 automatic-rename on && nvim
-  - Server: tmux set-window-option -t1 automatic-rename on && script/server --debug
+  - Server: tmux set-window-option -t1 automatic-rename on && script/server --debug  # yamllint disable-line rule:line-length
