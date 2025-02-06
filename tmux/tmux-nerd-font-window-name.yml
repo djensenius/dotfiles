@@ -1,0 +1,8 @@
+config:
+  show-name: true
+  icon-position: "left"
+icons:
+  nvim: ""
+  gh: ""
+  btm: ""
+  gping: ""
