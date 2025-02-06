@@ -5,6 +5,7 @@ abbr --add 'youtub-dl' 'yt-dlp'
 abbr --add 'vim' 'nvim'
 abbr --add 'vi' 'nvim'
 abbr --add 'clear-tmux-window' 'tmux set-window-option -t1 automatic-rename on'
+abbr --add 'kw' 'curl https://wttr.in/Kitchener'
 
 if test -e /home/linuxbrew
   eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
