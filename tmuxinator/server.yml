@@ -7,6 +7,6 @@ windows:
       layout: main-horizontal
       panes:
         - btm
-        - ctop
+        - tmux set-window-option -t1 automatic-rename on && ctop
         - ~/padd.sh
-  - Code: nvim
+  - Code: tmux set-window-option -t1 automatic-rename on && nvim
