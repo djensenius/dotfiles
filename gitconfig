@@ -10,11 +10,8 @@
   diffFilter = delta --color-only
 
 [delta]
-  features = side-by-side line-numbers decorations
-  whitespace-error-style = 22 reverse
-
-[delta "decorations"]
-  syntax-theme = Catppuccin-mocha
+  features = side-by-side line-numbers decorations Catppuccin-mocha
+  navigate = true
 
 [user]
 	email = david@jensenius.com
