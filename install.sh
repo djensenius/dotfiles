@@ -3,7 +3,6 @@
 
 function link_files() {
     mkdir -p ~/.config
-    ln -sf $(pwd)/tmux.conf ~/.tmux.conf
     if [ -e ~/.gitconfig ]; then
       rm ~/.gitconfig
     fi
