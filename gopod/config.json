@@ -8,7 +8,18 @@
       "URL": "https://podcasts.fluxhaus.io/rf/",
       "PodcastURL": "https://spinitron.com/WZBC/show/792/Rare-Frequency",
       "SourceURL": "https://stream.wzbc.org/wzbc",
-      "Length": 10920,
+      "Length": 7320,
+      "Extension": "mp3"
+    },
+    {
+      "Directory": "/mnt/plates/podcasts/at",
+      "Title": "Abstract Terrain",
+      "ShortTitle": "at",
+      "Image": "https://farm4.staticflickr.com/3505/3966906376_df0cebd73c_m.jpg",
+      "URL": "https://podcasts.fluxhaus.io/at/",
+      "PodcastURL": "https://spinitron.com/WZBC/pl/20211094/Abstract-Terrain",
+      "SourceURL": "https://stream.wzbc.org/wzbc",
+      "Length": 7320,
       "Extension": "mp3"
     },
     {
