@@ -28,8 +28,7 @@ return {
 			dashboard.button("g", " " .. " Find text", ":Telescope live_grep <CR>"),
 			dashboard.button("t", "  Open file tree", ":Neotree<CR>"),
 			dashboard.button("l", "󰒲 " .. " Lazy", ":Lazy<CR>"),
-			dashboard.button("d", "" .. " Git Graph",
-        ":lua require('gitgraph').draw({}, { all = true, max_count = 5000 })<CR>"),
+			dashboard.button("d", "" .. " Draw Git Graph", "<leader>gg"),
 			dashboard.button("q", " " .. " Quit", ":qa<CR>"),
 		}
 		dashboard.section.buttons.opts.spacing = 0
