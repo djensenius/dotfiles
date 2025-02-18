@@ -22,10 +22,11 @@ return {
 
 		dashboard.section.header.val = vim.split(logo, "\n")
 		dashboard.section.buttons.val = {
-			dashboard.button("f", " " .. " Find file", ":Telescope find_files <CR>"),
-			dashboard.button("r", " " .. " Recent files", ":Telescope oldfiles <CR>"),
+			dashboard.button("f", " " .. " Find file", ":lua require('fzf-lua').files() <CR>"),
+			dashboard.button("r", " " .. " Recent files", ":lua  require('fzf-lua').oldfiles() <CR>"),
 			dashboard.button("R", " " .. " Restore session", ":so Session.vim<CR>"),
-			dashboard.button("g", " " .. " Find text", ":Telescope live_grep <CR>"),
+			dashboard.button("g", " " .. " Find text", ":lua require('fzf-lua').live_grep() <CR>"),
+			dashboard.button("G", " " .. " Git Status", ":lua require('fzf-lua').git_status() <CR>"),
 			dashboard.button("t", "  Open file tree", ":Neotree<CR>"),
 			dashboard.button("l", "󰒲 " .. " Lazy", ":Lazy<CR>"),
 			dashboard.button("d", "" .. " Git Graph",
