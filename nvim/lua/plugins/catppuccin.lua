@@ -27,10 +27,11 @@ return {
 					enable_ui = true,
 				},
 				fzf = true,
+				gitgraph = true,
 				gitsigns = true,
 				indent_blankline = {
 					enabled = true,
-					colored_indent_levels = false,
+					colored_indent_levels = true,
 				},
 				lsp_trouble = true,
 				mason = true,
@@ -57,6 +58,10 @@ return {
 				neogit = true,
 				notify = true,
 				noice = true,
+				snacks = {
+					enabled = false,
+					indent_scope_color = "", -- catppuccin color (eg. `lavender`) Default: text
+				},
 				telescope = {
 					enabled = true,
 				},
