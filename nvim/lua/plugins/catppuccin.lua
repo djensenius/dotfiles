@@ -59,8 +59,7 @@ return {
 				notify = true,
 				noice = true,
 				snacks = {
-					enabled = false,
-					indent_scope_color = "", -- catppuccin color (eg. `lavender`) Default: text
+					enabled = true,
 				},
 				telescope = {
 					enabled = true,
