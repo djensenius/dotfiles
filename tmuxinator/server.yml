@@ -9,4 +9,4 @@ windows:
         - btm
         - tmux set-window-option -t1 automatic-rename on && ctop
         - ~/padd.sh
-  - Code: tmux set-window-option -t1 automatic-rename on && nvim
+  - Code: tmux set-window-option -t2 automatic-rename on && nvim
