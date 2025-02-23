@@ -56,6 +56,7 @@ function install_software() {
       cargo install fd-find
       cargo install bat --locked
       cargo install atuin
+      cargo install --locked tree-sitter-cli
       go install github.com/arl/gitmux@latest
       sudo gem install tmuxinator neovim-ruby-host
       npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim

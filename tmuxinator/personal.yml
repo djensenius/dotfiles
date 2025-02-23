@@ -8,4 +8,4 @@ windows:
         - btm --battery
         - gping -c blue google.com -c red aka.ms -c green github.com
         - tmux set-window-option -t1 automatic-rename on && clear
-  - Code: tmux set-window-option -t1 automatic-rename on && nvim
+  - Code: tmux set-window-option -t2 automatic-rename on && nvim
