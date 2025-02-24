@@ -1,4 +1,5 @@
 Session.vim
+unset.ready
 .prettierrc.json
 .prettierrc.js
 .DS_Store
