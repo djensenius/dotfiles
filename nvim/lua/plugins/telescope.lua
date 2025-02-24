@@ -7,10 +7,6 @@ return {
 		"nvim-lua/popup.nvim",
     "stevearc/aerial.nvim",
 		"nvim-telescope/telescope-ui-select.nvim",
-		{
-			"nvim-telescope/telescope-fzf-native.nvim",
-      build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release"
-		},
 	},
 	config = function()
 		require("telescope").setup({
@@ -31,7 +27,6 @@ return {
 		vim.keymap.set("n", "<leader>fr", function()
       require("telescope.builtin").lsp_references()
     end)
-		require("telescope").load_extension("fzf")
 		require("telescope").load_extension("aerial")
 		require("telescope").load_extension("ui-select")
 	end,

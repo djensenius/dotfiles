@@ -11,6 +11,7 @@ return {
     vim.keymap.set("n", "<leader>fzg", require('fzf-lua').live_grep, { desc = "Live grep" })
     vim.keymap.set("n", "<leader>fzf", require('fzf-lua').files, { desc = "Files" })
     vim.keymap.set("n", "<leader>fzr", require('fzf-lua').resume, { desc = "Resume" })
+    vim.keymap.set("n", "<leader>fzo", require('fzf-lua').oldfiles, { desc = "Old files" })
     vim.keymap.set("n", "<leader>fzG", require('fzf-lua').git_status, { desc = "Git Status" })
     vim.keymap.set("n", "<leader>fzq", require('fzf-lua').quickfix, { desc = "Quickfix" })
     vim.keymap.set("n", "<leader>fzlr", require('fzf-lua').lsp_references, { desc = "References" })
