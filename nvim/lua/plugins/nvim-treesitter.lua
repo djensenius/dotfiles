@@ -47,7 +47,6 @@ return {
         "sql",
         "ssh_config",
 				"supercollider",
-        "swift",
         "tmux",
         "toml",
 				"tsx",
