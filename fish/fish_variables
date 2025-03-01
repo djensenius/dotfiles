@@ -13,7 +13,7 @@ SETUVAR __fish_classic_git_prompt_initialized:\x1d
 SETUVAR __fish_init_2_39_8:\x1d
 SETUVAR __fish_init_2_3_0:\x1d
 SETUVAR __fish_init_3_x:\x1d
-SETUVAR __fish_initialized:3400
+SETUVAR __fish_initialized:3800
 SETUVAR _fish_abbr_brewu:brew\x20update\x3b\x20brew\x20upgrade\x3b\x20brew\x20upgrade\x20\x2d\x2dcask\x3b
 SETUVAR _fish_abbr_cat:bat
 SETUVAR _fish_abbr_cd:z
