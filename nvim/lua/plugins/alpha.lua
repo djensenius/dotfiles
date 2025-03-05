@@ -27,9 +27,9 @@ return {
 			dashboard.button("R", " " .. " Restore session", ":so Session.vim<CR>"),
 			dashboard.button("g", " " .. " Find text", ":lua require('fzf-lua').live_grep() <CR>"),
 			dashboard.button("G", " " .. " Git Status", ":lua require('fzf-lua').git_status() <CR>"),
-			dashboard.button("t", "  Open file tree", ":Neotree<CR>"),
+			dashboard.button("t", " " .. " Open file tree", ":Neotree<CR>"),
 			dashboard.button("l", "󰒲 " .. " Lazy", ":Lazy<CR>"),
-			dashboard.button("d", "" .. " Git Graph",
+			dashboard.button("d", " " .. " Git Graph",
         ":lua require('gitgraph').draw({}, { all = true, max_count = 5000 })<CR>"),
 			dashboard.button("q", " " .. " Quit", ":qa<CR>"),
 		}
