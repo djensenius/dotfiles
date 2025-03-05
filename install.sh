@@ -57,10 +57,7 @@ function install_software() {
       cargo install bat --locked
       cargo install atuin
       cargo install --locked tree-sitter-cli
-      go install github.com/arl/gitmux@latest
-      sudo gem install tmuxinator neovim-ruby-host
       npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
-      curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
       ~/.cargo/bin/bat cache --build
       git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
       ~/.fzf/install --all
@@ -69,11 +66,17 @@ function install_software() {
       tar xf lazygit.tar.gz lazygit
       sudo install lazygit -D -t /usr/local/bin/
     fi
+    sudo gem install tmuxinator neovim-ruby-host
+    curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
 }
 
 function setup_software() {
     echo "Log in to atuin"
-    ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+    if [ -d /workspaces/github ]; then
+      ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+    else
+      /usr/local/cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+    fi
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
     echo "TMUX plugins installed" >> ~/install.log
