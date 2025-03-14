@@ -66,7 +66,6 @@ return {
 					},
 				},
 				lualine_c = {
-					{ "fileformat" },
 					{
 						function()
 							return require("nvim-navic").get_location()
@@ -78,6 +77,12 @@ return {
 					},
 				},
 				lualine_x = {
+          {
+            "lsp_status",
+						on_click = function()
+							vim.cmd(":LspInfo")
+						end,
+          },
 					{
 						function()
 							return require("lazy.status").updates()
