@@ -40,8 +40,8 @@ vim.keymap.set("n", "<Leader>p", '"+p')
 vim.keymap.set("n", "<Leader>P", '"+P')
 
 -- Save and quit
-vim.keymap.set('n', '<leader>w', ':w<CR>', { silent = true })
-vim.keymap.set('n', '<leader>q', ':q<CR>', { silent = true })
+vim.keymap.set("n", "<leader>w", ":w<CR>", { silent = true })
+vim.keymap.set("n", "<leader>q", ":q<CR>", { silent = true })
 
 -- Split
 vim.keymap.set("", "<leader>sp", ":split<cr>")
@@ -62,3 +62,4 @@ vim.api.nvim_create_user_command("CopyRelativePath", function()
 	vim.cmd("OSCYankRegister +")
 end, {})
 vim.keymap.set("n", "<leader>cr", ":CopyRelativePath<cr>")
+vim.keymap.set("n", ":ls", require("fzf-lua").buffers, { desc = "Buffers" })
