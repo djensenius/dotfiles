@@ -29,6 +29,7 @@ return {
 			{ "<leader>ccc", "<cmd>CopilotChatCommit<cr>", desc = "CopilotChat - Commit message" },
 			{ "<leader>ccs", "<cmd>CopilotChatCommitStaged<cr>", desc = "CopilotChat - Commit message" },
 			{ "<leader>ccT", "<cmd>CopilotChatToggle<cr>", desc = "Toggle Copilot Chat" },
+			{ "<leader>ccm", "<cmd>CopilotChatModel<cr>", desc = "Copilot Chat Models" },
 			{
 				"<leader>cch",
 				function()

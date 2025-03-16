@@ -77,12 +77,19 @@ return {
 					},
 				},
 				lualine_x = {
-          {
-            "lsp_status",
-						on_click = function()
-							vim.cmd(":LspInfo")
+					{
+						function()
+							local mode = vim.fn.mode()
+							return #mode > 0 and "%S" or ""
 						end,
-          },
+						padding = { left = 1, right = 1 },
+						draw_empty = false,
+						cond = function()
+							local mode = vim.fn.mode()
+							return mode ~= "i"
+						end,
+						separator = { left = "" },
+					},
 					{
 						function()
 							return require("lazy.status").updates()
@@ -100,6 +107,35 @@ return {
 							vim.cmd("Mason")
 						end,
 						color = utils.get_hlgroup("String"),
+					},
+					{
+						"lsp_status",
+						ignore_lsp = { "GitHub Copilot" },
+						on_click = function()
+							vim.cmd(":LspInfo")
+						end,
+					},
+				},
+				lualine_y = {
+					{
+						function()
+							local icon = ""
+							return icon
+						end,
+						on_click = function()
+							vim.cmd(":Gitsigns toggle_current_line_blame")
+						end,
+						draw_empty = false,
+					},
+					{
+						"filetype",
+						on_click = function()
+							vim.cmd(":LspInfo")
+						end,
+						cond = function()
+							return vim.bo.filetype and #vim.bo.filetype > 0
+						end,
+						draw_empty = false,
 					},
 					{
 						function()
@@ -128,40 +164,6 @@ return {
 							vim.cmd(":Copilot status")
 						end,
 						color = utils.get_hlgroup("String"),
-					},
-				},
-				lualine_y = {
-					{
-						function()
-							local icon = ""
-							return icon
-						end,
-						on_click = function()
-							vim.cmd(":Gitsigns toggle_current_line_blame")
-						end,
-						draw_empty = false,
-					},
-					{
-						"filetype",
-						on_click = function()
-							vim.cmd(":LspInfo")
-						end,
-						cond = function()
-							return vim.bo.filetype and #vim.bo.filetype > 0
-						end,
-						draw_empty = false,
-					},
-					{
-						function()
-							local mode = vim.fn.mode()
-							return #mode > 0 and "%S" or ""
-						end,
-						padding = { left = 1, right = 1 },
-						draw_empty = false,
-						cond = function()
-							local mode = vim.fn.mode()
-							return #mode > 0
-						end,
 					},
 					{
 						"progress",
@@ -208,7 +210,7 @@ return {
 				},
 			},
 			tabline = {},
-			extensions = { "aerial", "lazy", "neo-tree", "trouble" },
+			extensions = { "aerial", "lazy", "fzf", "neo-tree", "trouble" },
 		}
 	end,
 }
