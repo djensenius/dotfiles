@@ -22,8 +22,6 @@ return {
       end, { desc = "Show references" })
 			vim.keymap.set("n", "<leader><space>d", vim.diagnostic.open_float, { desc = "Show diagnostics" })
 			vim.keymap.set("n", "<leader><space>i", vim.lsp.buf.code_action, { desc = "Show code actions" })
-			vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
-			vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
 
 			-- Set some keybinds conditional on server capabilities
 			if client.server_capabilities.document_formatting then
@@ -31,15 +29,37 @@ return {
 			elseif client.server_capabilities.document_range_formatting then
 				vim.keymap.set("n", "<space>=", vim.lsp.buf.formatting, { desc = "Format" })
 			end
+
+      -- Virtual line stuff
+      vim.diagnostic.config({
+        virtual_lines = true,
+        underline = { severity = vim.diagnostic.severity.WARN }, -- underlines for warnings and errors only
+        virtual_text = {
+          prefix = '●',
+          source = "if_many",
+          spacing = 4,
+        },
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = "",
+            [vim.diagnostic.severity.WARN] = "",
+            [vim.diagnostic.severity.INFO] = "󰋼",
+            [vim.diagnostic.severity.HINT] = "󰌵",
+          },
+        }
+      })
 		end
 
 		local util = require("lspconfig/util")
     local capabilities = require('blink.cmp').get_lsp_capabilities()
     local yaml_capabilities = vim.lsp.protocol.make_client_capabilities()
+
+    ---@diagnostic disable: undefined-field
     yaml_capabilities.textDocument.foldingRange = {
       dynamicRegistration = false,
       lineFoldingOnly = true,
     }
+    ---@diagnostic enable: undefined-field
 
 		require("lspconfig")["ts_ls"].setup({
 			on_attach = on_attach,
@@ -107,11 +127,5 @@ return {
       on_attach = on_attach,
       capabilities = capabilities,
     })
-
-		local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
-		for type, icon in pairs(signs) do
-			local hl = "DiagnosticSign" .. type
-			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-		end
 	end,
 }
