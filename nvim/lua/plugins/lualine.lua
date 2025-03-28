@@ -153,7 +153,7 @@ return {
 					},
 					{
 						function()
-							local icon = " "
+							local icon = " "
 							return icon
 						end,
 						cond = function()
