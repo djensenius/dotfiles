@@ -51,11 +51,11 @@ function install_software() {
       unzip ~/protoc.zip -d $HOME/.local
       export PATH="$PATH:$HOME/.local/bin"
       cargo install eza
-      cargo install zoxide --locked
+      cargo install --locked zoxide
       cargo install ripgrep
       cargo install fd-find
-      cargo install bat --locked
-      cargo install atuin
+      cargo install --locked bat
+      cargo install --locked atuin
       cargo install --locked tree-sitter-cli
       npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
       ~/.cargo/bin/bat cache --build
