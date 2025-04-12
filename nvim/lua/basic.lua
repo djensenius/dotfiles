@@ -1,7 +1,7 @@
 -- General editor settings
 
 local opt = vim.opt
----@type {python_host_prog: string, loaded_netrw: number, loaded_netrwPlugin: number}
+---@type {python_host_prog: string, loaded_netrw: number, loaded_netrwPlugin: number, mapleader: string}
 vim.g = vim.g or {}
 
 -- More efficient way to set multiple options
