@@ -5,21 +5,21 @@ local M = {}
 --- @param fallback? table The fallback highlight properties
 --- @return table properties # the highlight group properties
 function M.get_hlgroup(name, fallback)
-    if vim.fn.hlexists(name) == 1 then
-        local group = vim.api.nvim_get_hl(0, { name = name })
-        local hl = {
-            fg = group.fg == nil and "NONE" or M.parse_hex(group.fg),
-        }
+	if vim.fn.hlexists(name) == 1 then
+		local group = vim.api.nvim_get_hl(0, { name = name })
+		local hl = {
+			fg = group.fg == nil and "NONE" or M.parse_hex(group.fg),
+		}
 
-        return hl
-    end
-    return fallback or {}
+		return hl
+	end
+	return fallback or {}
 end
 
 --- Parse a given integer color to a hex value.
 --- @param int_color number
 function M.parse_hex(int_color)
-    return string.format("#%x", int_color)
+	return string.format("#%x", int_color)
 end
 
 return M
