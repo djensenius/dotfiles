@@ -29,8 +29,11 @@ return {
 			dashboard.button("G", " " .. " Git Status", ":lua require('fzf-lua').git_status() <CR>"),
 			dashboard.button("t", " " .. " Open file tree", ":Neotree<CR>"),
 			dashboard.button("l", "󰒲 " .. " Lazy", ":Lazy<CR>"),
-			dashboard.button("d", " " .. " Git Graph",
-        ":lua require('gitgraph').draw({}, { all = true, max_count = 5000 })<CR>"),
+			dashboard.button(
+				"d",
+				" " .. " Git Graph",
+				":lua require('gitgraph').draw({}, { all = true, max_count = 5000 })<CR>"
+			),
 			dashboard.button("q", " " .. " Quit", ":qa<CR>"),
 		}
 		dashboard.section.buttons.opts.spacing = 0

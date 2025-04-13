@@ -1,4 +1,4 @@
 return {
-  "kevinhwang91/nvim-bqf",
-    event = "VeryLazy",
+	"kevinhwang91/nvim-bqf",
+	event = "VeryLazy",
 }

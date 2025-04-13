@@ -13,63 +13,63 @@ custom.tab_bar.background = "#040404"
 custom.tab_bar.inactive_tab.bg_color = "#0f0f0f"
 custom.tab_bar.new_tab.bg_color = "#080808"
 config.color_schemes = {
-  ["OLEDppuccin"] = custom,
+	["OLEDppuccin"] = custom,
 }
 config.color_scheme = "OLEDppuccin"
 
 -- Fonts
 -- config.experimental_svg_fonts = true
 config.font = wezterm.font_with_fallback({
-  "Monaspace Neon Var",
-  "JetBrains Mono",
-  "Fira Code",
-  "Hack Nerd Font",
-  {
-    family = "Apple Color Emoji",
-    assume_emoji_presentation = true,
-    scale = 2,
-  },
+	"Monaspace Neon Var",
+	"JetBrains Mono",
+	"Fira Code",
+	"Hack Nerd Font",
+	{
+		family = "Apple Color Emoji",
+		assume_emoji_presentation = true,
+		scale = 2,
+	},
 })
 config.line_height = 1.2
 
 config.allow_square_glyphs_to_overflow_width = "Always"
 
 config.font_rules = {
-  {
-    intensity = "Bold",
-    italic = true,
-    font = wezterm.font({
-      family = "Monaspace Xenon Var",
-      weight = "Bold",
-      style = "Italic",
-    }),
-  },
-  {
-    italic = true,
-    intensity = "Half",
-    font = wezterm.font({
-      family = "Monaspace Radon Var",
-      weight = "DemiBold",
-      style = "Italic",
-    }),
-  },
-  {
-    italic = true,
-    intensity = "Normal",
-    font = wezterm.font({
-      family = "Monaspace Radon Var",
-      style = "Italic",
-    }),
-  },
-  {
-    intensity = "Bold",
-    italic = false,
-    font = wezterm.font({
-      family = "Monaspace Xenon Var",
-      weight = "Bold",
-      style = "Italic",
-    }),
-  },
+	{
+		intensity = "Bold",
+		italic = true,
+		font = wezterm.font({
+			family = "Monaspace Xenon Var",
+			weight = "Bold",
+			style = "Italic",
+		}),
+	},
+	{
+		italic = true,
+		intensity = "Half",
+		font = wezterm.font({
+			family = "Monaspace Radon Var",
+			weight = "DemiBold",
+			style = "Italic",
+		}),
+	},
+	{
+		italic = true,
+		intensity = "Normal",
+		font = wezterm.font({
+			family = "Monaspace Radon Var",
+			style = "Italic",
+		}),
+	},
+	{
+		intensity = "Bold",
+		italic = false,
+		font = wezterm.font({
+			family = "Monaspace Xenon Var",
+			weight = "Bold",
+			style = "Italic",
+		}),
+	},
 }
 
 config.font_size = 14.0
@@ -77,34 +77,34 @@ config.harfbuzz_features = { "ss01=1", "ss02=1", "ss03=1", "ss04=1", "ss05=1", "
 
 -- Tabs
 local function tab_title(tab_info)
-  local title = tab_info.tab_title
-  -- if the tab title is explicitly set, take that
-  if title and #title > 0 then
-    return title
-  end
-  -- Otherwise, use the title from the active pane
-  -- in that tab
-  if tab_info.active_pane.title and tab_info.active_pane.title:find("codespaces") ~= nil then
-    return ""
-  elseif tab_info.active_pane.title and tab_info.active_pane.title:find("^pt") ~= nil then
-    return ""
-  elseif tab_info.active_pane.title and tab_info.active_pane.title:find("server") ~= nil then
-    return "  " .. tab_info.active_pane.title
-  elseif tab_info.active_pane.title and tab_info.active_pane.title:find("pi") ~= nil then
-    return "  " .. tab_info.active_pane.title
-  end
+	local title = tab_info.tab_title
+	-- if the tab title is explicitly set, take that
+	if title and #title > 0 then
+		return title
+	end
+	-- Otherwise, use the title from the active pane
+	-- in that tab
+	if tab_info.active_pane.title and tab_info.active_pane.title:find("codespaces") ~= nil then
+		return ""
+	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("^pt") ~= nil then
+		return ""
+	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("server") ~= nil then
+		return "  " .. tab_info.active_pane.title
+	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("pi") ~= nil then
+		return "  " .. tab_info.active_pane.title
+	end
 
-  return "  " .. tab_info.active_pane.title
+	return "  " .. tab_info.active_pane.title
 end
 
 wezterm.on("format-tab-title", function(tab)
-  local title = tab_title(tab)
-  if tab.is_active then
-    return {
-      { Text = " " .. title .. " " },
-    }
-  end
-  return title
+	local title = tab_title(tab)
+	if tab.is_active then
+		return {
+			{ Text = " " .. title .. " " },
+		}
+	end
+	return title
 end)
 config.hide_tab_bar_if_only_one_tab = true
 
@@ -116,10 +116,10 @@ config.window_close_confirmation = "NeverPrompt"
 config.initial_rows = 40
 config.initial_cols = 120
 config.window_padding = {
-  left = 0,
-  right = 0,
-  top = 10,
-  bottom = 10,
+	left = 0,
+	right = 0,
+	top = 10,
+	bottom = 10,
 }
 
 return config

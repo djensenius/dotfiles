@@ -12,15 +12,16 @@ if not vim.loop.fs_stat(lazypath) then
 		lazypath,
 	})
 end
-vim.opt.rtp:prepend(lazypath)
+
+vim.opt.runtimepath:prepend(lazypath)
 vim.g.mapleader = ","
 require("lazy").setup({
-  spec = {
-    -- import your plugins
-    { import = "plugins" },
-  },
-  -- automatically check for plugin updates
-  checker = { enabled = true },
+	spec = {
+		-- import your plugins
+		{ import = "plugins" },
+	},
+	-- automatically check for plugin updates
+	checker = { enabled = true },
 })
 vim.opt.shell = "/bin/zsh"
 require("keys")

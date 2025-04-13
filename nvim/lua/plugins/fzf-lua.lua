@@ -19,6 +19,6 @@ return {
 		vim.keymap.set("n", "<leader>fzlD", require("fzf-lua").lsp_references, { desc = "Definitions" })
 		vim.keymap.set("n", "<leader>fzlc", require("fzf-lua").lsp_declarations, { desc = "Declarations" })
 		vim.keymap.set("n", "<leader>fzlt", require("fzf-lua").lsp_typedefs, { desc = "Type Definitions" })
-    require('fzf-lua').register_ui_select()
+		require("fzf-lua").register_ui_select()
 	end,
 }

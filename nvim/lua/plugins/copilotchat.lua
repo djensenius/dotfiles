@@ -6,12 +6,12 @@ return {
 			{ "github/copilot.vim" }, -- or github/copilot.vim
 			{ "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
 		},
-    build = "make tiktoken",
+		build = "make tiktoken",
 		event = "VeryLazy",
 		config = function()
 			require("CopilotChat").setup({
 				auto_insert_mode = true,
-        chat_autocomplete = true,
+				chat_autocomplete = true,
 				show_help = false,
 				show_folds = false,
 				question_header = "  David ",
