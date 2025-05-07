@@ -9,17 +9,16 @@ return {
 			local installed_packages = registry.get_installed_package_names()
 			local upgrades_available = false
 			local packages_outdated = 0
-			local function myCallback(success, _)
-				if success then
-					upgrades_available = true
-					packages_outdated = packages_outdated + 1
-				end
-			end
 
 			for _, pkg in pairs(installed_packages) do
 				local p = registry.get_package(pkg)
 				if p then
-					p:check_new_version(myCallback)
+					local latest_version = p:get_latest_version()
+					local installed_version = p:get_installed_version()
+					if installed_version ~= latest_version then
+						upgrades_available = true
+						packages_outdated = packages_outdated + 1
+					end
 				end
 			end
 
