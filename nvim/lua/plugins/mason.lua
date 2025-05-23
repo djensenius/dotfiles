@@ -27,6 +27,7 @@ return {
 						"prettierd",
 						"prettier",
 						"rubocop",
+						"sorbet",
 						"shellcheck",
 						"stylelint-lsp",
 						"stylua",
@@ -125,10 +126,12 @@ return {
 	config = function()
 		require("mason-lspconfig").setup({
 			automatic_installation = true,
+			automatic_enable = true,
 			ensure_installed = {
 				"ts_ls",
 				"lua_ls",
 				"gopls",
+				"sorbet",
 			},
 		})
 	end,
