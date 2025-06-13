@@ -23,6 +23,7 @@ return {
 						"jq-lsp",
 						"jsonlint",
 						"json-lsp",
+						"luacheck",
 						"lua-language-server",
 						"prettierd",
 						"prettier",

@@ -35,6 +35,13 @@ return {
 			go = { "goimports", "gofmt" },
 			ruby = { "rubocop" },
 		},
+		format_on_save = function(bufnr)
+			local ft = vim.bo[bufnr].filetype
+			if ft == "lua" then
+				return {} -- enable format on save with default options
+			end
+			return false -- disable for all other filetypes
+		end,
 		-- Set default options
 		default_format_opts = {
 			lsp_format = "fallback",
