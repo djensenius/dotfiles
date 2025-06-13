@@ -7,7 +7,7 @@ return {
 		require("lspconfig")
 
 		-- Prepare completion
-		local on_attach = function(client)
+		local on_attach = function(client, bufnr)
 			-- Mappings.
 			vim.keymap.set("n", "<leader><space>c", vim.lsp.buf.declaration, { desc = "Go to declaration" })
 			vim.keymap.set("n", "<leader><space>D", function()
@@ -58,6 +58,15 @@ return {
 					},
 				},
 			})
+			if client.name == "gopls" then
+				vim.api.nvim_create_autocmd("BufWritePre", {
+					group = vim.api.nvim_create_augroup("GoFormat", { clear = true }),
+					buffer = bufnr,
+					callback = function()
+						vim.lsp.buf.format({ async = false })
+					end,
+				})
+			end
 		end
 
 		local util = require("lspconfig/util")
@@ -80,6 +89,26 @@ return {
 		require("lspconfig")["gopls"].setup({
 			on_attach = on_attach,
 			capabilities = capabilities,
+			settings = {
+				gopls = {
+					gofumpt = true,
+					staticcheck = true,
+					usePlaceholders = true,
+					analyses = {
+						unusedparams = true,
+						fieldalignment = true,
+						shadow = true,
+					},
+					codelenses = {
+						test = true,
+						tidy = true,
+						upgrade_dependency = true,
+					},
+					completeUnimported = true,
+					directoryFilters = { "-vendor" },
+					buildFlags = { "-tags=integration" },
+				},
+			},
 		})
 
 		vim.env.SRB_SKIP_GEM_RBIS = 1
