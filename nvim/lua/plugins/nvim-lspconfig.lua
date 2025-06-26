@@ -64,6 +64,7 @@ return {
 					buffer = bufnr,
 					callback = function()
 						vim.lsp.buf.format({ async = false })
+						vim.cmd("GoFmt")
 					end,
 				})
 			end
