@@ -58,16 +58,6 @@ return {
 					},
 				},
 			})
-			if client.name == "gopls" then
-				vim.api.nvim_create_autocmd("BufWritePre", {
-					group = vim.api.nvim_create_augroup("GoFormat", { clear = true }),
-					buffer = bufnr,
-					callback = function()
-						vim.lsp.buf.format({ async = false })
-						vim.cmd("GoFmt")
-					end,
-				})
-			end
 		end
 
 		local util = require("lspconfig/util")
