@@ -7,7 +7,7 @@ return {
 		require("lspconfig")
 
 		-- Prepare completion
-		local on_attach = function(client, bufnr)
+		local on_attach = function(client, _)
 			-- Mappings.
 			vim.keymap.set("n", "<leader><space>c", vim.lsp.buf.declaration, { desc = "Go to declaration" })
 			vim.keymap.set("n", "<leader><space>D", function()
@@ -58,15 +58,6 @@ return {
 					},
 				},
 			})
-			if client.name == "gopls" then
-				vim.api.nvim_create_autocmd("BufWritePre", {
-					group = vim.api.nvim_create_augroup("GoFormat", { clear = true }),
-					buffer = bufnr,
-					callback = function()
-						vim.lsp.buf.format({ async = false })
-					end,
-				})
-			end
 		end
 
 		local util = require("lspconfig/util")
