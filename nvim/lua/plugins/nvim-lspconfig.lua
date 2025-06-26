@@ -7,7 +7,7 @@ return {
 		require("lspconfig")
 
 		-- Prepare completion
-		local on_attach = function(client, bufnr)
+		local on_attach = function(client, _)
 			-- Mappings.
 			vim.keymap.set("n", "<leader><space>c", vim.lsp.buf.declaration, { desc = "Go to declaration" })
 			vim.keymap.set("n", "<leader><space>D", function()
