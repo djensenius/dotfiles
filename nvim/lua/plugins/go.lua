@@ -9,6 +9,7 @@ return {
 	opts = {
 		-- lsp_keymaps = false,
 		-- other options
+		linter = "golangci-lint",
 	},
 	config = function(_, opts)
 		require("go").setup(opts)
