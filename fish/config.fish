@@ -68,6 +68,12 @@ set -x FZF_DEFAULT_OPTS "\
 --color=selected-bg:#45475a \
 --multi"
 
-set -x EZA_CONFIG_DIR ~/.config/eza 
+set -Ux EZA_CONFIG_DIR $HOME/.config/eza 
 set -x EZA_ICONS_AUTO true
 
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+if test -d  ~/.orbstack
+  source ~/.orbstack/shell/init2.fish 2>/dev/null || :
+end
