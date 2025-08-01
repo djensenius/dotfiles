@@ -1,0 +1,141 @@
+---
+# Catppuccin Mocha theme for k9s
+# Based on: https://github.com/catppuccin/catppuccin
+
+k9s:
+  # General
+  body:
+    fgColor: "#cdd6f4"
+    bgColor: "#1e1e2e"
+    logoColor: "#89b4fa"
+  # Header
+  header:
+    fgColor: "#cdd6f4"
+    bgColor: "#45475a"
+    highlightColor: "#89b4fa"
+  # Footer
+  footer:
+    fgColor: "#cdd6f4"
+    bgColor: "#45475a"
+  # Crumbs
+  crumb:
+    fgColor: "#89b4fa"
+    bgColor: "#45475a"
+    activeColor: "#f38ba8"
+  # Resource title
+  title:
+    fgColor: "#cdd6f4"
+    bgColor: "#1e1e2e"
+    highlightColor: "#89b4fa"
+    counterColor: "#f9e2af"
+    filterColor: "#a6e3a1"
+  # Table
+  table:
+    fgColor: "#cdd6f4"
+    bgColor: "#1e1e2e"
+    cursorColor: "#45475a"
+    markColor: "#f9e2af"
+    header:
+      fgColor: "#cdd6f4"
+      bgColor: "#313244"
+      sorterColor: "#89b4fa"
+  # YAML info
+  info:
+    fgColor: "#89dceb"
+    sectionColor: "#cdd6f4"
+  # Dialogs
+  dialog:
+    fgColor: "#cdd6f4"
+    bgColor: "#313244"
+    buttonColor: "#89b4fa"
+    buttonFocusColor: "#f38ba8"
+    labelColor: "#89b4fa"
+    fieldColor: "#cdd6f4"
+  # Prompt
+  prompt:
+    fgColor: "#cdd6f4"
+    bgColor: "#313244"
+    suggestColor: "#89b4fa"
+  # Help
+  help:
+    fgColor: "#bac2de"
+    bgColor: "#1e1e2e"
+    keyColor: "#89b4fa"
+    numKeyColor: "#f9e2af"
+    sectionColor: "#cdd6f4"
+  # Frame
+  frame:
+    border:
+      fgColor: "#585b70"
+      focusColor: "#89b4fa"
+    menu:
+      fgColor: "#cdd6f4"
+      keyColor: "#89b4fa"
+      numKeyColor: "#f9e2af"
+    crumb:
+      fgColor: "#89b4fa"
+      bgColor: "#45475a"
+      activeColor: "#f38ba8"
+    status:
+      newColor: "#a6e3a1"
+      modifyColor: "#f9e2af"
+      addColor: "#89b4fa"
+      errorColor: "#f38ba8"
+      highlightColor: "#89b4fa"
+      killColor: "#f38ba8"
+      completedColor: "#a6e3a1"
+    title:
+      fgColor: "#cdd6f4"
+      bgColor: "#1e1e2e"
+      highlightColor: "#89b4fa"
+      counterColor: "#f9e2af"
+      filterColor: "#a6e3a1"
+  # Views
+  views:
+    charts:
+      bgColor: "#1e1e2e"
+      defaultDialColors:
+        - "#89b4fa"
+        - "#a6e3a1"
+        - "#f9e2af"
+        - "#f38ba8"
+        - "#cba6f7"
+        - "#74c7ec"
+        - "#89dceb"
+        - "#f5c2e7"
+      defaultChartColors:
+        - "#89b4fa"
+        - "#a6e3a1"
+        - "#f9e2af"
+        - "#f38ba8"
+        - "#cba6f7"
+        - "#74c7ec"
+        - "#89dceb"
+        - "#f5c2e7"
+    table:
+      fgColor: "#cdd6f4"
+      bgColor: "#1e1e2e"
+      cursorColor: "#45475a"
+      markColor: "#f9e2af"
+      header:
+        fgColor: "#cdd6f4"
+        bgColor: "#313244"
+        sorterColor: "#89b4fa"
+    xray:
+      fgColor: "#cdd6f4"
+      bgColor: "#1e1e2e"
+      cursorColor: "#45475a"
+      graphicColor: "#89b4fa"
+      showIcons: false
+    yaml:
+      keyColor: "#89b4fa"
+      colonColor: "#9399b2"
+      valueColor: "#a6e3a1"
+    logs:
+      fgColor: "#cdd6f4"
+      bgColor: "#1e1e2e"
+      indicator:
+        fgColor: "#89b4fa"
+        bgColor: "#1e1e2e"
+        toggleOnColor: "#a6e3a1"
+        toggleOffColor: "#f38ba8"
