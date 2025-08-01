@@ -26,6 +26,7 @@ function link_files() {
     ln -sf $(pwd)/tmux ~/.config/tmux
     ln -sf $(pwd)/delta ~/.config/delta
     ln -sf $(pwd)/eza ~/.config/eza
+    ln -sf $(pwd)/k9s ~/.config/k9s
     if [ -d /workspaces/github ]; then
       sudo ln -sf /workspaces/github/bin/rubocop /usr/local/bin/rubocop
       sudo ln -sf /workspaces/github/bin/srb /usr/local/bin/srb

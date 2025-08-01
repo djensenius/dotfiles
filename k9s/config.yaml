@@ -1,0 +1,34 @@
+---
+# k9s configuration
+# https://k9scli.io/
+
+k9s:
+  # Current cluster context
+  liveViewAutoRefresh: false
+  # Refresh rate in seconds
+  refreshRate: 2
+  # Maximum number of log lines to display
+  maxConnRetry: 5
+  # Current log level
+  logLevel: info
+  # Use readline
+  readOnly: false
+  # Skip latest revision check
+  noExitOnCtrlC: false
+  # UI refresh rate
+  ui:
+    enableMouse: false
+    headless: false
+    logoless: false
+    crumbsless: false
+    reactive: false
+    noIcons: false
+    defaultsToFullScreen: false
+    # Skin name (must match filename in skins directory)
+    skin: catppuccin-mocha
+  # Skip latest revision check
+  skipLatestRevCheck: false
+  # Disable popeye scans
+  disablePodCounting: false
+  # Screen dump directory for screenshots
+  screenDumpDir: "/tmp"

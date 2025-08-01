@@ -64,6 +64,10 @@ Ghostty is a tool for managing dotfiles across multiple machines.
 Gopod is a tool for making radio programs that are streaming online into podcasts.
 - **Directory**: `gopod/`
 
+### [k9s](https://k9scli.io) ([repo](https://github.com/derailed/k9s))
+K9s is a terminal UI to interact with your Kubernetes clusters.
+- **Directory**: `k9s/`
+
 ### [NeoVim](https://neovim.io) ([repo](https://github.com/neovim/neovim))
 NeoVim is a hyperextensible Vim-based text editor.
 - **Directory**: `nvim/`
