@@ -11,7 +11,6 @@ SETUVAR --export FZF_DEFAULT_OPTS:\x2d\x2dcolor\x3dbg\x2b\x3a\x23313244\x2cbg\x3
 SETUVAR --export GONOPROXY:\x1d
 SETUVAR --export GONOSUMDB:github\x2ecom/github/\x2a
 SETUVAR --export GOPRIVATE:\x1d
-SETUVAR --export GOPROXY:
 SETUVAR --export ITERM_PROFILE:Light
 SETUVAR --export LSCOLORS:Exfxcxdxbxegedabagacad
 SETUVAR --export PYENV_ROOT:/Users/david/\x2epyenv
