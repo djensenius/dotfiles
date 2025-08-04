@@ -5,13 +5,18 @@ add_newline = false
 palette = "catppuccin_mocha"
 command_timeout = 5000
 
+# A minimal left prompt
+format = """$battery$os$directory$character"""
+# move the rest of the prompt to the right
+right_format = """$all"""
+
 [aws]
 disabled = true
 symbol = "  "
 
 [azure]
 disabled = true
-format = "on [$symbol($username)]($style) "
+format = "[$symbol($username)]($style) "
 symbol = "󰠅 "
 style = "blue bold"
 
@@ -55,9 +60,11 @@ symbol = " "
 
 [c]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [cmake]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [cmd_duration]
 min_time = 500
@@ -65,12 +72,19 @@ format = "took [$duration]($style) "
 
 [conda]
 symbol = " "
+format = "[$symbol($version)]($style) "
+
+[container]
+symbol = ""
+format = "[$symbol]($style) "
 
 [crystal]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [dart]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [directory]
 truncate_to_repo = true
@@ -78,17 +92,25 @@ truncation_symbol = '…/'
 style = "bold lavender"
 read_only = " 󰌾"
 
+[directory.substitutions]
+"/Code" = "/"
+"/Developer" = "/"
+"/workspaces" = "/"
+
 [docker_context]
 symbol = " "
 
 [elixir]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [elm]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [fennel]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [fossil_branch]
 symbol = " "
@@ -96,6 +118,7 @@ symbol = " "
 [git_branch]
 style = "bold mauve"
 symbol = " "
+format = "[$symbol$branch(:$remote_branch)]($style) "
 
 [git_commit]
 tag_symbol = '  '
@@ -103,17 +126,36 @@ tag_symbol = '  '
 [git_metrics]
 disabled = false
 
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+
+# Custom Nerd Font / glyph mappings
+ahead = "⇡${count} "          # commits ahead
+behind = "⇣${count} "         # commits behind
+diverged = "⇕ "              # diverged
+conflicted = "⚔ ${count}"            # merge conflicts
+stashed = " "               # stashed changes
+staged = "✔ "                # staged changes
+modified = " "             # modified files
+deleted = " "              # deleted files
+renamed = " "              # renamed files
+untracked = " "            # untracked files
+
 [golang]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [guix_shell]
 symbol = " "
 
 [haskell]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [haxe]
 symbol = " "
+format = "[$symbol($version)]($style) "
+
 
 [hg_branch]
 symbol = " "
@@ -123,36 +165,45 @@ ssh_symbol = " "
 
 [java]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [julia]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [kotlin]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [lua]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [memory_usage]
 symbol = "󰍛 "
 
 [meson]
 symbol = "󰔷 "
+format = "[$symbol($version)]($style) "
 
 [nim]
 symbol = "󰆥 "
+format = "[$symbol($version)]($style) "
 
 [nix_shell]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [nodejs]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [ocaml]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [os]
-format = "$symbol($style)"
+format = "$symbol($style) "
 style = "bold blue"
 disabled = false
 
@@ -161,36 +212,46 @@ symbol = "󰏗 "
 
 [perl]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [php]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [pijul_channel]
 symbol = " "
 
 [python]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [rlang]
 symbol = "󰟔 "
+format = "[$symbol($version)]($style) "
 
 [ruby]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [rust]
 symbol = "󱘗 "
+format = "[$symbol($version)]($style) "
 
 [scala]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [swift]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [zig]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [gradle]
 symbol = " "
+format = "[$symbol($version)]($style) "
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"

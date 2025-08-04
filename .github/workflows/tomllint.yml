@@ -1,0 +1,37 @@
+---
+name: Lint TOML Files
+on:  # yamllint disable-line rule:truthy
+  push:
+    paths:
+      - "**/*.toml"
+  pull_request:
+    paths:
+      - "**/*.toml"
+
+jobs:
+  tomllint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install tomllint
+        run: pip install tomllint
+      - name: Run tomllint on each TOML file
+        run: |
+          set -euo pipefail
+          shopt -s globstar
+          found=false
+          for f in **/*.toml; do
+            if [ -f "$f" ]; then
+              found=true
+              echo "==> Linting $f"
+              tomllint "$f"
+            fi
+          done
+          if [ "$found" = false ]; then
+            echo "No .toml files found; skipping."
+          fi
