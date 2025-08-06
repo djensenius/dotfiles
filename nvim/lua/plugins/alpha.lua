@@ -22,8 +22,8 @@ return {
 
 		dashboard.section.header.val = vim.split(logo, "\n")
 		dashboard.section.buttons.val = {
-			dashboard.button("f", " " .. " Find file", ":lua require('fzf-lua').files() <CR>"),
-			dashboard.button("r", " " .. " Recent files", ":lua  require('fzf-lua').oldfiles() <CR>"),
+			dashboard.button("f", " " .. " Find file", ":lua require('fzf-lua').frecency({ cwd_only = true }) <CR>"),
+			dashboard.button("r", " " .. " Recent files", ":lua  require('fzf-lua').frecency() <CR>"),
 			dashboard.button("R", " " .. " Restore session", ":so Session.vim<CR>"),
 			dashboard.button("g", " " .. " Find text", ":lua require('fzf-lua').live_grep() <CR>"),
 			dashboard.button("G", " " .. " Git Status", ":lua require('fzf-lua').git_status() <CR>"),

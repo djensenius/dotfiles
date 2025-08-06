@@ -40,7 +40,7 @@ function link_files() {
 function install_software() {
     if [ -d /workspaces/github ]; then
       sleep 20
-      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq thefuck tmux libfuse2 fuse software-properties-common most -y
+      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most -y
       sudo apt remove bat ripgrep -y
       curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
       curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
@@ -59,6 +59,9 @@ function install_software() {
       cargo install --locked bat
       cargo install --locked atuin
       cargo install --locked tree-sitter-cli
+      cargo install --locked pay-respects
+      cargo install --locked pay-respects-module-runtime-rules
+      cargo install --locked pay-respects-module-request-ai
       npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
       ~/.cargo/bin/bat cache --build
       git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
