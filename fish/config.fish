@@ -1,5 +1,4 @@
 starship init fish | source
-thefuck --alias | source
 abbr --add 'monolith' 'gh cs create -R github/github -m xLargePremiumLinux --devcontainer-path .devcontainer/devcontainer.json --status'
 abbr --add 'youtub-dl' 'yt-dlp'
 abbr --add 'vim' 'nvim'
@@ -85,3 +84,5 @@ set -x EZA_ICONS_AUTO true
 if test -d  ~/.orbstack
   source ~/.orbstack/shell/init2.fish 2>/dev/null || :
 end
+
+command -q pay-respects && pay-respects fish | source
