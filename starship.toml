@@ -5,8 +5,8 @@ add_newline = false
 palette = "catppuccin_mocha"
 command_timeout = 5000
 
-# A minimal left prompt
-format = """$battery$os$directory$character"""
+# left prompt
+format = """$battery$hostname$container$os$directory$character"""
 # move the rest of the prompt to the right
 right_format = """$all"""
 
@@ -67,7 +67,7 @@ symbol = " "
 format = "[$symbol($version)]($style) "
 
 [cmd_duration]
-min_time = 500
+min_time = 1000
 format = "took [$duration]($style) "
 
 [conda]
@@ -162,6 +162,7 @@ symbol = " "
 
 [hostname]
 ssh_symbol = " "
+format = "[$ssh_symbol](status)"
 
 [java]
 symbol = " "
@@ -244,6 +245,9 @@ format = "[$symbol($version)]($style) "
 [swift]
 symbol = " "
 format = "[$symbol($version)]($style) "
+
+[username]
+disabled = true
 
 [zig]
 symbol = " "
