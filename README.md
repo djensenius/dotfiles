@@ -27,6 +27,14 @@ Bat is a cat clone with syntax highlighting and Git integration.
 Bottom is a cross-platform graphical process/system monitor.
 - **Directory**: `bottom/`
 
+### [delta](https://github.com/dandavison/delta)
+Delta is a syntax-highlighting pager for git, diff, and grep output.
+- **Configuration**: Integrated into `gitconfig`
+
+### [eza](https://github.com/eza-community/eza)
+Eza is a modern replacement for ls with colors, icons, and git integration.
+- **Installation**: Via cargo
+
 ### [codespaces](https://github.com/github/codespaces)
 Codespaces is a cloud development environment provided by GitHub.
 - **Directory**: `.devcontainer/`
@@ -35,6 +43,10 @@ Codespaces is a cloud development environment provided by GitHub.
 ### [fastfetch](https://github.com/LinusDierheimer/fastfetch)
 Fastfetch is a neofetch-like tool for fetching system information.
 - **Directory**: `fastfetch/`
+
+### [fzf](https://github.com/junegunn/fzf)
+Fzf is a command-line fuzzy finder for files, commands, and more.
+- **Installation**: Via git clone to `~/.fzf`
 
 ### [Fish](https://fishshell.com) ([repo](https://github.com/fish-shell/fish-shell))
 Fish is a smart and user-friendly command line shell.
@@ -68,9 +80,17 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 K9s is a terminal UI to interact with your Kubernetes clusters.
 - **Directory**: `k9s/`
 
+### [lazygit](https://github.com/jesseduffield/lazygit)
+Lazygit is a simple terminal UI for git commands with keyboard shortcuts.
+- **Installation**: Downloaded binary to `/usr/local/bin`
+
 ### [NeoVim](https://neovim.io) ([repo](https://github.com/neovim/neovim))
 NeoVim is a hyperextensible Vim-based text editor.
 - **Directory**: `nvim/`
+
+### [pay-respects](https://github.com/LudwigZeller/pay-respects)
+Pay-respects is a modern replacement for thefuck, fixing command line errors with AI assistance.
+- **Installation**: Via cargo
 
 ### [Starship](https://starship.rs) ([repo](https://github.com/starship/starship))
 Starship is a cross-shell prompt that displays information about the current directory, git status, and more.
@@ -91,6 +111,10 @@ Vale is a syntax-aware linter for prose built with speed and extensibility in mi
 ### [yazi](https://github.com/yazi-shell/yazi)
 Yazi is a terminal file manager.
 - **Directory**: `yazi/`
+
+### [zoxide](https://github.com/ajeetdsouza/zoxide)
+Zoxide is a smarter cd command that learns your habits and jumps to frequently used directories.
+- **Installation**: Via cargo
 
 ## Codespaces `install.sh` Script Summary
 
@@ -125,7 +149,7 @@ The `install.sh` script is designed to set up and configure a development enviro
   - `ncat`
   - `ruby-dev`
   - `jq`
-  - `thefuck`
+  - `pay-respects` (replacement for thefuck)
   - `tmux`
   - `libfuse2`
   - `fuse`
