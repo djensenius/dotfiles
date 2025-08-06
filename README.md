@@ -1,17 +1,71 @@
 # dotfiles
 
-My config files for various applications to enhance development efficiency and experience. All configurations use the [Catppuccin Mocha theme](https://github.com/catppuccin/catppuccin) for a consistent and visually appealing look across all tools and applications.
+Modern development environment configuration files optimized for productivity and visual consistency. This setup provides a comprehensive development environment with integrated tools for coding, git workflow, terminal enhancement, and system monitoring.
 
-## Local installation
+**Key Features:**
+- 🎨 **Consistent Theming**: [Catppuccin Mocha theme](https://github.com/catppuccin/catppuccin) across all applications
+- ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
+- 🔧 **Development Focused**: Comprehensive language support and development tools
+- 📦 **Automated Setup**: One-script installation for GitHub Codespaces
+- 🐚 **Modern Shell**: Fish shell with starship prompt and productivity enhancements
 
-TMUX is a little special and needs this:
+All configurations use the [Catppuccin Mocha theme](https://github.com/catppuccin/catppuccin) for a consistent and visually appealing look across all tools and applications.
+
+## Installation
+
+### Automated Installation (Recommended)
+
+For GitHub Codespaces, the setup is fully automated:
+```bash
+./install.sh
 ```
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-~/.tmux/plugins/tpm/scripts/install_plugins.sh
-```
 
-Otherwise you *mostly* just symlink to your `~/.config` directory. Take a look at [install.sh](install.sh)
-which is used for setting up codespaces if you run into any problems.
+### Manual Local Installation
+
+For local installation, most configurations can be symlinked to your `~/.config` directory:
+
+1. **Clone this repository:**
+   ```bash
+   git clone https://github.com/djensenius/dotfiles.git ~/.dotfiles
+   cd ~/.dotfiles
+   ```
+
+2. **Symlink configurations:**
+   ```bash
+   # Core shell and editor configs
+   ln -sf ~/.dotfiles/fish ~/.config/
+   ln -sf ~/.dotfiles/nvim ~/.config/
+   ln -sf ~/.dotfiles/starship.toml ~/.config/
+   
+   # Terminal multiplexer
+   ln -sf ~/.dotfiles/tmux ~/.config/
+   
+   # Development tools
+   ln -sf ~/.dotfiles/gitconfig ~/.gitconfig
+   ln -sf ~/.dotfiles/gitignore_local ~/.gitignore_local
+   ```
+
+3. **Special setup for TMUX:**
+   ```bash
+   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+   ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+   ```
+
+4. **Install required tools** (see [Applications](#applications) section for details)
+
+See the [install.sh](install.sh) script for the complete automated setup process used in GitHub Codespaces.
+
+## Overview
+
+This dotfiles collection includes configurations for:
+
+- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux multiplexer
+- **📝 Editor**: Neovim with 43+ plugins for modern development ([details](nvim/README.md))
+- **🔍 Search & Navigation**: fzf, ripgrep, fd, eza, zoxide for enhanced file operations
+- **📊 Git Workflow**: lazygit, delta, gitsigns integration for visual git management
+- **🔧 Development Tools**: Language servers, formatters, linters, and debugging tools
+- **📱 System Monitoring**: bottom, fastfetch, k9s for system and cluster monitoring
+- **🎨 Consistent Theming**: Catppuccin Mocha theme across all applications
 
 ## Applications
 
@@ -27,6 +81,14 @@ Bat is a cat clone with syntax highlighting and Git integration.
 Bottom is a cross-platform graphical process/system monitor.
 - **Directory**: `bottom/`
 
+### [delta](https://github.com/dandavison/delta)
+Delta is a syntax-highlighting pager for git, diff, and grep output.
+- **Configuration**: Integrated into `gitconfig`
+
+### [eza](https://github.com/eza-community/eza)
+Eza is a modern replacement for ls with colors, icons, and git integration.
+- **Installation**: Via cargo
+
 ### [codespaces](https://github.com/github/codespaces)
 Codespaces is a cloud development environment provided by GitHub.
 - **Directory**: `.devcontainer/`
@@ -35,6 +97,14 @@ Codespaces is a cloud development environment provided by GitHub.
 ### [fastfetch](https://github.com/LinusDierheimer/fastfetch)
 Fastfetch is a neofetch-like tool for fetching system information.
 - **Directory**: `fastfetch/`
+
+### [fzf](https://github.com/junegunn/fzf)
+Fzf is a command-line fuzzy finder for files, commands, and more.
+- **Installation**: Via git clone to `~/.fzf`
+
+### [fd](https://github.com/sharkdp/fd)
+Fd is a simple, fast and user-friendly alternative to find.
+- **Installation**: Via cargo (as fd-find)
 
 ### [Fish](https://fishshell.com) ([repo](https://github.com/fish-shell/fish-shell))
 Fish is a smart and user-friendly command line shell.
@@ -57,7 +127,7 @@ Gitmux is a Tmux status line for Git.
 - **File**: `gitmux.conf`
 
 ### [Ghostty](https://ghostty.org/) ([repo](https://github.com/ghostty-org/ghostty))
-Ghostty is a tool for managing dotfiles across multiple machines.
+Ghostty is a fast, feature-rich terminal emulator built for performance and customization.
 - **Directory**: `ghostty/`
 
 ### [gopod](https://github.com/djensenius/gopod)
@@ -68,9 +138,22 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 K9s is a terminal UI to interact with your Kubernetes clusters.
 - **Directory**: `k9s/`
 
+### [lazygit](https://github.com/jesseduffield/lazygit)
+Lazygit is a simple terminal UI for git commands with keyboard shortcuts.
+- **Installation**: Downloaded binary to `/usr/local/bin`
+
 ### [NeoVim](https://neovim.io) ([repo](https://github.com/neovim/neovim))
 NeoVim is a hyperextensible Vim-based text editor.
 - **Directory**: `nvim/`
+- **See**: [nvim/README.md](nvim/README.md) for comprehensive plugin documentation
+
+### [pay-respects](https://github.com/LudwigZeller/pay-respects)
+Pay-respects is a modern replacement for thefuck, fixing command line errors with AI assistance.
+- **Installation**: Via cargo
+
+### [ripgrep](https://github.com/BurntSushi/ripgrep)
+Ripgrep is a line-oriented search tool that recursively searches directories for a regex pattern.
+- **Installation**: Via cargo
 
 ### [Starship](https://starship.rs) ([repo](https://github.com/starship/starship))
 Starship is a cross-shell prompt that displays information about the current directory, git status, and more.
@@ -91,6 +174,10 @@ Vale is a syntax-aware linter for prose built with speed and extensibility in mi
 ### [yazi](https://github.com/yazi-shell/yazi)
 Yazi is a terminal file manager.
 - **Directory**: `yazi/`
+
+### [zoxide](https://github.com/ajeetdsouza/zoxide)
+Zoxide is a smarter cd command that learns your habits and jumps to frequently used directories.
+- **Installation**: Via cargo
 
 ## Codespaces `install.sh` Script Summary
 
@@ -125,7 +212,7 @@ The `install.sh` script is designed to set up and configure a development enviro
   - `ncat`
   - `ruby-dev`
   - `jq`
-  - `thefuck`
+  - `pay-respects` (replacement for thefuck)
   - `tmux`
   - `libfuse2`
   - `fuse`
