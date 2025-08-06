@@ -1,0 +1,81 @@
+# This file contains fish universal variable definitions.
+# VERSION: 3.0
+SETUVAR --export BAT_THEME:Catppuccin\x2dmocha
+SETUVAR --export BELA_SYSROOT:/Users/david/Code/Generator/bela/root/
+SETUVAR --export DARK_MODE:true
+SETUVAR --export EDITOR:nvim
+SETUVAR --export EZA_CONFIG_DIR:/Users/djensenius/\x2econfig/eza
+SETUVAR --export EZA_ICONS_AUTO:true
+SETUVAR --export FIREFOX_DEVELOPER_BIN:/Applications/Firefox\x20Developer\x20Edition\x2eapp/Contents/MacOS/firefox\x2dbin
+SETUVAR --export FZF_DEFAULT_OPTS:\x2d\x2dcolor\x3dbg\x2b\x3a\x23313244\x2cbg\x3a\x231e1e2e\x2cspinner\x3a\x23f5e0dc\x2chl\x3a\x23f38ba8\x20\x2d\x2dcolor\x3dfg\x3a\x23cdd6f4\x2cheader\x3a\x23f38ba8\x2cinfo\x3a\x23cba6f7\x2cpointer\x3a\x23f5e0dc\x20\x2d\x2dcolor\x3dmarker\x3a\x23b4befe\x2cfg\x2b\x3a\x23cdd6f4\x2cprompt\x3a\x23cba6f7\x2chl\x2b\x3a\x23f38ba8\x20\x2d\x2dcolor\x3dselected\x2dbg\x3a\x2345475a\x20\x2d\x2dmulti
+SETUVAR --export GONOPROXY:\x1d
+SETUVAR --export GONOSUMDB:github\x2ecom/github/\x2a
+SETUVAR --export GOPRIVATE:\x1d
+SETUVAR --export GOPROXY:https\x3a//goproxy\x2egithubapp\x2ecom/mod\x2chttps\x3a//proxy\x2egolang\x2eorg/\x2cdirect
+SETUVAR --export ITERM_PROFILE:Light
+SETUVAR --export LSCOLORS:Exfxcxdxbxegedabagacad
+SETUVAR --export PYENV_ROOT:/Users/david/\x2epyenv
+SETUVAR __fish_classic_git_prompt_initialized:\x1d
+SETUVAR __fish_init_2_39_8:\x1d
+SETUVAR __fish_init_2_3_0:\x1d
+SETUVAR __fish_init_3_x:\x1d
+SETUVAR __fish_initialized:3800
+SETUVAR _fish_abbr_brewu:brew\x20update\x3b\x20brew\x20upgrade\x3b\x20brew\x20upgrade\x20\x2d\x2dcask\x3b
+SETUVAR _fish_abbr_cat:bat
+SETUVAR _fish_abbr_cd:z
+SETUVAR _fish_abbr_du:dust
+SETUVAR _fish_abbr_grep:rgf
+SETUVAR _fish_abbr_lls:eza\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
+SETUVAR _fish_abbr_ls:eza
+SETUVAR _fish_abbr_more:most
+SETUVAR _fish_abbr_npmu:npm\x20\x2dg\x20outdated\x3b\x20npm\x20update\x20\x2dg
+SETUVAR _fish_abbr_ping:gping
+SETUVAR _fish_abbr_preview:fzf\x20\x2d\x2dpreview\x20\x27bat\x20\x2d\x2dcolor\x20\x22always\x22\x20\x7b\x7d\x27
+SETUVAR _fish_abbr_restartdock:rm\x20/var/folders/\x2a/\x2a/\x2a/com\x2eapple\x2edock\x2eiconcache\x3b\x20killall\x20Dock
+SETUVAR _fish_abbr_top:btm
+SETUVAR _fish_abbr_tree:eza\x20\x2d\x2dtree\x20\x2d\x2dlevel\x3d2\x20\x2d\x2dlong\x20\x2d\x2dheader\x20\x2d\x2dgit
+SETUVAR _fish_abbr_vi:nvim
+SETUVAR _fish_abbr_weather:curl\x20https\x3a//wttr\x2ein
+SETUVAR --export djensenius:\x1d
+SETUVAR fish_color_autosuggestion:6c7086
+SETUVAR fish_color_cancel:f38ba8
+SETUVAR fish_color_command:89b4fa
+SETUVAR fish_color_comment:7f849c
+SETUVAR fish_color_cwd:f9e2af
+SETUVAR fish_color_cwd_root:red
+SETUVAR fish_color_end:fab387
+SETUVAR fish_color_error:f38ba8
+SETUVAR fish_color_escape:eba0ac
+SETUVAR fish_color_gray:6c7086
+SETUVAR fish_color_history_current:\x2d\x2dbold
+SETUVAR fish_color_host:89b4fa
+SETUVAR fish_color_host_remote:a6e3a1
+SETUVAR fish_color_keyword:f38ba8
+SETUVAR fish_color_match:\x2d\x2dbackground\x3dbrblue
+SETUVAR fish_color_normal:cdd6f4
+SETUVAR fish_color_operator:f5c2e7
+SETUVAR fish_color_option:a6e3a1
+SETUVAR fish_color_param:f2cdcd
+SETUVAR fish_color_quote:a6e3a1
+SETUVAR fish_color_redirection:f5c2e7
+SETUVAR fish_color_search_match:\x2d\x2dbackground\x3d313244
+SETUVAR fish_color_selection:\x2d\x2dbackground\x3d313244
+SETUVAR fish_color_status:f38ba8
+SETUVAR fish_color_user:94e2d5
+SETUVAR fish_color_valid_path:\x2d\x2dunderline
+SETUVAR fish_greeting:\U0001f41f\x20HELLO\x20I\x20AM\x20FISH\x20TERMINAL\x20\U0001f41f
+SETUVAR fish_key_bindings:fish_default_key_bindings
+SETUVAR fish_pager_color_background:\x1d
+SETUVAR fish_pager_color_completion:cdd6f4
+SETUVAR fish_pager_color_description:6c7086
+SETUVAR fish_pager_color_prefix:f5c2e7
+SETUVAR fish_pager_color_progress:6c7086
+SETUVAR fish_pager_color_secondary_background:\x1d
+SETUVAR fish_pager_color_secondary_completion:\x1d
+SETUVAR fish_pager_color_secondary_description:\x1d
+SETUVAR fish_pager_color_secondary_prefix:\x1d
+SETUVAR fish_pager_color_selected_background:\x1d
+SETUVAR fish_pager_color_selected_completion:\x1d
+SETUVAR fish_pager_color_selected_description:\x1d
+SETUVAR fish_pager_color_selected_prefix:\x1d
+SETUVAR --export fish_user_paths:/opt/homebrew/opt/node\x4020/bin\x1e/opt/homebrew/opt/postgresql\x4016/bin\x1e/opt/homebrew/opt/node\x4018/bin\x1e/opt/homebrew/opt/node\x4016/bin\x1e/home/linuxbrew/\x2elinuxbrew/bin\x1e/opt/homebrew/bin\x1e/Users/david/\x2epyenv/bin\x1e/Users/david/\x2elocal/bin\x1e/usr/local/opt/openssl\x401\x2e1/bin\x1e/Users/david/\x2ecargo/bin\x1e/usr/local/sbin\x1e/usr/local/opt/fzf/bin
