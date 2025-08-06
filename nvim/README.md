@@ -228,6 +228,152 @@ Copy text to system clipboard over SSH using OSC52.
 #### [nvim-colorizer.lua](https://github.com/norcalli/nvim-colorizer.lua)
 High-performance color highlighter for CSS colors and hex codes.
 
+## Complex Setup Breakdowns
+
+The following sections provide detailed explanations of the more sophisticated configurations in this setup:
+
+### LSP Configuration (`nvim-lspconfig.lua`)
+
+This is one of the most complex parts of the configuration, providing Language Server Protocol support for multiple programming languages.
+
+#### Architecture
+- **Multiple Language Servers**: Configured for TypeScript/JavaScript, Go, Lua, Ruby (Sorbet), YAML, JSON, ESLint, and Vale
+- **Unified `on_attach` Function**: Provides consistent keybindings and behavior across all language servers
+- **Custom Capabilities**: Integration with `blink.cmp` for completion and special YAML folding support
+
+#### Key Features
+- **Go LSP (`gopls`) Advanced Configuration**:
+  - `gofumpt` formatting enabled for stricter formatting
+  - `staticcheck` for additional static analysis
+  - Code lenses for tests, dependency management, and upgrades
+  - Custom build flags for integration tests (`-tags=integration`)
+  - Directory filtering to exclude vendor folders
+
+- **Diagnostic Customization**:
+  - Custom icons for different severity levels (error 󰅚, warning 󰀪, info 󰋽, hint 󰌶)
+  - Virtual text with source information
+  - Underlines for warnings and errors only
+  - Virtual lines for current line diagnostics
+
+#### Keybindings (Leader + Space prefix)
+- `<leader><space>c` - Go to declaration
+- `<leader><space>D` - Go to definition (via Telescope)
+- `<leader><space>h` - Show hover information
+- `<leader><space>R` - Rename symbol
+- `<leader><space>r` - Show references (via Telescope)
+- `<leader><space>d` - Show diagnostics
+- `<leader><space>i` - Show code actions
+
+### Mason + DAP Configuration (`mason.lua`)
+
+This setup provides a comprehensive debugging environment with automatic tool installation.
+
+#### Tool Management
+- **Automatic Installation**: 20+ LSP servers, formatters, and linters
+- **Language Coverage**: Go, TypeScript/JavaScript, Python, Ruby, Lua, JSON, YAML
+- **Debounced Updates**: Tools check for updates every 96 hours to avoid excessive network calls
+
+#### Debug Adapter Protocol (DAP)
+- **Multi-Language Support**: 
+  - Go debugging with Delve
+  - Ruby debugging support
+  - Generic DAP configuration for other languages
+- **UI Integration**: Automatic DAP UI opening/closing based on debug session state
+- **Event Listeners**: Responds to debug session lifecycle events
+
+#### Debug Keybindings
+- **Function Keys**: `F5` (continue), `F10` (step over), `F11` (step into), `F12` (step out)
+- **Leader Combinations**: 
+  - `<leader><space>5` - Continue execution
+  - `<leader><space>b` - Toggle breakpoint
+  - `<leader><space>B` - Set conditional breakpoint
+  - `<leader><space>pr` - Open debug REPL
+  - `<leader><space>ph` - Hover widget for variable inspection
+
+### Completion System (`blink-cmp.lua`)
+
+Modern completion engine replacing the traditional `nvim-cmp` setup.
+
+#### Features
+- **Multiple Sources**: LSP, file paths, snippets, and buffer content
+- **Smart Documentation**: Auto-showing with 250ms delay and treesitter highlighting
+- **Signature Help**: Real-time function signature display
+- **Visual Polish**: Rounded borders and nerd font icons
+
+#### Integration
+- **LSP Compatibility**: Full integration with all configured language servers
+- **Snippet Support**: Uses `friendly-snippets` for extensive snippet library
+- **Performance**: Lazy loading handled internally for optimal startup time
+
+### Treesitter Configuration (`nvim-treesitter.lua`)
+
+Provides advanced syntax highlighting and code understanding for 40+ languages.
+
+#### Language Support
+- **Comprehensive Coverage**: From web technologies (HTML, CSS, JavaScript, TypeScript) to systems languages (Go, Rust, C/C++)
+- **Configuration Languages**: Docker, YAML, TOML, Git configs
+- **Documentation**: Markdown, LaTeX, Typst
+- **Specialized**: Supercollider, Norg, SSH configs
+
+#### Advanced Features
+- **Incremental Selection**: `gnn` to expand selection, `gnd` to shrink
+- **Text Objects**: Enhanced with `nvim-treesitter-textobjects`
+- **Smart Indentation**: Enabled for most languages (disabled for Python due to conflicts)
+
+### Formatting System (`conform.nvim`)
+
+Sophisticated formatter integration with language-specific configurations.
+
+#### Multi-Formatter Support
+- **JavaScript/TypeScript**: ESLint + Prettier with fallback chain
+- **Go**: goimports followed by gofmt for import organization and formatting
+- **Python**: isort for imports + black for code formatting
+- **Ruby**: RuboCop for style and formatting
+
+#### Smart Behavior
+- **Conditional Format-on-Save**: Currently enabled only for Lua files
+- **LSP Fallback**: Uses LSP formatting when dedicated formatters aren't available
+- **Performance**: 500ms timeout to prevent blocking
+
+### Testing Framework (`neotest.lua`)
+
+Integrated testing environment with visual feedback.
+
+#### Jest Integration
+- **Automatic Discovery**: Finds and runs Jest tests in JavaScript/TypeScript projects
+- **Configuration Aware**: Uses `jest.config.js` when present
+- **Visual Indicators**: Shows test status with signs in the gutter
+
+#### Test Commands
+- `:NeotestSummary` - Toggle test results summary
+- `:NeotestFile` - Run all tests in current file
+- `:NeotestNearest` - Run test under cursor
+- `:NeotestDebug` - Debug test with DAP integration
+
+#### Status Display
+- **Non-Intrusive**: Virtual text disabled to avoid clutter
+- **Sign Column**: Uses gutter signs for test status
+- **Integration**: Works with trouble.nvim for diagnostic display
+
+### Git Integration Stack
+
+Multiple complementary git tools providing complete workflow coverage:
+
+#### Gitsigns (`gitsigns.nvim`)
+- **Real-time Diff**: Shows changes in sign column
+- **Hunk Operations**: Stage, reset, and preview individual changes
+- **Blame Integration**: Inline blame information
+
+#### Neogit (`neogit.nvim`)
+- **Magit-like Interface**: Comprehensive git operations in Neovim
+- **Staging Area**: Visual staging and unstaging of changes
+- **Commit Interface**: Built-in commit message editing
+
+#### LazyGit Integration (`lazygit.nvim`)
+- **Terminal UI**: Full-featured git interface
+- **External Tool**: Maintains separate terminal-based workflow
+- **Quick Access**: `<leader>gL` for instant access
+
 ## Configuration Philosophy
 
 This configuration follows several key principles:
