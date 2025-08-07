@@ -1,15 +1,67 @@
 #!/usr/bin/env bash
-# GitHub codespaces setup.
+# GitHub codespaces setup with parallel installation support.
 
-# Global variables for timing
-INSTALL_START_TIME=$(date +%s)
-LOG_FILE=~/install.log
-declare -A TIMING_DATA
+# Check if parallel installation is requested
+PARALLEL_MODE=${PARALLEL_MODE:-true}
 
-# Initialize log file with header
-echo "=== Dotfiles Installation Log ===" > $LOG_FILE
-echo "Started: $(date)" >> $LOG_FILE
-echo "" >> $LOG_FILE
+# Help function
+show_help() {
+    echo "Dotfiles Installation Script"
+    echo ""
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --parallel     Enable parallel installation (default)"
+    echo "  --sequential   Disable parallel installation (original mode)"
+    echo "  --help, -h     Show this help message"
+    echo ""
+    echo "Environment variables:"
+    echo "  PARALLEL_MODE  Set to 'false' to disable parallel installation"
+    echo ""
+    echo "Examples:"
+    echo "  $0                    # Run with parallel mode (default)"
+    echo "  $0 --sequential       # Run in original sequential mode"
+    echo "  PARALLEL_MODE=false $0  # Run in sequential mode via env var"
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --parallel)
+            PARALLEL_MODE=true
+            shift
+            ;;
+        --sequential)
+            PARALLEL_MODE=false
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+if [[ "$PARALLEL_MODE" == "true" ]]; then
+    # Source parallel installation framework
+    source "$(dirname "$0")/scripts/parallel-install.sh"
+    echo "🚀 Parallel installation mode enabled"
+else
+    # Original sequential mode
+    INSTALL_START_TIME=$(date +%s)
+    LOG_FILE=~/install.log
+    declare -A TIMING_DATA
+
+    # Initialize log file with header
+    echo "=== Dotfiles Installation Log ===" > $LOG_FILE
+    echo "Started: $(date)" >> $LOG_FILE
+    echo "" >> $LOG_FILE
+fi
 
 # Helper function to log with timing
 log_with_timing() {
@@ -153,7 +205,7 @@ function install_software() {
       sleep 20
       log_with_timing "Initial system wait (20s)" $start_time
       
-      # APT package installation
+      # APT package installation (must be done first - dependencies for other tools)
       start_time=$(start_operation "Installing APT packages")
       sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most -y
       log_with_timing "Installing APT packages" $start_time
@@ -162,90 +214,121 @@ function install_software() {
       sudo apt remove bat ripgrep -y
       log_with_timing "Removing conflicting APT packages" $start_time
       
-      # External tool installations
-      start_time=$(start_operation "Installing Starship prompt")
-      curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-      log_with_timing "Installing Starship prompt" $start_time
+      if [[ "$PARALLEL_MODE" == "true" ]]; then
+        # Parallel installation mode
+        echo "🚀 Using parallel installation for major components..."
+        
+        # Start all parallel installation groups
+        install_external_tools_parallel &
+        parallel_externals_pid=$!
+        
+        install_cargo_packages_parallel &
+        parallel_cargo_pid=$!
+        
+        # Wait for external tools to complete first (they're generally faster)
+        wait $parallel_externals_pid
+        if [ $? -ne 0 ]; then
+          echo "❌ External tools installation failed" >> $LOG_FILE
+        fi
+        
+        # Wait for cargo installations (these are the longest)
+        wait $parallel_cargo_pid
+        if [ $? -ne 0 ]; then
+          echo "❌ Cargo installations failed" >> $LOG_FILE
+        fi
+        
+        # Sequential operations that depend on cargo tools
+        start_time=$(start_operation "Building bat cache")
+        ~/.cargo/bin/bat cache --build
+        log_with_timing "Building bat cache" $start_time
+        
+      else
+        # Original sequential mode
+        # External tool installations
+        start_time=$(start_operation "Installing Starship prompt")
+        curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
+        log_with_timing "Installing Starship prompt" $start_time
+        
+        start_time=$(start_operation "Installing Git Delta")
+        curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
+        sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
+        log_with_timing "Installing Git Delta" $start_time
+        
+        start_time=$(start_operation "Downloading Delta themes")
+        wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
+        log_with_timing "Downloading Delta themes" $start_time
+        
+        start_time=$(start_operation "Installing yq")
+        sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+        sudo chmod +x /usr/bin/yq
+        log_with_timing "Installing yq" $start_time
+        
+        start_time=$(start_operation "Installing Protocol Buffers")
+        PB_REL="https://github.com/protocolbuffers/protobuf/releases"
+        curl -L $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip > ~/protoc.zip
+        unzip ~/protoc.zip -d $HOME/.local
+        export PATH="$PATH:$HOME/.local/bin"
+        log_with_timing "Installing Protocol Buffers" $start_time
+        
+        # Cargo installations (these tend to be slow)
+        start_time=$(start_operation "Installing eza via cargo")
+        cargo install eza
+        log_with_timing "Installing eza via cargo" $start_time
+        
+        start_time=$(start_operation "Installing zoxide via cargo")
+        cargo install --locked zoxide
+        log_with_timing "Installing zoxide via cargo" $start_time
+        
+        start_time=$(start_operation "Installing ripgrep via cargo")
+        cargo install ripgrep
+        log_with_timing "Installing ripgrep via cargo" $start_time
+        
+        start_time=$(start_operation "Installing fd-find via cargo")
+        cargo install fd-find
+        log_with_timing "Installing fd-find via cargo" $start_time
+        
+        start_time=$(start_operation "Installing bat via cargo")
+        cargo install --locked bat
+        log_with_timing "Installing bat via cargo" $start_time
+        
+        start_time=$(start_operation "Installing atuin via cargo")
+        cargo install --locked atuin
+        log_with_timing "Installing atuin via cargo" $start_time
+        
+        start_time=$(start_operation "Installing tree-sitter-cli via cargo")
+        cargo install --locked tree-sitter-cli
+        log_with_timing "Installing tree-sitter-cli via cargo" $start_time
+        
+        start_time=$(start_operation "Installing pay-respects tools via cargo")
+        cargo install --locked pay-respects
+        cargo install --locked pay-respects-module-runtime-rules
+        cargo install --locked pay-respects-module-request-ai
+        log_with_timing "Installing pay-respects tools via cargo" $start_time
+        
+        # Bat cache build
+        start_time=$(start_operation "Building bat cache")
+        ~/.cargo/bin/bat cache --build
+        log_with_timing "Building bat cache" $start_time
+        
+        # FZF installation
+        start_time=$(start_operation "Installing FZF")
+        git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+        ~/.fzf/install --all
+        log_with_timing "Installing FZF" $start_time
+        
+        # LazyGit installation
+        start_time=$(start_operation "Installing LazyGit")
+        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
+        curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+        tar xf lazygit.tar.gz lazygit
+        sudo install lazygit -D -t /usr/local/bin/
+        log_with_timing "Installing LazyGit" $start_time
+      fi
       
-      start_time=$(start_operation "Installing Git Delta")
-      curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
-      sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
-      log_with_timing "Installing Git Delta" $start_time
-      
-      start_time=$(start_operation "Downloading Delta themes")
-      wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
-      log_with_timing "Downloading Delta themes" $start_time
-      
-      start_time=$(start_operation "Installing yq")
-      sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-      sudo chmod +x /usr/bin/yq
-      log_with_timing "Installing yq" $start_time
-      
-      start_time=$(start_operation "Installing Protocol Buffers")
-      PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-      curl -L $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip > ~/protoc.zip
-      unzip ~/protoc.zip -d $HOME/.local
-      export PATH="$PATH:$HOME/.local/bin"
-      log_with_timing "Installing Protocol Buffers" $start_time
-      
-      # Cargo installations (these tend to be slow)
-      start_time=$(start_operation "Installing eza via cargo")
-      cargo install eza
-      log_with_timing "Installing eza via cargo" $start_time
-      
-      start_time=$(start_operation "Installing zoxide via cargo")
-      cargo install --locked zoxide
-      log_with_timing "Installing zoxide via cargo" $start_time
-      
-      start_time=$(start_operation "Installing ripgrep via cargo")
-      cargo install ripgrep
-      log_with_timing "Installing ripgrep via cargo" $start_time
-      
-      start_time=$(start_operation "Installing fd-find via cargo")
-      cargo install fd-find
-      log_with_timing "Installing fd-find via cargo" $start_time
-      
-      start_time=$(start_operation "Installing bat via cargo")
-      cargo install --locked bat
-      log_with_timing "Installing bat via cargo" $start_time
-      
-      start_time=$(start_operation "Installing atuin via cargo")
-      cargo install --locked atuin
-      log_with_timing "Installing atuin via cargo" $start_time
-      
-      start_time=$(start_operation "Installing tree-sitter-cli via cargo")
-      cargo install --locked tree-sitter-cli
-      log_with_timing "Installing tree-sitter-cli via cargo" $start_time
-      
-      start_time=$(start_operation "Installing pay-respects tools via cargo")
-      cargo install --locked pay-respects
-      cargo install --locked pay-respects-module-runtime-rules
-      cargo install --locked pay-respects-module-request-ai
-      log_with_timing "Installing pay-respects tools via cargo" $start_time
-      
-      # NPM installations
+      # NPM installations (keep sequential for now)
       start_time=$(start_operation "Installing NPM global packages")
       npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
       log_with_timing "Installing NPM global packages" $start_time
-      
-      # Bat cache build
-      start_time=$(start_operation "Building bat cache")
-      ~/.cargo/bin/bat cache --build
-      log_with_timing "Building bat cache" $start_time
-      
-      # FZF installation
-      start_time=$(start_operation "Installing FZF")
-      git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-      ~/.fzf/install --all
-      log_with_timing "Installing FZF" $start_time
-      
-      # LazyGit installation
-      start_time=$(start_operation "Installing LazyGit")
-      LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
-      curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-      tar xf lazygit.tar.gz lazygit
-      sudo install lazygit -D -t /usr/local/bin/
-      log_with_timing "Installing LazyGit" $start_time
     fi
     
     # Ruby gems installation
@@ -268,9 +351,15 @@ function setup_software() {
     fi
     log_with_timing "Logging into Atuin" $start_time
     
-    start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-    log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
+    if [[ "$PARALLEL_MODE" == "true" ]]; then
+      # Use parallel git operations
+      setup_git_tools_parallel
+    else
+      # Original sequential git operations
+      start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
+      git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+      log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
+    fi
     
     start_time=$(start_operation "Installing tmux plugins")
     ~/.tmux/plugins/tpm/scripts/install_plugins.sh
