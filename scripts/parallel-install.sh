@@ -120,6 +120,19 @@ install_cargo_packages_parallel() {
     
     if wait_for_parallel "${cargo_operations[@]}"; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
+        
+        # Setup atuin immediately after cargo installations complete
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up atuin after cargo installation..." >> $LOG_FILE
+        atuin_start_time=$(date +%s)
+        if [ -d /workspaces/github ]; then
+          ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+        else
+          /usr/local/cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+        fi 2>/dev/null || echo "Atuin login failed - credentials may be missing"
+        atuin_end_time=$(date +%s)
+        TIMING_DATA["Logging into Atuin"]=$((atuin_end_time - atuin_start_time))
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin setup completed" >> $LOG_FILE
+        
         return 0
     else
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> $LOG_FILE
@@ -175,6 +188,15 @@ install_external_tools_parallel() {
     
     if wait_for_parallel "${download_operations[@]}"; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All external tool downloads completed successfully" >> $LOG_FILE
+        
+        # Setup git tools immediately after external tools complete
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up git tools after external tool installation..." >> $LOG_FILE
+        tpm_start_time=$(date +%s)
+        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm 2>/dev/null || echo "TPM already cloned"
+        tpm_end_time=$(date +%s)
+        TIMING_DATA["Cloning TPM (tmux plugin manager)"]=$((tpm_end_time - tpm_start_time))
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Git tools setup completed" >> $LOG_FILE
+        
         return 0
     else
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some external tool downloads failed" >> $LOG_FILE

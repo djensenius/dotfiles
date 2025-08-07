@@ -1,6 +1,10 @@
 # Interactive-only setup. Everything else lives in conf.d/*.fish
 
 if status is-interactive
+    # Codespace path reconstruction (fixes PATH issues in GitHub Codespaces)
+    if test -d /workspaces
+        __fish_reconstruct_path
+    end
     # Prompt and tools that hook into the interactive shell
     starship init fish | source
     zoxide init fish | source

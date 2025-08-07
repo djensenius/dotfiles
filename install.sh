@@ -242,6 +242,25 @@ function install_software() {
         ~/.cargo/bin/bat cache --build
         log_with_timing "Building bat cache" $start_time
         
+        # Setup software immediately after installation to avoid race conditions
+        echo "🔧 Setting up installed software..."
+        
+        # Setup Atuin immediately after cargo installation
+        start_time=$(start_operation "Logging into Atuin")
+        echo "Log in to atuin"
+        ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+        log_with_timing "Logging into Atuin" $start_time
+        
+        # Setup git tools immediately after installation
+        start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
+        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+        log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
+        
+        # Install tmux plugins immediately after TPM is available
+        start_time=$(start_operation "Installing tmux plugins")
+        ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+        log_with_timing "Installing tmux plugins" $start_time
+        
       else
         # Original sequential mode
         # External tool installations
@@ -310,6 +329,29 @@ function install_software() {
         ~/.cargo/bin/bat cache --build
         log_with_timing "Building bat cache" $start_time
         
+        # Setup software immediately after installation to avoid race conditions
+        echo "🔧 Setting up installed software..."
+        
+        # Setup Atuin immediately after cargo installation
+        start_time=$(start_operation "Logging into Atuin")
+        echo "Log in to atuin"
+        if [ -d /workspaces/github ]; then
+          ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+        else
+          /usr/local/cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+        fi
+        log_with_timing "Logging into Atuin" $start_time
+        
+        # Setup git tools immediately after installation
+        start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
+        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+        log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
+        
+        # Install tmux plugins immediately after TPM is available
+        start_time=$(start_operation "Installing tmux plugins")
+        ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+        log_with_timing "Installing tmux plugins" $start_time
+        
         # FZF installation
         start_time=$(start_operation "Installing FZF")
         git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
@@ -336,43 +378,22 @@ function install_software() {
     sudo gem install tmuxinator neovim-ruby-host
     log_with_timing "Installing Ruby gems" $start_time
     
+    # Setup Neovim plugins immediately after neovim dependencies are installed
+    start_time=$(start_operation "Syncing Neovim plugins (Lazy)")
+    nvim --headless "+Lazy! sync" +qa
+    log_with_timing "Syncing Neovim plugins (Lazy)" $start_time
+    
+    start_time=$(start_operation "Installing Mason tools in Neovim")
+    nvim --headless "+MasonToolsInstallSync" +qa
+    log_with_timing "Installing Mason tools in Neovim" $start_time
+    
     start_time=$(start_operation "Downloading tmuxinator completions")
     curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
     log_with_timing "Downloading tmuxinator completions" $start_time
 }
 
 function setup_software() {
-    start_time=$(start_operation "Logging into Atuin")
-    echo "Log in to atuin"
-    if [ -d /workspaces/github ]; then
-      ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-    else
-      /usr/local/cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-    fi
-    log_with_timing "Logging into Atuin" $start_time
-    
-    if [[ "$PARALLEL_MODE" == "true" ]]; then
-      # Use parallel git operations
-      setup_git_tools_parallel
-    else
-      # Original sequential git operations
-      start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
-      git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-      log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
-    fi
-    
-    start_time=$(start_operation "Installing tmux plugins")
-    ~/.tmux/plugins/tpm/scripts/install_plugins.sh
-    log_with_timing "Installing tmux plugins" $start_time
-    
-    start_time=$(start_operation "Syncing Neovim plugins (Lazy)")
-    nvim --headless "+Lazy! sync" +qa
-    log_with_timing "Syncing Neovim plugins (Lazy)" $start_time
-    
-    start_time=$(start_operation "Installing Mason tools in Neovim")
-    nvim --headless /tmp/tmp  "+MasonToolsInstallSync" +qa
-    log_with_timing "Installing Mason tools in Neovim" $start_time
-    
+    # Final environment and shell setup (must run at the very end)
     if [ -d /workspaces/github ]; then
       start_time=$(start_operation "Changing default shell to fish")
       sudo chsh -s /usr/bin/fish vscode
