@@ -26,7 +26,7 @@ jobs:
           # Check if fish_indent would make changes
           find ./fish -name "*.fish" -type f | while read -r file; do
             echo "Checking formatting of $file"
-            if ! fish_indent < "$file" | diff -u "$file" -; then
+            if ! diff -u "$file" <(fish_indent < "$file"); then
               echo "File $file is not properly formatted."
               echo "Run 'fish_indent -w $file' to fix."
               exit 1
