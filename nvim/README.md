@@ -40,7 +40,7 @@ nvim/
 │   ├── keys.lua          # Global key mappings
 │   ├── core/
 │   │   └── utils.lua     # Utility functions
-│   └── plugins/          # Plugin configurations (43 plugins)
+│   └── plugins/          # Plugin configurations (44 plugins)
 └── README.md             # This file
 ```
 
@@ -87,7 +87,10 @@ The leader key is set to `,` (comma). Here are the main key mappings:
 
 ### Copilot Integration
 - `<leader>cp` - Copilot panel
-- `<leader>cc*` - CopilotChat commands (explain, review, fix, etc.)
+- `<leader>cct` - CopilotChat toggle
+- `<leader>ccm` - CopilotChat models
+- `<leader>ccp` - CopilotChat prompts
+- `<leader>ccq` - CopilotChat quick chat
 
 ## Plugins Overview
 
@@ -179,7 +182,7 @@ Git graph visualization within Neovim.
 GitHub Copilot integration for AI-powered code suggestions.
 
 #### [CopilotChat.nvim](https://github.com/CopilotC-Nvim/CopilotChat.nvim)
-Interactive chat interface with GitHub Copilot for code explanation and generation.
+Interactive chat interface with GitHub Copilot for code explanation and generation. Features streamlined keybindings for quick access to chat, models, prompts, and quick queries.
 
 ### Testing & Debugging
 
@@ -227,6 +230,9 @@ Copy text to system clipboard over SSH using OSC52.
 
 #### [nvim-colorizer.lua](https://github.com/norcalli/nvim-colorizer.lua)
 High-performance color highlighter for CSS colors and hex codes.
+
+#### [snacks.nvim](https://github.com/folke/snacks.nvim)
+Collection of small utility enhancements including bigfile handling, image support, indent guides, quickfile operations, and smooth scrolling.
 
 ## Complex Setup Breakdowns
 
