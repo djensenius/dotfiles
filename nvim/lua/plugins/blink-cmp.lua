@@ -26,7 +26,13 @@ return {
 					border = "rounded",
 				},
 			},
+			list = {
+				selection = {
+					preselect = false,
+				},
+			},
 		},
+
 		signature = {
 			enabled = true,
 			window = {
