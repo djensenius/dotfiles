@@ -2,3 +2,4 @@
 .venv
 nvim/lazy-lock.json
 tmux/plugins
+actionlint
