@@ -65,7 +65,7 @@ See the [install.sh](install.sh) script for the complete automated setup process
 This dotfiles collection includes configurations for:
 
 - **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux multiplexer
-- **📝 Editor**: Neovim with 43+ plugins for modern development ([details](nvim/README.md))
+- **📝 Editor**: Neovim with 44+ plugins for modern development ([details](nvim/README.md))
 - **🔍 Search & Navigation**: fzf, ripgrep, fd, eza, zoxide for enhanced file operations
 - **📊 Git Workflow**: lazygit, delta, gitsigns integration for visual git management
 - **🔧 Development Tools**: Language servers, formatters, linters, and debugging tools
