@@ -3,49 +3,49 @@ return {
 		"CopilotC-Nvim/CopilotChat.nvim",
 		branch = "main",
 		dependencies = {
-			{ "github/copilot.vim" }, -- or github/copilot.vim
-			{ "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
+			{ "github/copilot.vim" },
+			{ "nvim-lua/plenary.nvim" },
 		},
 		build = "make tiktoken",
 		event = "VeryLazy",
 		config = function()
 			require("CopilotChat").setup({
+				highlight_headers = false,
+				separator = "---",
+				error_header = "> [!ERROR] Error",
 				auto_insert_mode = true,
 				chat_autocomplete = true,
 				show_help = false,
 				show_folds = false,
-				question_header = "  David ",
-				answer_header = "  Copilot ",
+				headers = {
+					user = "##   David: ",
+					assistant = "##   Copilot: ",
+					tool = "## 🔧 Tool: ",
+				},
+				prompts = {
+					Explain = "Explain how it works.",
+					Tests = "Generate unit tests for the selected code.",
+					Review = "Review the code and suggest improvements.",
+					Refactor = "Refactor the code for clarity.",
+					Docs = "Add documentation for the selected code.",
+				},
 			})
 		end,
 		keys = {
-			{ "<leader>cce", "<cmd>CopilotChatExplain<cr>", desc = "CopilotChat - Explain code" },
-			{ "<leader>ccr", "<cmd>CopilotChatReview<cr>", desc = "CopilotChat - Review code" },
-			{ "<leader>ccf", "<cmd>CopilotChatFix<cr>", desc = "CopilotChat - Fix" },
-			{ "<leader>cco", "<cmd>CopilotChatOptimize<cr>", desc = "CopilotChat - Optimize" },
-			{ "<leader>ccd", "<cmd>CopilotChatDocs<cr>", desc = "CopilotChat - Add Documentation" },
-			{ "<leader>cct", "<cmd>CopilotChatTests<cr>", desc = "CopilotChat - Generate tests" },
-			{ "<leader>ccD", "<cmd>CopilotChatFixDiagnostic<cr>", desc = "CopilotChat - diagnostic issue in file" },
-			{ "<leader>ccc", "<cmd>CopilotChatCommit<cr>", desc = "CopilotChat - Commit message" },
-			{ "<leader>ccs", "<cmd>CopilotChatCommitStaged<cr>", desc = "CopilotChat - Commit message" },
-			{ "<leader>ccT", "<cmd>CopilotChatToggle<cr>", desc = "Toggle Copilot Chat" },
+			{ "<leader>cct", "<cmd>CopilotChatToggle<cr>", desc = "Toggle Copilot Chat" },
 			{ "<leader>ccm", "<cmd>CopilotChatModel<cr>", desc = "Copilot Chat Models" },
+			{ "<leader>ccp", "<cmd>CopilotChatPrompts<cr>", desc = "CopilotChat - Prompt actions" },
 			{
-				"<leader>cch",
+				"<leader>ccq",
 				function()
-					local actions = require("CopilotChat.actions")
-					require("CopilotChat.integrations.telescope").pick(actions.help_actions())
+					local input = vim.fn.input("Quick Chat: ")
+					if input ~= "" then
+						require("CopilotChat").ask(input, {
+							selection = require("CopilotChat.select").buffer,
+						})
+					end
 				end,
-				desc = "CopilotChat - Help actions",
-			},
-			-- Show prompts actions with telescope
-			{
-				"<leader>ccp",
-				function()
-					local actions = require("CopilotChat.actions")
-					require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
-				end,
-				desc = "CopilotChat - Prompt actions",
+				desc = "CopilotChat - Quick chat",
 			},
 		},
 	},
