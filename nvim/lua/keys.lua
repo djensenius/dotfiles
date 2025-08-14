@@ -18,6 +18,7 @@ vim.keymap.set("n", "<s-t>", ":tabnew<cr>")
 
 -- Copilot
 vim.keymap.set("n", "<leader>cp", ":Copilot panel<cr>")
+vim.keymap.set("n", "<leader>cs", ":Copilot status<cr>")
 
 vim.keymap.set("n", "<leader>no", ":set nonu<cr>")
 vim.keymap.set("n", "<leader>nu", ":set nu<cr>")
