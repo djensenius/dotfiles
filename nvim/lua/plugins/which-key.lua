@@ -22,6 +22,7 @@ return {
 			{ "<leader>c", group = "Copilot & Path", icon = " " },
 			{ "<leader>cc", desc = "Copilot Chat", icon = "" },
 			{ "<leader>cf", desc = "Copy full path", icon = "" },
+			{ "<leader>cs", desc = "Copilot Status", icon = "" },
 			{ "<leader>cp", desc = "Copilot Panel", icon = "" },
 			{ "<leader>cr", desc = "Copy relative path", icon = "" },
 			{ "<leader>f", group = "Finding & Format" },
