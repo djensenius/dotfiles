@@ -1,4 +1,4 @@
-theme = catppuccin-mocha
+theme = catppuccin-mocha.conf
 macos-titlebar-style = tabs
 background = 000000
 font-family = Monaspace Neon Var
