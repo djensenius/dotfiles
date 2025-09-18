@@ -68,17 +68,17 @@ return {
 		}
 		---@diagnostic enable: undefined-field
 
-		vim.lsp.config('ts_ls', {
+		vim.lsp.config("ts_ls", {
 			on_attach = on_attach,
 			root_dir = function(fname)
-				local found = vim.fs.find('tsconfig.json', { path = fname, upward = true })[1]
+				local found = vim.fs.find("tsconfig.json", { path = fname, upward = true })[1]
 				return found and vim.fs.dirname(found) or nil
 			end,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('ts_ls')
+		vim.lsp.enable("ts_ls")
 
-		vim.lsp.config('gopls', {
+		vim.lsp.config("gopls", {
 			on_attach = on_attach,
 			capabilities = capabilities,
 			settings = {
@@ -102,32 +102,32 @@ return {
 				},
 			},
 		})
-		vim.lsp.enable('gopls')
+		vim.lsp.enable("gopls")
 
 		vim.env.SRB_SKIP_GEM_RBIS = 1
-		vim.lsp.config('sorbet', {
+		vim.lsp.config("sorbet", {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('sorbet')
+		vim.lsp.enable("sorbet")
 
-		vim.lsp.config('vale_ls', {
+		vim.lsp.config("vale_ls", {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('vale_ls')
+		vim.lsp.enable("vale_ls")
 
-		vim.lsp.config('eslint', {
+		vim.lsp.config("eslint", {
 			on_attach = on_attach,
 			root_dir = function(fname)
-				local found = vim.fs.find('package.json', { path = fname, upward = true })[1]
+				local found = vim.fs.find("package.json", { path = fname, upward = true })[1]
 				return found and vim.fs.dirname(found) or nil
 			end,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('eslint')
+		vim.lsp.enable("eslint")
 
-		vim.lsp.config('lua_ls', {
+		vim.lsp.config("lua_ls", {
 			settings = {
 				Lua = {
 					runtime = {
@@ -155,24 +155,24 @@ return {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('lua_ls')
+		vim.lsp.enable("lua_ls")
 
-		vim.lsp.config('yamlls', {
+		vim.lsp.config("yamlls", {
 			on_attach = on_attach,
 			capabilities = yaml_capabilities,
 		})
-		vim.lsp.enable('yamlls')
+		vim.lsp.enable("yamlls")
 
-		vim.lsp.config('jqls', {
+		vim.lsp.config("jqls", {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('jqls')
+		vim.lsp.enable("jqls")
 
-		vim.lsp.config('jsonls', {
+		vim.lsp.config("jsonls", {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable('jsonls')
+		vim.lsp.enable("jsonls")
 	end,
 }
