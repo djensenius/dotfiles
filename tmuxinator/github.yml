@@ -3,8 +3,9 @@ name: github
 root: /workspaces/github
 
 windows:
+  - Server: tmux set-window-option -t1 automatic-rename on && script/server --debug  # yamllint disable-line rule:line-length
   - Code:
       layout: main-vertical
       panes:
-        - tmux set-window-option -t1 automatic-rename on && nvim
-  - Server: tmux set-window-option -t2 automatic-rename on && script/server --debug  # yamllint disable-line rule:line-length
+        - tmux set-window-option -t2 automatic-rename on && nvim
+  - Fish: tmux set-window-option -t3 automatic-rename
