@@ -4,8 +4,6 @@ return {
 	event = "VeryLazy",
 
 	config = function()
-		require("lspconfig")
-
 		-- Prepare completion
 		local on_attach = function(client, _)
 			-- Mappings.
@@ -60,7 +58,7 @@ return {
 			})
 		end
 
-		local util = require("lspconfig/util")
+		-- Note: lspconfig util functions are deprecated, using vim.fs for root detection
 		local capabilities = require("blink.cmp").get_lsp_capabilities()
 		local yaml_capabilities = vim.lsp.protocol.make_client_capabilities()
 
@@ -71,13 +69,18 @@ return {
 		}
 		---@diagnostic enable: undefined-field
 
-		require("lspconfig")["ts_ls"].setup({
+		-- TypeScript Language Server
+		vim.lsp.config('ts_ls', {
 			on_attach = on_attach,
-			root_dir = util.root_pattern("tsconfig.json"),
+			root_dir = function(fname)
+				return vim.fs.find({'tsconfig.json'}, { upward = true, path = fname })[1] and vim.fs.dirname(vim.fs.find({'tsconfig.json'}, { upward = true, path = fname })[1])
+			end,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('ts_ls')
 
-		require("lspconfig")["gopls"].setup({
+		-- Go Language Server
+		vim.lsp.config('gopls', {
 			on_attach = on_attach,
 			capabilities = capabilities,
 			settings = {
@@ -101,25 +104,35 @@ return {
 				},
 			},
 		})
+		vim.lsp.enable('gopls')
 
+		-- Sorbet Language Server (Ruby)
 		vim.env.SRB_SKIP_GEM_RBIS = 1
-		require("lspconfig")["sorbet"].setup({
+		vim.lsp.config('sorbet', {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('sorbet')
 
-		require("lspconfig")["vale_ls"].setup({
+		-- Vale Language Server
+		vim.lsp.config('vale_ls', {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('vale_ls')
 
-		require("lspconfig")["eslint"].setup({
+		-- ESLint Language Server
+		vim.lsp.config('eslint', {
 			on_attach = on_attach,
-			root_dir = util.root_pattern("package.json"),
+			root_dir = function(fname)
+				return vim.fs.find({'package.json'}, { upward = true, path = fname })[1] and vim.fs.dirname(vim.fs.find({'package.json'}, { upward = true, path = fname })[1])
+			end,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('eslint')
 
-		require("lspconfig")["lua_ls"].setup({
+		-- Lua Language Server
+		vim.lsp.config('lua_ls', {
 			settings = {
 				Lua = {
 					runtime = {
@@ -147,20 +160,27 @@ return {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('lua_ls')
 
-		require("lspconfig")["yamlls"].setup({
+		-- YAML Language Server
+		vim.lsp.config('yamlls', {
 			on_attach = on_attach,
 			capabilities = yaml_capabilities,
 		})
+		vim.lsp.enable('yamlls')
 
-		require("lspconfig")["jqls"].setup({
+		-- JQ Language Server
+		vim.lsp.config('jqls', {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('jqls')
 
-		require("lspconfig")["jsonls"].setup({
+		-- JSON Language Server
+		vim.lsp.config('jsonls', {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
+		vim.lsp.enable('jsonls')
 	end,
 }
