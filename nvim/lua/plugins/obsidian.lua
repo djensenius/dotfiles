@@ -20,6 +20,10 @@ if vim.fn.isdirectory(vim.fn.expand("~/Vaults")) == 1 then
 					path = "~/Vaults/Death in Space",
 				},
 			},
+			-- Disable obsidian UI to avoid conflicts with render-markdown.nvim
+			ui = {
+				enable = false,
+			},
 			-- see below for full list of options 👇
 		},
 	}
