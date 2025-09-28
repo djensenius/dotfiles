@@ -71,7 +71,9 @@ return {
 		vim.lsp.config("ts_ls", {
 			on_attach = on_attach,
 			root_dir = function(fname)
-				local found = vim.fs.find("tsconfig.json", { path = fname, upward = true })[1]
+				-- Handle case where fname might be a buffer number instead of a file path
+				local file_path = type(fname) == "number" and vim.api.nvim_buf_get_name(fname) or fname
+				local found = vim.fs.find("tsconfig.json", { path = file_path, upward = true })[1]
 				return found and vim.fs.dirname(found) or nil
 			end,
 			capabilities = capabilities,
@@ -120,7 +122,9 @@ return {
 		vim.lsp.config("eslint", {
 			on_attach = on_attach,
 			root_dir = function(fname)
-				local found = vim.fs.find("package.json", { path = fname, upward = true })[1]
+				-- Handle case where fname might be a buffer number instead of a file path
+				local file_path = type(fname) == "number" and vim.api.nvim_buf_get_name(fname) or fname
+				local found = vim.fs.find("package.json", { path = file_path, upward = true })[1]
 				return found and vim.fs.dirname(found) or nil
 			end,
 			capabilities = capabilities,
