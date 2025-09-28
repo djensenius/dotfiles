@@ -131,7 +131,7 @@ vim.opt.statusline = [[%f %y%=%l,%c %P]]
 -- Optional: Add autocmds for better experience
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
-		vim.highlight.on_yank({ timeout = 200 })
+		vim.hl.on_yank({ timeout = 200 })
 	end,
 })
 
