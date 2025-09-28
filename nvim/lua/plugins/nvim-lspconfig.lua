@@ -72,7 +72,14 @@ return {
 			on_attach = on_attach,
 			root_dir = function(fname)
 				-- Handle case where fname might be a buffer number instead of a file path
-				local file_path = type(fname) == "number" and vim.api.nvim_buf_get_name(fname) or fname
+				local file_path = fname
+				if type(fname) == "number" then
+					file_path = vim.api.nvim_buf_get_name(fname)
+					-- Return nil if buffer has no name (unnamed buffer)
+					if file_path == "" then
+						return nil
+					end
+				end
 				local found = vim.fs.find("tsconfig.json", { path = file_path, upward = true })[1]
 				return found and vim.fs.dirname(found) or nil
 			end,
@@ -123,7 +130,14 @@ return {
 			on_attach = on_attach,
 			root_dir = function(fname)
 				-- Handle case where fname might be a buffer number instead of a file path
-				local file_path = type(fname) == "number" and vim.api.nvim_buf_get_name(fname) or fname
+				local file_path = fname
+				if type(fname) == "number" then
+					file_path = vim.api.nvim_buf_get_name(fname)
+					-- Return nil if buffer has no name (unnamed buffer)
+					if file_path == "" then
+						return nil
+					end
+				end
 				local found = vim.fs.find("package.json", { path = file_path, upward = true })[1]
 				return found and vim.fs.dirname(found) or nil
 			end,
