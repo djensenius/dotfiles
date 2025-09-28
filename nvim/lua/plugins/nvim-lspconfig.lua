@@ -5,6 +5,8 @@ return {
 
 	config = function()
 		-- Helper function to handle root_dir parameter type conversion
+		-- @param fname: string (file path) or number (buffer number)
+		-- @return: string (file path) or nil (for unnamed buffers)
 		local function handle_root_dir_param(fname)
 			local file_path = fname
 			if type(fname) == "number" then
