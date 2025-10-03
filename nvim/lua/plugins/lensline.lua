@@ -5,6 +5,9 @@ return {
 	config = function()
 		require("lensline").setup({
 			-- Profile definitions, first is default
+			limits = {
+				exclude_gitignored = false,
+			},
 			profiles = {
 				{
 					name = "basic",
