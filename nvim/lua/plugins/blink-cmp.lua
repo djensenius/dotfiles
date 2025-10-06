@@ -48,7 +48,7 @@ return {
 		},
 
 		sources = {
-			default = { "lsp", "path", "snippets", "buffer", "calc" },
+			default = { "lsp", "path", "snippets", "buffer", "calc", "omni" },
 			providers = {
 				calc = {
 					name = "Calc",
