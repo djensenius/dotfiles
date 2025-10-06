@@ -110,6 +110,14 @@ return {
 					{
 						"lsp_status",
 						ignore_lsp = { "GitHub Copilot" },
+						icon = "", -- f013
+						symbols = {
+							-- Standard unicode symbols to cycle through for LSP progress:
+							spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
+							done = "✓",
+							-- Delimiter inserted between LSP names:
+							separator = " ",
+						},
 						on_click = function()
 							vim.cmd(":LspInfo")
 						end,

@@ -3,10 +3,12 @@ return {
 	lazy = false, -- lazy loading handled internally
 	dependencies = {
 		"rafamadriz/friendly-snippets",
+		"joelazar/blink-calc",
 	}, -- dependencies should be in a table
 
-	version = "v0.*",
+	version = "v1.*",
 
+	---@module 'blink.cmp'
 	opts = {
 		keymap = { preset = "default" },
 
@@ -15,6 +17,11 @@ return {
 		},
 
 		completion = {
+			accept = {
+				auto_brackets = {
+					enabled = true,
+				},
+			},
 			menu = {
 				border = "rounded",
 			},
@@ -41,7 +48,16 @@ return {
 		},
 
 		sources = {
-			default = { "lsp", "path", "snippets", "buffer" },
+			default = { "lsp", "path", "snippets", "buffer", "calc", "omni" },
+			providers = {
+				calc = {
+					name = "Calc",
+					module = "blink-calc",
+				},
+			},
+		},
+		fuzzy = {
+			implementation = "prefer_rust_with_warning",
 		},
 	},
 	opts_extend = { "sources.default" },

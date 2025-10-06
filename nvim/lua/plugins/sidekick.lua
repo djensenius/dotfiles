@@ -29,14 +29,14 @@ return {
 			desc = "Goto/Apply Next Edit Suggestion",
 		},
 		{
-			"<leader>caa",
+			"<leader>coo",
 			function()
 				require("sidekick.cli").toggle()
 			end,
 			desc = "Sidekick Toggle CLI",
 		},
 		{
-			"<leader>cas",
+			"<leader>cos",
 			function()
 				require("sidekick.cli").select()
 			end,
@@ -44,7 +44,7 @@ return {
 			desc = "Select CLI",
 		},
 		{
-			"<leader>cat",
+			"<leader>cot",
 			function()
 				require("sidekick.cli").send({ msg = "{this}" })
 			end,
@@ -52,7 +52,7 @@ return {
 			desc = "Send This",
 		},
 		{
-			"<leader>cav",
+			"<leader>cov",
 			function()
 				require("sidekick.cli").send({ msg = "{selection}" })
 			end,
@@ -60,7 +60,7 @@ return {
 			desc = "Send Visual Selection",
 		},
 		{
-			"<leader>cap",
+			"<leader>cop",
 			function()
 				require("sidekick.cli").prompt()
 			end,
@@ -77,7 +77,7 @@ return {
 		},
 		-- Example of a keybinding to open Copilot directly
 		{
-			"<leader>cac",
+			"<leader>coc",
 			function()
 				require("sidekick.cli").toggle({ name = "copilot", focus = true })
 			end,
