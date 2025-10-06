@@ -40,7 +40,7 @@ nvim/
 │   ├── keys.lua          # Global key mappings
 │   ├── core/
 │   │   └── utils.lua     # Utility functions
-│   └── plugins/          # Plugin configurations (44 plugins)
+│   └── plugins/          # Plugin configurations (46 plugins)
 └── README.md             # This file
 ```
 
@@ -91,6 +91,16 @@ The leader key is set to `,` (comma). Here are the main key mappings:
 - `<leader>ccm` - CopilotChat models
 - `<leader>ccp` - CopilotChat prompts
 - `<leader>ccq` - CopilotChat quick chat
+
+### Sidekick AI Assistant
+- `<Tab>` - Navigate to next edit suggestion or apply current suggestion
+- `<leader>caa` - Toggle Sidekick CLI
+- `<leader>cas` - Select CLI tool
+- `<leader>cat` - Send current context to Sidekick
+- `<leader>cav` - Send visual selection to Sidekick
+- `<leader>cap` - Open Sidekick prompt selector
+- `<C-.>` - Switch focus to/from Sidekick
+- `<leader>cac` - Toggle Claude (Copilot) directly
 
 ## Plugins Overview
 
@@ -183,6 +193,9 @@ GitHub Copilot integration for AI-powered code suggestions.
 
 #### [CopilotChat.nvim](https://github.com/CopilotC-Nvim/CopilotChat.nvim)
 Interactive chat interface with GitHub Copilot for code explanation and generation. Features streamlined keybindings for quick access to chat, models, prompts, and quick queries.
+
+#### [sidekick.nvim](https://github.com/folke/sidekick.nvim)
+AI-powered coding assistant that provides intelligent code suggestions and edits with tmux integration. Features seamless navigation between edit suggestions and CLI integration for enhanced development workflow.
 
 ### Testing & Debugging
 

@@ -142,8 +142,8 @@ return {
 							return icon
 						end,
 						cond = function()
-							local ok, clients = pcall(vim.lsp.get_clients, { name = "GitHub Copilot" })
-							return ok and #clients > 0
+							local status = require("sidekick.status")
+							return status.get() ~= nil
 						end,
 						on_click = function()
 							vim.cmd(":CopilotChatToggle")
@@ -162,7 +162,16 @@ return {
 						on_click = function()
 							vim.cmd(":Copilot status")
 						end,
-						color = utils.get_hlgroup("String"),
+						-- color = utils.get_hlgroup("String"),
+						color = function()
+							local status = require("sidekick.status").get()
+							if status then
+								return status.kind == "Error" and "DiagnosticError"
+									or status.busy and "DiagnosticWarn"
+									or "Special"
+							end
+							return utils.get_hlgroup("Error")
+						end,
 					},
 					{
 						"progress",
