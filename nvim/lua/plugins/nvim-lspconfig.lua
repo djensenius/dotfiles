@@ -102,6 +102,7 @@ return {
 
 		vim.env.SRB_SKIP_GEM_RBIS = 1
 		vim.lsp.config("sorbet", {
+			cmd = { "bundle", "exec", "srb", "tc", "--lsp" },
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
