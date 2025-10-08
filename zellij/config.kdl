@@ -84,7 +84,7 @@ keybinds clear-defaults=true {
         bind "Enter" { SwitchToMode "normal"; }
         
         // Send Ctrl+a to terminal (like tmux 'a' binding)
-        bind "a" { Write 1; SwitchToMode "normal"; }
+        bind "a" { Write 1; SwitchToMode "normal"; } // Write 1 sends ASCII character 0x01 (Ctrl+A)
     }
 
     // Scroll mode (vi-style keybindings matching tmux)

@@ -111,6 +111,7 @@ A configurable status bar plugin that provides:
 - Custom colors and separators
 
 **Repository**: https://github.com/dj95/zjstatus
+**Version**: v0.20.2 (pinned for stability)
 
 The plugin is loaded automatically from the GitHub release and doesn't require manual installation.
 
