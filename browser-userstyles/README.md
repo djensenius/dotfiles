@@ -186,11 +186,35 @@ After installation, visit the following websites to verify the font is applied:
 - Nerd Font icons should display correctly if present
 - Font should look consistent across all code views
 
+### Quick GitHub Verification Steps
+
+To specifically test on GitHub (the most common use case):
+
+1. Visit any GitHub repository, e.g., https://github.com/djensenius/dotfiles
+2. Click on any code file (e.g., `README.md` or any `.js`, `.py`, `.go` file)
+3. The code view should render in Monaspace Neon font
+4. **To verify in DevTools**:
+   - Right-click on a line of code
+   - Select "Inspect" or "Inspect Element"
+   - In the Elements/Inspector panel, look at the "Computed" tab
+   - Search for "font-family" - it should list "MonaspaceNeonNF" first
+   - If you see MonaspaceNeonNF but the font doesn't look right, the font isn't installed
+   - If you don't see MonaspaceNeonNF at all, the stylesheet isn't being applied
+
 ### Troubleshooting
 
 If the font is not applied:
 
-1. **Verify Font Installation**
+1. **GitHub Specific Issues**
+   - GitHub uses dynamic React components that load asynchronously
+   - Try hard refreshing the page (Ctrl+Shift+R or Cmd+Shift+R)
+   - Open browser DevTools (F12), go to Elements/Inspector tab
+   - Find a code line element and check its computed styles
+   - Look for "font-family" - it should show MonaspaceNeonNF
+   - If styles show but font doesn't render, the font isn't installed on your system
+   - GitHub's new code view uses custom elements - the stylesheet targets these
+
+2. **Verify Font Installation**
    ```bash
    # macOS/Linux
    fc-list | grep -i monaspace
@@ -199,26 +223,26 @@ If the font is not applied:
    system_profiler SPFontsDataType | grep -i monaspace
    ```
 
-2. **Check Browser Console**
+3. **Check Browser Console**
    - Open Developer Tools (F12)
    - Look for font-related warnings or errors
    - Verify the CSS is loaded and active
 
-3. **Verify Extension is Active**
+4. **Verify Extension is Active**
    - Check that Stylus (or your chosen extension) is enabled
    - Ensure the custom style is checked/enabled
    - Try refreshing the page (Ctrl+F5 / Cmd+Shift+R)
 
-4. **Check for Conflicting Extensions**
+5. **Check for Conflicting Extensions**
    - Disable other extensions that might affect fonts
    - Dark mode extensions sometimes override fonts
    - Ad blockers may interfere with custom styles
 
-5. **Browser Cache**
+6. **Browser Cache**
    - Clear browser cache and reload
    - Force reload with Ctrl+Shift+R (Cmd+Shift+R on macOS)
 
-6. **Site-Specific Override**
+7. **Site-Specific Override**
    - Some sites have Content Security Policy (CSP) that may block custom fonts
    - Check browser console for CSP errors
    - The stylesheet uses local fonts only, so CSP should not be an issue

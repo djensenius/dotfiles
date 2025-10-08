@@ -151,10 +151,13 @@ input[class*="Code"] {
    Target popular code hosting and development platforms
    ========================================================================== */
 
-/* GitHub */
+/* GitHub - Comprehensive selectors for old and new interfaces */
 .blob-code,
 .blob-code-inner,
+.blob-code-content,
 .blob-num,
+.blob-wrapper code,
+.blob-wrapper pre,
 .markdown-body code,
 .markdown-body pre,
 .react-code-text,
@@ -162,8 +165,39 @@ input[class*="Code"] {
 .react-blob-print-hide,
 .react-code-lines,
 .CodeMirror-code,
+.js-file-line,
+.js-blob-code-container,
+.js-blob-code-container code,
+td.blob-code,
+td.blob-code-inner,
 [data-code-text],
-[class*="react-code"] {
+[data-hpc],
+[data-line-number],
+[class*="react-code"],
+[class*="blob-code"],
+.pl-c,
+.pl-s,
+.pl-k,
+.pl-en,
+react-app code,
+react-app pre,
+file-tree code {
+  font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+               'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+               'SF Mono', 'Consolas', 'Monaco', monospace !important;
+  font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                        "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                        "calt" 1, "dlig" 1, "liga" 1 !important;
+  font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+}
+
+/* GitHub - Additional aggressive catch-all for any missed elements */
+[class*="github"] code,
+[class*="github"] pre,
+[id*="github"] code,
+[id*="github"] pre,
+div[role="table"] code,
+div[role="row"] code {
   font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
                'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
                'SF Mono', 'Consolas', 'Monaco', monospace !important;
