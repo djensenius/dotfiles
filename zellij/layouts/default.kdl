@@ -3,7 +3,6 @@
 
 layout {
     default_tab_template {
-        children
         pane size=1 borderless=true {
             plugin location="https://github.com/dj95/zjstatus/releases/download/v0.20.2/zjstatus.wasm" {
                 format_left  "{mode}#[bg=#181825] {tabs}"
@@ -33,13 +32,13 @@ layout {
                 mode_tmux          "#[bg=#fab387,fg=#1e1e2e,bold] TMUX#[bg=#181825] "
 
                 // Rounded tabs with nerd font icons
-                tab_normal              "#[bg=#313244,fg=#cdd6f4]  {index} {name} #[bg=#181825,fg=#313244]"
-                tab_normal_fullscreen   "#[bg=#313244,fg=#cdd6f4]  {index} {name} 󰊓 #[bg=#181825,fg=#313244]"
-                tab_normal_sync         "#[bg=#313244,fg=#cdd6f4]  {index} {name}  #[bg=#181825,fg=#313244]"
+                tab_normal              "#[bg=#181825,fg=#313244]#[bg=#313244,fg=#cdd6f4] {index} {name} #[bg=#181825,fg=#313244]"
+                tab_normal_fullscreen   "#[bg=#181825,fg=#313244]#[bg=#313244,fg=#cdd6f4] {index} {name} 󰊓 #[bg=#181825,fg=#313244]"
+                tab_normal_sync         "#[bg=#181825,fg=#313244]#[bg=#313244,fg=#cdd6f4] {index} {name}  #[bg=#181825,fg=#313244]"
                 
-                tab_active              "#[bg=#585b70,fg=#cdd6f4,bold]  {index} {name} #[bg=#181825,fg=#585b70]"
-                tab_active_fullscreen   "#[bg=#585b70,fg=#cdd6f4,bold]  {index} {name} 󰊓 #[bg=#181825,fg=#585b70]"
-                tab_active_sync         "#[bg=#585b70,fg=#cdd6f4,bold]  {index} {name}  #[bg=#181825,fg=#585b70]"
+                tab_active              "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index} {name} #[bg=#181825,fg=#585b70]"
+                tab_active_fullscreen   "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index} {name} 󰊓 #[bg=#181825,fg=#585b70]"
+                tab_active_sync         "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index} {name}  #[bg=#181825,fg=#585b70]"
 
                 tab_separator           ""
 
@@ -50,5 +49,6 @@ layout {
                 datetime_timezone "local"
             }
         }
+        children
     }
 }
