@@ -100,8 +100,12 @@ Only shows keybinding hints - no status bar:
 - Perfect if you want to see what keys do without extra UI
 - Maximum screen space with helpful context
 
-#### Default-Local Layout
-Same as default but uses local plugin file - for macOS compatibility
+#### Default-Local Layout (Default)
+Same as default but uses local plugin file - **this is now the default layout**:
+- Status bar at top with full features
+- Uses local plugin file (~/.config/zellij/plugins/zjstatus.wasm)
+- Automatically installed by install.sh
+- More reliable than remote plugin loading
 
 #### With-Hints Layout
 Same as default layout - kept for backward compatibility
@@ -110,8 +114,8 @@ Same as default layout - kept for backward compatibility
 
 ### Switching Layouts
 ```bash
-# Use default layout (status bar + hints)
-zellij --layout default
+# Default layout (local plugin) - automatically used
+zellij
 
 # Use compact layout (minimal status + hints)
 zellij --layout compact
@@ -119,8 +123,8 @@ zellij --layout compact
 # Use hints-only layout (ONLY keybinding hints, no status bar)
 zellij --layout hints-only
 
-# Use default-local layout (for macOS - uses local plugin file)
-zellij --layout default-local
+# Use default with remote URL (not recommended)
+zellij --layout default
 ```
 
 ### Common Operations
@@ -163,45 +167,32 @@ A configurable status bar plugin that provides:
 **Repository**: https://github.com/dj95/zjstatus
 **Version**: v0.21.1 (pinned for stability)
 
-The plugin is loaded automatically from the GitHub release and doesn't require manual installation.
+**Installation**: The plugin is automatically downloaded by `install.sh` to `~/.config/zellij/plugins/zjstatus.wasm`. The default configuration uses this local file for maximum reliability.
 
-### Plugin Download Troubleshooting
+### Plugin Troubleshooting
 
-#### macOS Plugin Loading Issues
+If you need to manually reinstall the zjstatus plugin:
 
-If the plugin doesn't load on macOS (common issue), use the local file approach:
-
-**Quick Fix (Recommended for macOS):**
 ```bash
-# 1. Download the plugin manually
+# Download the plugin
 mkdir -p ~/.config/zellij/plugins
 curl -L https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm \
   -o ~/.config/zellij/plugins/zjstatus.wasm
-
-# 2. Use the local layout
-zellij --layout default-local
-
-# 3. Or set as default in config.kdl
-# Change: default_layout "default"
-# To:     default_layout "default-local"
 ```
 
-The `default-local.kdl` layout uses `file:~/.config/zellij/plugins/zjstatus.wasm` instead of downloading from GitHub, which is more reliable on macOS.
+The default-local layout (which is the default) uses `file:~/.config/zellij/plugins/zjstatus.wasm`, so it works reliably across all platforms including macOS.
 
-#### Other Troubleshooting Steps
+**Verify installation:**
+```bash
+# Check if the plugin file exists and is not empty
+ls -lh ~/.config/zellij/plugins/zjstatus.wasm
 
-1. **Check internet connection**: Zellij needs to download the plugin on first use
-2. **Clear cache**: 
-   - Linux: `rm -rf ~/.cache/zellij/`
-   - macOS: `rm -rf ~/Library/Caches/org.Zellij-Contributors.Zellij/`
-3. **Check permissions**: Ensure `~/.config/zellij/` is writable
-4. **Verify download**: Check if the file exists and is not empty:
-   ```bash
-   ls -lh ~/.config/zellij/plugins/zjstatus.wasm
-   ```
-5. **Check Zellij logs**: Look for errors in:
-   - Linux: `~/.cache/zellij/`
-   - macOS: `~/Library/Caches/org.Zellij-Contributors.Zellij/`
+# Should show a file size around 2-3 MB
+```
+
+**Check Zellij logs for errors:**
+- Linux: `~/.cache/zellij/`
+- macOS: `~/Library/Caches/org.Zellij-Contributors.Zellij/`
 
 ## Differences from Tmux
 
