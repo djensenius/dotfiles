@@ -146,9 +146,25 @@ A configurable status bar plugin that provides:
 - Custom colors and separators
 
 **Repository**: https://github.com/dj95/zjstatus
-**Version**: v0.20.2 (pinned for stability)
+**Version**: v0.21.1 (pinned for stability)
 
 The plugin is loaded automatically from the GitHub release and doesn't require manual installation.
+
+### Plugin Download Troubleshooting
+
+If plugins don't download automatically (especially on macOS):
+
+1. **Check internet connection**: Zellij needs to download the plugin on first use
+2. **Manual download**: Download zjstatus manually:
+   ```bash
+   mkdir -p ~/.config/zellij/plugins
+   curl -L https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm \
+     -o ~/.config/zellij/plugins/zjstatus.wasm
+   ```
+   Then update layouts to use: `plugin location="file:~/.config/zellij/plugins/zjstatus.wasm"`
+
+3. **Check permissions**: Ensure `~/.config/zellij/` is writable
+4. **Clear cache**: Try removing `~/.cache/zellij/` and restarting Zellij
 
 ## Differences from Tmux
 
