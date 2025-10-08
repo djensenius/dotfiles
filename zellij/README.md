@@ -152,19 +152,41 @@ The plugin is loaded automatically from the GitHub release and doesn't require m
 
 ### Plugin Download Troubleshooting
 
-If plugins don't download automatically (especially on macOS):
+#### macOS Plugin Loading Issues
+
+If the plugin doesn't load on macOS (common issue), use the local file approach:
+
+**Quick Fix (Recommended for macOS):**
+```bash
+# 1. Download the plugin manually
+mkdir -p ~/.config/zellij/plugins
+curl -L https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm \
+  -o ~/.config/zellij/plugins/zjstatus.wasm
+
+# 2. Use the local layout
+zellij --layout default-local
+
+# 3. Or set as default in config.kdl
+# Change: default_layout "default"
+# To:     default_layout "default-local"
+```
+
+The `default-local.kdl` layout uses `file:~/.config/zellij/plugins/zjstatus.wasm` instead of downloading from GitHub, which is more reliable on macOS.
+
+#### Other Troubleshooting Steps
 
 1. **Check internet connection**: Zellij needs to download the plugin on first use
-2. **Manual download**: Download zjstatus manually:
-   ```bash
-   mkdir -p ~/.config/zellij/plugins
-   curl -L https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm \
-     -o ~/.config/zellij/plugins/zjstatus.wasm
-   ```
-   Then update layouts to use: `plugin location="file:~/.config/zellij/plugins/zjstatus.wasm"`
-
+2. **Clear cache**: 
+   - Linux: `rm -rf ~/.cache/zellij/`
+   - macOS: `rm -rf ~/Library/Caches/org.Zellij-Contributors.Zellij/`
 3. **Check permissions**: Ensure `~/.config/zellij/` is writable
-4. **Clear cache**: Try removing `~/.cache/zellij/` and restarting Zellij
+4. **Verify download**: Check if the file exists and is not empty:
+   ```bash
+   ls -lh ~/.config/zellij/plugins/zjstatus.wasm
+   ```
+5. **Check Zellij logs**: Look for errors in:
+   - Linux: `~/.cache/zellij/`
+   - macOS: `~/Library/Caches/org.Zellij-Contributors.Zellij/`
 
 ## Differences from Tmux
 
