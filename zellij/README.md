@@ -38,6 +38,7 @@ This configuration uses **Zellij's default keybindings** with an added **tmux mo
 
 #### Tmux Mode (Ctrl+a prefix)
 - **Prefix**: `Ctrl+a` to enter tmux mode (matching tmux configuration)
+- **Toggle UI**: `b` to toggle pane frames/status bar (matching tmux Ctrl+b)
 - **Navigation**: `h/j/k/l` for vim-style pane movement
 - **Resize**: `Ctrl+h/j/k/l` for pane resizing
 - **Split**: `|` or `\` for vertical, `-` or `_` for horizontal
@@ -51,6 +52,7 @@ This configuration uses **Zellij's default keybindings** with an added **tmux mo
 
 #### Default Zellij Keybindings
 All standard Zellij keybindings remain available:
+- **F1**: Toggle pane frames (matching tmux F1 status toggle)
 - **Ctrl+p**: Pane mode
 - **Ctrl+t**: Tab mode
 - **Ctrl+n**: Resize mode

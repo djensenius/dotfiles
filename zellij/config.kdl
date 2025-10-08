@@ -20,10 +20,15 @@ keybinds {
     // Add Ctrl+a binding to switch to tmux mode in normal mode
     normal {
         bind "Ctrl a" { SwitchToMode "tmux"; }
+        // Toggle pane frames (matching tmux F1 status toggle)
+        bind "F1" { TogglePaneFrames; }
     }
 
     // Tmux mode - activated by Ctrl+a prefix (matching tmux configuration)
     tmux {
+        // Toggle pane frames (matching tmux F1 and Ctrl+b status toggle bindings)
+        bind "b" { TogglePaneFrames; SwitchToMode "Normal"; }
+        
         // Navigation between panes (vim-style, matching tmux-vim-navigator)
         bind "h" { MoveFocus "Left"; SwitchToMode "Normal"; }
         bind "j" { MoveFocus "Down"; SwitchToMode "Normal"; }
