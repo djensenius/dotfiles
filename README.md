@@ -86,6 +86,11 @@ Bat is a cat clone with syntax highlighting and Git integration.
 Bottom is a cross-platform graphical process/system monitor.
 - **Directory**: `bottom/`
 
+### [Browser Userstyles](browser-userstyles/)
+Custom stylesheets for Safari, Firefox, Edge, and Chrome that override default code views with Monaspace Nerd Font. Features aggressive CSS rules with !important flags to ensure resilience against late-loaded styles, full ligature support, and comprehensive coverage of popular development websites.
+- **Directory**: `browser-userstyles/`
+- **See**: [browser-userstyles/README.md](browser-userstyles/README.md) for installation instructions
+
 ### [delta](https://github.com/dandavison/delta)
 Delta is a syntax-highlighting pager for git, diff, and grep output.
 - **Configuration**: Integrated into `gitconfig`

@@ -1,0 +1,415 @@
+/* ==UserStyle==
+@name           Monaspace Nerd Font Code View Override
+@namespace      github.com/djensenius/dotfiles
+@version        1.0.0
+@description    Aggressive stylesheet to override code views with Monaspace Nerd Font
+@author         David Jensenius
+@homepageURL    https://github.com/djensenius/dotfiles
+@supportURL     https://github.com/djensenius/dotfiles/issues
+@license        MIT
+@preprocessor   default
+==/UserStyle== */
+
+@-moz-document regexp(".*") {
+  /* ==========================================================================
+     Monaspace Nerd Font Code View Override
+     
+     This stylesheet aggressively overrides default monospace fonts across
+     all websites with Monaspace Nerd Font. It uses !important flags throughout
+     to ensure late-loaded CSS doesn't override these settings.
+     
+     Font families included:
+     - MonaspaceNeonNF (main code font - handwriting style)
+     - MonaspaceArgonNF (alternate - geometric sans)
+     - MonaspaceXenonNF (alternate - mechanical sans)
+     - MonaspaceRadonNF (alternate - neo-grotesque)
+     - MonaspaceKryptonNF (alternate - humanist sans)
+     
+     OpenType features enabled:
+     - ss01-ss08: Stylistic sets 1-8
+     - calt: Contextual alternates
+     - dlig: Discretionary ligatures
+     - liga: Standard ligatures
+     ========================================================================== */
+
+  /* Define font-face declarations for Monaspace Nerd Font family */
+  @font-face {
+    font-family: 'MonaspaceNeonNF';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Monaspace Neon Nerd Font'),
+         local('MonaspaceNeonNF-Regular'),
+         local('Monaspace Neon NF Regular');
+  }
+
+  @font-face {
+    font-family: 'MonaspaceNeonNF';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Monaspace Neon Nerd Font Italic'),
+         local('MonaspaceNeonNF-Italic'),
+         local('Monaspace Neon NF Italic');
+  }
+
+  @font-face {
+    font-family: 'MonaspaceNeonNF';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Monaspace Neon Nerd Font Bold'),
+         local('MonaspaceNeonNF-Bold'),
+         local('Monaspace Neon NF Bold');
+  }
+
+  @font-face {
+    font-family: 'MonaspaceNeonNF';
+    font-style: italic;
+    font-weight: 700;
+    src: local('Monaspace Neon Nerd Font Bold Italic'),
+         local('MonaspaceNeonNF-BoldItalic'),
+         local('Monaspace Neon NF Bold Italic');
+  }
+
+  /* ==========================================================================
+     Universal Code Font Override
+     Target all common selectors for code/monospace content
+     ========================================================================== */
+
+  /* Basic code elements */
+  code,
+  pre,
+  kbd,
+  samp,
+  tt,
+  var {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+  }
+
+  /* Ensure pre elements get proper line height */
+  pre {
+    line-height: 1.5 !important;
+  }
+
+  /* Code blocks inside pre elements */
+  pre code,
+  pre > code {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Common class names for code blocks */
+  .code,
+  .source,
+  .hljs,
+  .highlight,
+  .CodeMirror,
+  .cm-editor,
+  .monaco-editor,
+  .ace_editor,
+  [class*="code"],
+  [class*="Code"],
+  [class*="source"],
+  [class*="Source"],
+  [class*="syntax"],
+  [class*="Syntax"] {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+  }
+
+  /* Text areas and inputs with monospace fonts */
+  textarea[class*="code"],
+  textarea[class*="Code"],
+  textarea[style*="monospace"],
+  input[style*="monospace"],
+  input[class*="code"],
+  input[class*="Code"] {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* ==========================================================================
+     Site-Specific Overrides
+     Target popular code hosting and development platforms
+     ========================================================================== */
+
+  /* GitHub */
+  .blob-code,
+  .blob-code-inner,
+  .blob-num,
+  .markdown-body code,
+  .markdown-body pre,
+  .react-code-text,
+  .react-line-number,
+  .react-blob-print-hide,
+  .react-code-lines,
+  .CodeMirror-code,
+  [data-code-text],
+  [class*="react-code"] {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+  }
+
+  /* GitLab */
+  .code,
+  .line-numbers,
+  .diff-line-num,
+  .line_content,
+  .blob-content {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Bitbucket */
+  .refract-content-container,
+  .filename,
+  .view-lines,
+  [class*="fileContent"] {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Stack Overflow & Stack Exchange */
+  .s-prose code,
+  .s-prose pre,
+  .snippet-code,
+  .post-text code,
+  .post-text pre {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Reddit */
+  .md code,
+  .md pre,
+  .RichTextJSON-root code {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* VS Code Web / github.dev / vscode.dev */
+  .monaco-editor,
+  .monaco-editor .view-line,
+  .monaco-editor .view-lines,
+  .monaco-editor-background,
+  .monaco-workbench {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+  }
+
+  /* Codepen */
+  .CodeMirror,
+  .CodeMirror-line {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* JSFiddle */
+  .CodeMirror-code,
+  #panel_editor {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Jupyter Notebook / JupyterLab */
+  .CodeMirror,
+  .jp-CodeCell .jp-InputArea-editor,
+  .jp-CodeConsole-input,
+  .jp-RenderedText pre {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Notion */
+  [style*="font-family"][style*="mono"],
+  .notion-code-block {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Medium & Dev.to */
+  .gist-data,
+  .gist-file,
+  [class*="codeBlock"],
+  [data-lang],
+  .highlight__panel {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* WordPress */
+  .wp-block-code,
+  .wp-block-preformatted {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Slack */
+  .c-message__code_block,
+  .c-message_attachment__row--pre {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* Discord */
+  .hljs,
+  code.inline {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+  }
+
+  /* ==========================================================================
+     Editor Components - Extra Aggressive Rules
+     Apply to any dynamically loaded editor components
+     ========================================================================== */
+
+  /* Catch any element with inline monospace styling */
+  [style*="font-family: monospace"],
+  [style*="font-family:monospace"],
+  [style*='font-family: "monospace"'],
+  [style*="font-family: 'monospace'"],
+  [style*="font-family: Consolas"],
+  [style*="font-family: Monaco"],
+  [style*="font-family: Courier"],
+  [style*="font-family:Consolas"],
+  [style*="font-family:Monaco"],
+  [style*="font-family:Courier"] {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+  }
+
+  /* Generic editor containers */
+  [class*="editor"],
+  [class*="Editor"],
+  [class*="terminal"],
+  [class*="Terminal"],
+  [class*="console"],
+  [class*="Console"],
+  [id*="editor"],
+  [id*="Editor"],
+  [id*="terminal"],
+  [id*="Terminal"] {
+    font-family: 'MonaspaceNeonNF', 'Monaspace Neon Nerd Font', 'Monaspace Neon', 
+                 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 
+                 'SF Mono', 'Consolas', 'Monaco', monospace !important;
+    font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, 
+                          "ss05" 1, "ss06" 1, "ss07" 1, "ss08" 1,
+                          "calt" 1, "dlig" 1, "liga" 1 !important;
+    font-variant-ligatures: common-ligatures discretionary-ligatures !important;
+  }
+
+  /* ==========================================================================
+     Recursive Deep Selectors
+     Ensure nested elements also get the font
+     ========================================================================== */
+
+  code *,
+  pre *,
+  .CodeMirror *,
+  .monaco-editor *,
+  .ace_editor *,
+  [class*="code"] * {
+    font-family: inherit !important;
+    font-feature-settings: inherit !important;
+    font-variant-ligatures: inherit !important;
+  }
+
+  /* ==========================================================================
+     Additional Line Height & Spacing Adjustments
+     Ensure code is readable with Monaspace fonts
+     ========================================================================== */
+
+  code,
+  pre {
+    letter-spacing: 0 !important;
+  }
+
+  /* Line height adjustments for common editors */
+  .monaco-editor .view-line,
+  .CodeMirror-line,
+  .ace_line {
+    line-height: 1.5 !important;
+  }
+}
