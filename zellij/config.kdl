@@ -1,0 +1,204 @@
+// Zellij Configuration
+// Matching tmux setup with Catppuccin Mocha theme
+
+// ==================== Theme =======================
+theme "catppuccin-mocha"
+
+// ==================== UI Settings =================
+// Simplified UI matching tmux's clean aesthetic
+simplified_ui true
+
+// Tabs at the top like tmux status bar
+pane_frames false
+
+// ==================== Default Mode ================
+default_mode "normal"
+
+// ==================== Keybindings =================
+keybinds clear-defaults=true {
+    // Normal mode - main mode for navigation and actions
+    normal {
+        // Prefix key: Ctrl+a (matching tmux configuration)
+        bind "Ctrl a" { SwitchToMode "tmux"; }
+    }
+
+    // Tmux mode - activated by prefix key
+    tmux {
+        // Navigation between panes (vim-style, matching tmux-vim-navigator)
+        bind "h" { MoveFocus "Left"; SwitchToMode "normal"; }
+        bind "j" { MoveFocus "Down"; SwitchToMode "normal"; }
+        bind "k" { MoveFocus "Up"; SwitchToMode "normal"; }
+        bind "l" { MoveFocus "Right"; SwitchToMode "normal"; }
+        
+        // Resize panes (matching tmux pain-control)
+        bind "Ctrl h" { Resize "Increase Left"; }
+        bind "Ctrl j" { Resize "Increase Down"; }
+        bind "Ctrl k" { Resize "Increase Up"; }
+        bind "Ctrl l" { Resize "Increase Right"; }
+        
+        // Split panes (matching tmux pain-control defaults)
+        bind "|" { NewPane "Right"; SwitchToMode "normal"; }
+        bind "\\" { NewPane "Right"; SwitchToMode "normal"; }
+        bind "-" { NewPane "Down"; SwitchToMode "normal"; }
+        bind "_" { NewPane "Down"; SwitchToMode "normal"; }
+        
+        // Tab management
+        bind "c" { NewTab; SwitchToMode "normal"; }
+        bind "," { SwitchToMode "RenameTab"; TabNameInput 0; }
+        bind "p" { GoToPreviousTab; SwitchToMode "normal"; }
+        bind "n" { GoToNextTab; SwitchToMode "normal"; }
+        bind "1" { GoToTab 1; SwitchToMode "normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "normal"; }
+        
+        // Close pane
+        bind "q" { CloseFocus; SwitchToMode "normal"; }
+        bind "x" { CloseFocus; SwitchToMode "normal"; }
+        
+        // Detach
+        bind "d" { Detach; }
+        
+        // Toggle floating pane
+        bind "w" { ToggleFloatingPanes; SwitchToMode "normal"; }
+        
+        // Fullscreen
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "normal"; }
+        
+        // Search
+        bind "/" { SwitchToMode "EnterSearch"; SearchInput 0; }
+        
+        // Session management
+        bind "o" { SwitchToMode "session"; }
+        
+        // Scroll mode
+        bind "[" { SwitchToMode "scroll"; }
+        
+        // Return to normal
+        bind "Escape" { SwitchToMode "normal"; }
+        bind "Enter" { SwitchToMode "normal"; }
+        
+        // Send Ctrl+a to terminal (like tmux 'a' binding)
+        bind "a" { Write 1; SwitchToMode "normal"; }
+    }
+
+    // Scroll mode (vi-style keybindings matching tmux)
+    scroll {
+        bind "Ctrl c" { ScrollToBottom; SwitchToMode "normal"; }
+        bind "q" { SwitchToMode "normal"; }
+        bind "Escape" { SwitchToMode "normal"; }
+        
+        // Vi-style navigation
+        bind "j" "Down" { ScrollDown; }
+        bind "k" "Up" { ScrollUp; }
+        bind "Ctrl f" "PageDown" { PageScrollDown; }
+        bind "Ctrl b" "PageUp" { PageScrollUp; }
+        bind "d" { HalfPageScrollDown; }
+        bind "u" { HalfPageScrollUp; }
+        bind "g" { ScrollToTop; }
+        bind "G" { ScrollToBottom; }
+        
+        // Search in scrollback
+        bind "/" { SwitchToMode "EnterSearch"; SearchInput 0; }
+        bind "n" { Search "down"; }
+        bind "N" { Search "up"; }
+    }
+
+    // Search mode
+    entersearch {
+        bind "Ctrl c" "Escape" { SwitchToMode "scroll"; }
+        bind "Enter" { SwitchToMode "Search"; }
+    }
+
+    search {
+        bind "Ctrl c" "Escape" { ScrollToBottom; SwitchToMode "normal"; }
+        bind "j" "Down" { ScrollDown; }
+        bind "k" "Up" { ScrollUp; }
+        bind "Ctrl f" "PageDown" { PageScrollDown; }
+        bind "Ctrl b" "PageUp" { PageScrollUp; }
+        bind "d" { HalfPageScrollDown; }
+        bind "u" { HalfPageScrollUp; }
+        bind "n" { Search "down"; }
+        bind "N" { Search "up"; }
+        bind "c" { SearchToggleOption "CaseSensitivity"; }
+        bind "w" { SearchToggleOption "Wrap"; }
+        bind "o" { SearchToggleOption "WholeWord"; }
+    }
+
+    // Session mode
+    session {
+        bind "Escape" { SwitchToMode "normal"; }
+        bind "d" { Detach; }
+        bind "w" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+                move_to_focused_tab true
+            }
+            SwitchToMode "normal"
+        }
+    }
+
+    // Rename tab mode
+    renametab {
+        bind "Ctrl c" { SwitchToMode "normal"; }
+        bind "Escape" { UndoRenameTab; SwitchToMode "tmux"; }
+        bind "Enter" { SwitchToMode "normal"; }
+    }
+
+    // Resize mode
+    resize {
+        bind "Escape" "Enter" "Ctrl c" { SwitchToMode "normal"; }
+        bind "h" "Left" { Resize "Increase Left"; }
+        bind "j" "Down" { Resize "Increase Down"; }
+        bind "k" "Up" { Resize "Increase Up"; }
+        bind "l" "Right" { Resize "Increase Right"; }
+    }
+
+    // Shared bindings across all modes
+    shared_except "locked" {
+        bind "Ctrl g" { SwitchToMode "locked"; }
+        bind "Ctrl q" { Quit; }
+        bind "Alt h" { MoveFocus "Left"; }
+        bind "Alt j" { MoveFocus "Down"; }
+        bind "Alt k" { MoveFocus "Up"; }
+        bind "Alt l" { MoveFocus "Right"; }
+    }
+
+    // Locked mode (pass all keys to terminal)
+    locked {
+        bind "Ctrl g" { SwitchToMode "normal"; }
+    }
+}
+
+// ==================== Mouse ======================
+mouse_mode true
+copy_on_select true
+
+// ==================== Scrollback =================
+scroll_buffer_size 10000
+
+// ==================== Session ====================
+// Auto-attach to existing session or create new one
+// session_name "main"
+
+// ==================== Copy Command ===============
+// Use system clipboard
+copy_command "wl-copy"
+
+// On macOS, use pbcopy
+// copy_command "pbcopy"
+
+// ==================== Default Shell ==============
+// Use fish shell if running on Linux (matching tmux config)
+// default_shell "fish"
+
+// ==================== Layout =====================
+default_layout "default"
+
+// ==================== Plugins ====================
+// Plugins are loaded via layouts

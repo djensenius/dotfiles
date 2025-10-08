@@ -1,0 +1,19 @@
+// Catppuccin Mocha theme for Zellij
+// https://github.com/catppuccin/zellij
+
+themes {
+    catppuccin-mocha {
+        // Catppuccin Mocha color palette
+        bg "#1e1e2e"      // Base
+        fg "#cdd6f4"      // Text
+        red "#f38ba8"     // Red
+        green "#a6e3a1"   // Green
+        blue "#89b4fa"    // Blue
+        yellow "#f9e2af"  // Yellow
+        magenta "#f5c2e7" // Pink
+        orange "#fab387"  // Peach
+        cyan "#89dceb"    // Sky
+        black "#181825"   // Mantle
+        white "#cdd6f4"   // Text
+    }
+}

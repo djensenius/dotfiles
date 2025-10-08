@@ -1,0 +1,47 @@
+// Compact layout with minimal status bar
+// Alternative to default layout for more screen space
+
+layout {
+    default_tab_template {
+        children
+        pane size=1 borderless=true {
+            plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+                format_left  "{mode} {tabs}"
+                format_right "{session}"
+                format_space ""
+                format_hide_on_overlength "true"
+                format_precedence "lrc"
+
+                border_enabled  "false"
+
+                mode_normal        "#[bg=#89b4fa,fg=#1e1e2e,bold] "
+                mode_locked        "#[bg=#f38ba8,fg=#1e1e2e,bold] "
+                mode_resize        "#[bg=#fab387,fg=#1e1e2e,bold] "
+                mode_pane          "#[bg=#a6e3a1,fg=#1e1e2e,bold] "
+                mode_tab           "#[bg=#f9e2af,fg=#1e1e2e,bold] "
+                mode_scroll        "#[bg=#f5c2e7,fg=#1e1e2e,bold] "
+                mode_enter_search  "#[bg=#89dceb,fg=#1e1e2e,bold] "
+                mode_search        "#[bg=#89dceb,fg=#1e1e2e,bold] "
+                mode_rename_tab    "#[bg=#f9e2af,fg=#1e1e2e,bold] "
+                mode_rename_pane   "#[bg=#a6e3a1,fg=#1e1e2e,bold] "
+                mode_session       "#[bg=#fab387,fg=#1e1e2e,bold] "
+                mode_move          "#[bg=#f5c2e7,fg=#1e1e2e,bold] "
+                mode_prompt        "#[bg=#89b4fa,fg=#1e1e2e,bold] "
+                mode_tmux          "#[bg=#fab387,fg=#1e1e2e,bold] "
+
+                // Compact rounded tabs
+                tab_normal              "#[bg=#313244,fg=#9399b2] {index}:{name} #[bg=#181825,fg=#313244]"
+                tab_normal_fullscreen   "#[bg=#313244,fg=#9399b2] {index}:{name}  #[bg=#181825,fg=#313244]"
+                tab_normal_sync         "#[bg=#313244,fg=#9399b2] {index}:{name}  #[bg=#181825,fg=#313244]"
+                
+                tab_active              "#[bg=#585b70,fg=#cdd6f4,bold] {index}:{name} #[bg=#181825,fg=#585b70]"
+                tab_active_fullscreen   "#[bg=#585b70,fg=#cdd6f4,bold] {index}:{name}  #[bg=#181825,fg=#585b70]"
+                tab_active_sync         "#[bg=#585b70,fg=#cdd6f4,bold] {index}:{name}  #[bg=#181825,fg=#585b70]"
+
+                tab_separator           ""
+
+                session        " {name} "
+            }
+        }
+    }
+}
