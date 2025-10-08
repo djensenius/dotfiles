@@ -5,10 +5,7 @@
 theme "catppuccin-mocha"
 
 // ==================== UI Settings =================
-// Simplified UI matching tmux's clean aesthetic
-simplified_ui true
-
-// Tabs at the top like tmux status bar
+// Pane frames disabled for clean aesthetic
 pane_frames false
 
 // ==================== Default Mode ================

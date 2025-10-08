@@ -1,5 +1,5 @@
-// Default layout with status bar at top
-// Using zjstatus plugin for customizable status bar matching tmux aesthetic
+// Layout with keybinding hints bar (compact-bar)
+// Shows the navigation hints at the bottom
 
 layout {
     default_tab_template {

@@ -6,6 +6,7 @@ Modern terminal multiplexer configuration matching the aesthetic and functionali
 
 - **🎨 Catppuccin Mocha Theme**: Consistent theming with rounded tabs
 - **📍 Status Bar**: Top-positioned status bar using zjstatus plugin
+- **💡 Keybinding Hints Bar**: Bottom compact-bar showing available keybindings for current mode
 - **⌨️ Tmux-style Keybindings**: Familiar Ctrl+a prefix key
 - **🔀 Vim Navigation**: Seamless pane navigation with vim-style keys
 - **🎯 Nerd Font Icons**: Rich visual indicators for tabs and status
@@ -38,7 +39,7 @@ This configuration uses **Zellij's default keybindings** with an added **tmux mo
 
 #### Tmux Mode (Ctrl+a prefix)
 - **Prefix**: `Ctrl+a` to enter tmux mode (matching tmux configuration)
-- **Toggle UI**: `b` to toggle pane frames/status bar (matching tmux Ctrl+b)
+- **Toggle UI**: `b` to toggle pane frames and keybinding hints bar (matching tmux Ctrl+b)
 - **Navigation**: `h/j/k/l` for vim-style pane movement
 - **Resize**: `Ctrl+h/j/k/l` for pane resizing
 - **Split**: `|` or `\` for vertical, `-` or `_` for horizontal
@@ -52,7 +53,7 @@ This configuration uses **Zellij's default keybindings** with an added **tmux mo
 
 #### Default Zellij Keybindings
 All standard Zellij keybindings remain available:
-- **F1**: Toggle pane frames (matching tmux F1 status toggle)
+- **F1**: Toggle pane frames and keybinding hints bar (matching tmux F1 status toggle)
 - **Ctrl+p**: Pane mode
 - **Ctrl+t**: Tab mode
 - **Ctrl+n**: Resize mode
@@ -74,19 +75,27 @@ The default layout uses the zjstatus plugin to provide a rich status bar at the 
   - Active tab: Highlighted with Surface2 color
   - Icons for fullscreen (󰊓) and sync () states
 
+### Keybinding Hints Bar (compact-bar)
+A keybinding hints bar is displayed at the bottom showing available commands for the current mode:
+
+- **Toggle visibility**: Press `F1` or `Ctrl+a b` to hide/show the hints bar
+- **What it shows**: Available keybindings for the current mode (Normal, Pane, Tab, etc.)
+- **Clean view**: Hide it when you don't need hints for a distraction-free experience
+
 ### Layouts
 
 #### Default Layout
-Full-featured status bar with:
-- Mode indicator with color coding
-- Complete tab list with rounded separators
-- Session name and datetime
+Full-featured with:
+- Status bar at top: Mode indicator, tabs, session name and datetime
+- Keybinding hints bar at bottom: Shows available commands
 
 #### Compact Layout
-Minimal status bar for more terminal space:
-- Icon-only mode indicator
-- Compact tab format (index:name)
-- Session name only
+Minimal for more terminal space:
+- Compact status bar: Icon-only mode indicator, compact tabs, session name
+- Keybinding hints bar at bottom: Shows available commands
+
+#### With-Hints Layout
+Same as default layout - kept for backward compatibility
 
 ## Usage
 
