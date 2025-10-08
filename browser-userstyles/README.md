@@ -134,13 +134,21 @@ Safari requires enabling the Developer menu and using the Web Inspector to injec
    - Enable it in Safari Preferences → Extensions
 
 2. **Add the Custom Style**
-   - Open Userscripts preferences
-   - Create a new script
-   - Set type to "CSS"
-   - Copy the contents of `monaspace-code-view.css`
-   - Paste into the editor
-   - Save with a descriptive name
-   - Ensure it's set to run on "All websites"
+   - Open Userscripts from the Safari toolbar or menu bar
+   - Click the "+" button to create a new userscript
+   - In the editor:
+     - **Name**: "Monaspace Code Font"
+     - **Type**: Select "CSS" from the dropdown
+     - **Run At**: "Document Start"
+     - **URL Pattern**: Leave as "All Websites" or set to `*://*/*`
+   - Copy the **entire contents** of `monaspace-code-view.css` (including the UserStyle metadata header)
+   - Paste into the code editor area
+   - Click "Save" or press Cmd+S
+
+3. **Verify the Style is Active**
+   - The userscript should appear in your Userscripts list
+   - Ensure the checkbox next to it is enabled
+   - Visit GitHub or any code-hosting site to test
 
 #### Option 2: Cascadea (Paid App)
 
