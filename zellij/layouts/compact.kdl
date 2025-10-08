@@ -7,11 +7,9 @@ layout {
             plugin location="https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm" {
                 format_left  "{mode} {tabs}"
                 format_right "{session}"
-                format_space ""
-                format_hide_on_overlength "true"
-                format_precedence "lrc"
+                format_space "#[bg=#181825]"
 
-                border_enabled  "false"
+                hide_frame_for_single_pane "true"
 
                 mode_normal        "#[bg=#89b4fa,fg=#1e1e2e,bold] "
                 mode_locked        "#[bg=#f38ba8,fg=#1e1e2e,bold] "
@@ -29,17 +27,12 @@ layout {
                 mode_tmux          "#[bg=#fab387,fg=#1e1e2e,bold] "
 
                 // Compact rounded tabs
-                tab_normal              "#[bg=#181825,fg=#313244]#[bg=#313244,fg=#9399b2] {index}:{name} #[bg=#181825,fg=#313244]"
-                tab_normal_fullscreen   "#[bg=#181825,fg=#313244]#[bg=#313244,fg=#9399b2] {index}:{name}  #[bg=#181825,fg=#313244]"
-                tab_normal_sync         "#[bg=#181825,fg=#313244]#[bg=#313244,fg=#9399b2] {index}:{name}  #[bg=#181825,fg=#313244]"
-                
-                tab_active              "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index}:{name} #[bg=#181825,fg=#585b70]"
-                tab_active_fullscreen   "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index}:{name}  #[bg=#181825,fg=#585b70]"
-                tab_active_sync         "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index}:{name}  #[bg=#181825,fg=#585b70]"
+                tab_normal              "#[fg=#181825,bg=#313244]#[fg=#9399b2,bg=#313244] {index}:{name}{floating_indicator}#[fg=#313244,bg=#181825]"
+                tab_active              "#[fg=#181825,bg=#585b70]#[fg=#cdd6f4,bg=#585b70,bold] {index}:{name}{floating_indicator}#[fg=#585b70,bg=#181825]"
 
-                tab_separator           ""
+                tab_floating_indicator   "󰉈 "
 
-                session        " {name} "
+                session " {name} "
             }
         }
         children
