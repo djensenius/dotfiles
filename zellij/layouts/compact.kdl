@@ -27,8 +27,8 @@ layout {
                 mode_tmux          "#[bg=#fab387,fg=#1e1e2e,bold] "
 
                 // Compact rounded tabs
-                tab_normal              "#[fg=#181825,bg=#313244]#[fg=#9399b2,bg=#313244] {index}:{name}{floating_indicator}#[fg=#313244,bg=#181825]"
-                tab_active              "#[fg=#181825,bg=#585b70]#[fg=#cdd6f4,bg=#585b70,bold] {index}:{name}{floating_indicator}#[fg=#585b70,bg=#181825]"
+                tab_normal              "#[fg=#313244,bg=#181825]#[fg=#9399b2,bg=#313244] {index}:{name}{floating_indicator}#[fg=#313244,bg=#181825]"
+                tab_active              "#[fg=#585b70,bg=#181825]#[fg=#cdd6f4,bg=#585b70,bold] {index}:{name}{floating_indicator}#[fg=#585b70,bg=#181825]"
 
                 tab_floating_indicator   "󰉈 "
 

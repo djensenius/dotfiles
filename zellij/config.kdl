@@ -114,6 +114,8 @@ copy_command "wl-copy"
 
 // ==================== Layout =====================
 default_layout "default"
+// For minimal UI with only keybinding hints:
+// default_layout "hints-only"
 // On macOS, if plugin doesn't load, use:
 // default_layout "default-local"
 

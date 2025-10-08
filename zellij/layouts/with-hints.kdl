@@ -28,8 +28,8 @@ layout {
                 mode_tmux          "#[bg=#fab387,fg=#1e1e2e,bold] TMUX "
 
                 // Rounded tabs with nerd font icons
-                tab_normal              "#[fg=#181825,bg=#313244]#[fg=#cdd6f4,bg=#313244] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator}#[fg=#313244,bg=#181825]"
-                tab_active              "#[fg=#181825,bg=#585b70]#[fg=#cdd6f4,bg=#585b70,bold] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator}#[fg=#585b70,bg=#181825]"
+                tab_normal              "#[fg=#313244,bg=#181825]#[fg=#cdd6f4,bg=#313244] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator}#[fg=#313244,bg=#181825]"
+                tab_active              "#[fg=#585b70,bg=#181825]#[fg=#cdd6f4,bg=#585b70,bold] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator}#[fg=#585b70,bg=#181825]"
 
                 tab_fullscreen_indicator "󰊓 "
                 tab_sync_indicator       " "

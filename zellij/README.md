@@ -94,6 +94,15 @@ Minimal for more terminal space:
 - Compact status bar: Icon-only mode indicator, compact tabs, session name
 - Keybinding hints bar at bottom: Shows available commands
 
+#### Hints-Only Layout (Recommended for minimal UI)
+Only shows keybinding hints - no status bar:
+- Just the keybinding hints bar at bottom
+- Perfect if you want to see what keys do without extra UI
+- Maximum screen space with helpful context
+
+#### Default-Local Layout
+Same as default but uses local plugin file - for macOS compatibility
+
 #### With-Hints Layout
 Same as default layout - kept for backward compatibility
 
@@ -101,11 +110,17 @@ Same as default layout - kept for backward compatibility
 
 ### Switching Layouts
 ```bash
-# Use default layout
+# Use default layout (status bar + hints)
 zellij --layout default
 
-# Use compact layout
+# Use compact layout (minimal status + hints)
 zellij --layout compact
+
+# Use hints-only layout (ONLY keybinding hints, no status bar)
+zellij --layout hints-only
+
+# Use default-local layout (for macOS - uses local plugin file)
+zellij --layout default-local
 ```
 
 ### Common Operations
