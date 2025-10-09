@@ -4,11 +4,13 @@ Clean, minimal Zellij terminal multiplexer configuration with Catppuccin Mocha t
 
 ## Features
 
-- **🎨 Catppuccin Mocha Theme**: Consistent with the rest of your dotfiles
-- **📍 Status Bar at Top**: Displays mode, tabs, and datetime
+- **🎨 Catppuccin Mocha Theme**: Matches tmux catppuccin theme colors
+- **📍 Status Bar at Top**: Displays mode, tabs, and datetime with nerd fonts
+- **📝 Command-Based Tab Names**: Shows running command in tab (like tmux)
 - **⌨️ Tmux-style Keybindings**: Familiar Ctrl+a prefix
 - **🔀 Vim Navigation**: Navigate panes with h/j/k/l
 - **💾 Local Plugin**: Uses local zjstatus.wasm file for reliability
+- **🎯 Rounded Corners**: Smooth powerline separators  matching tmux
 
 ## Installation
 
@@ -92,8 +94,45 @@ Check that you're using the default layout:
 zellij --layout default
 ```
 
+## Recommended Plugins
+
+To further match your tmux configuration, consider these Zellij plugins:
+
+### Already Included
+- **zjstatus** - Custom status bar (installed automatically)
+
+### Additional Plugins Worth Exploring
+
+1. **[zellij-forgot](https://github.com/karimould/zellij-forgot)** - Keybinding hints similar to tmux-which-key
+   ```bash
+   # Download to ~/.config/zellij/plugins/
+   ```
+
+2. **[room](https://github.com/rvcas/room)** - Session switcher similar to tmux-sessionx
+   ```bash
+   # Quick session navigation
+   ```
+
+3. **[harpoon](https://github.com/Nacho114/harpoon)** - Quick file/project jumping
+   ```bash
+   # Similar to tmux session management
+   ```
+
+4. **[monocle](https://github.com/imsnif/monocle)** - Text search and copy similar to tmux-thumbs
+   ```bash
+   # Built-in to Zellij, use Ctrl+s to activate
+   ```
+
+### Tmux Features Already Built Into Zellij
+- **Session management**: Native in Zellij (use `zellij attach` or Ctrl+o)
+- **Pane navigation**: vim-tmux-navigator equivalent built-in
+- **Copy mode**: Built-in with `Ctrl+s` (scroll mode)
+- **Search**: Built-in with `/` in scroll mode
+- **Floating panes**: Native Zellij feature (Ctrl+p w to toggle)
+
 ## References
 
 - [Zellij Documentation](https://zellij.dev)
 - [zjstatus Plugin](https://github.com/dj95/zjstatus)
 - [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
+- [Zellij Plugin System](https://zellij.dev/documentation/plugins)

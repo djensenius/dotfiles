@@ -38,7 +38,7 @@ keybinds {
 }
 
 plugins {
-  // Tab bar styling
+  // Tab bar styling matching tmux catppuccin theme
   zjstatus location="file:~/.config/zellij/plugins/zjstatus.wasm" {
     // -- Catppuccin Mocha --
     color_rosewater "#f5e0dc"
@@ -67,49 +67,82 @@ plugins {
     color_base "#1e1e2e"
     color_mantle "#181825"
     color_crust "#11111b"
-    format_left "#[bg=$surface0,fg=$sapphire]#[bg=$sapphire,fg=$crust,bold] {session} #[bg=$surface0] {mode}#[bg=$surface0] {tabs}"
-    format_right "#[bg=$surface0,fg=$flamingo]#[bg=$surface0,fg=$maroon]#[bg=$maroon,fg=$crust]󰃭 #[bg=$surface1,fg=$maroon,bold] {datetime}#[bg=$surface0,fg=$surface1]"
-    format_space "#[bg=$surface0]"
+
+    // Format - cleaner layout matching tmux
+    format_left  "{mode} {tabs}"
+    format_right " {datetime}"
+    format_space ""
+    
     format_hide_on_overlength "true"
     format_precedence "lrc"
+    
     border_enabled "false"
     border_char "─"
-    border_format "#[bg=$surface0]{char}"
+    border_format "#[fg=$surface0]{char}"
     border_position "top"
+    
     hide_frame_for_single_pane "true"
-    mode_normal "#[bg=$green,fg=$crust,bold] NORMAL#[bg=$surface0,fg=$green]"
-    mode_tmux "#[bg=$mauve,fg=$crust,bold] TMUX#[bg=$surface0,fg=$mauve]"
-    mode_locked "#[bg=$red,fg=$crust,bold] LOCKED  #[bg=$surface0,fg=$red]"
-    mode_pane "#[bg=$teal,fg=$crust,bold] PANE#[bg=$surface0,fg=teal]"
-    mode_tab "#[bg=$teal,fg=$crust,bold] TAB#[bg=$surface0,fg=$teal]"
-    mode_scroll "#[bg=$flamingo,fg=$crust,bold] SCROLL#[bg=$surface0,fg=$flamingo]"
-    mode_enter_search "#[bg=$flamingo,fg=$crust,bold] ENT-SEARCH#[bg=$surfaco,fg=$flamingo]"
-    mode_search "#[bg=$flamingo,fg=$crust,bold] SEARCHARCH#[bg=$surfac0,fg=$flamingo]"
-    mode_resize "#[bg=$yellow,fg=$crust,bold] RESIZE#[bg=$surfac0,fg=$yellow]"
-    mode_rename_tab "#[bg=$yellow,fg=$crust,bold] RENAME-TAB#[bg=$surface0,fg=$yellow]"
-    mode_rename_pane "#[bg=$yellow,fg=$crust,bold] RENAME-PANE#[bg=$surface0,fg=$yellow]"
-    mode_move "#[bg=$yellow,fg=$crust,bold] MOVE#[bg=$surface0,fg=$yellow]"
-    mode_session "#[bg=$pink,fg=$crust,bold] SESSION#[bg=$surface0,fg=$pink]"
-    mode_prompt "#[bg=$pink,fg=$crust,bold] PROMPT#[bg=$surface0,fg=$pink]"
-    tab_normal "#[bg=$surface0,fg=$blue]#[bg=$blue,fg=$crust,bold]{index} #[bg=$surface1,fg=$blue,bold] {name}{floating_indicator}#[bg=$surface0,fg=$surface1]"
-    tab_normal_fullscreen "#[bg=$surface0,fg=$blue]#[bg=$blue,fg=$crust,bold]{index} #[bg=$surface1,fg=$blue,bold] {name}{fullscreen_indicator}#[bg=$surface0,fg=$surface1]"
-    tab_normal_sync "#[bg=$surface0,fg=$blue]#[bg=$blue,fg=$crust,bold]{index} #[bg=$surface1,fg=$blue,bold] {name}{sync_indicator}#[bg=$surface0,fg=$surface1]"
-    tab_active "#[bg=$surface0,fg=$peach]#[bg=$peach,fg=$crust,bold]{index} #[bg=$surface1,fg=$peach,bold] {name}{floating_indicator}#[bg=$surface0,fg=$surface1]"
-    tab_active_fullscreen "#[bg=$surface0,fg=$peach]#[bg=$peach,fg=$crust,bold]{index} #[bg=$surface1,fg=$peach,bold] {name}{fullscreen_indicator}#[bg=$surface0,fg=$surface1]"
-    tab_active_sync "#[bg=$surface0,fg=$peach]#[bg=$peach,fg=$crust,bold]{index} #[bg=$surface1,fg=$peach,bold] {name}{sync_indicator}#[bg=$surface0,fg=$surface1]"
-    tab_separator "#[bg=$surface0] "
-    tab_sync_indicator " "
+
+    // Mode indicators with Catppuccin Mocha colors matching tmux
+    mode_normal        "#[bg=$blue,fg=$crust,bold] NORMAL #[bg=$mantle,fg=$blue]"
+    mode_tmux          "#[bg=$mauve,fg=$crust,bold] TMUX #[bg=$mantle,fg=$mauve]"
+    mode_locked        "#[bg=$red,fg=$crust,bold] LOCKED #[bg=$mantle,fg=$red]"
+    mode_pane          "#[bg=$teal,fg=$crust,bold] PANE #[bg=$mantle,fg=$teal]"
+    mode_tab           "#[bg=$teal,fg=$crust,bold] TAB #[bg=$mantle,fg=$teal]"
+    mode_scroll        "#[bg=$peach,fg=$crust,bold] SCROLL #[bg=$mantle,fg=$peach]"
+    mode_enter_search  "#[bg=$peach,fg=$crust,bold] ENT-SEARCH #[bg=$mantle,fg=$peach]"
+    mode_search        "#[bg=$peach,fg=$crust,bold] SEARCH #[bg=$mantle,fg=$peach]"
+    mode_resize        "#[bg=$yellow,fg=$crust,bold] RESIZE #[bg=$mantle,fg=$yellow]"
+    mode_rename_tab    "#[bg=$yellow,fg=$crust,bold] RENAME #[bg=$mantle,fg=$yellow]"
+    mode_rename_pane   "#[bg=$yellow,fg=$crust,bold] RENAME #[bg=$mantle,fg=$yellow]"
+    mode_move          "#[bg=$yellow,fg=$crust,bold] MOVE #[bg=$mantle,fg=$yellow]"
+    mode_session       "#[bg=$pink,fg=$crust,bold] SESSION #[bg=$mantle,fg=$pink]"
+    mode_prompt        "#[bg=$pink,fg=$crust,bold] PROMPT #[bg=$mantle,fg=$pink]"
+
+    // Tab styling with rounded corners and command names
+    // Normal tabs (inactive)
+    tab_normal   "#[bg=$mantle,fg=$surface0]#[bg=$surface0,fg=$text,bold] {index} #[bg=$surface0,fg=$subtext0,bold] {name} {floating_indicator}#[bg=$mantle,fg=$surface0]"
+    tab_normal_fullscreen "#[bg=$mantle,fg=$surface0]#[bg=$surface0,fg=$text,bold] {index} #[bg=$surface0,fg=$subtext0,bold] {name} {fullscreen_indicator}#[bg=$mantle,fg=$surface0]"
+    tab_normal_sync "#[bg=$mantle,fg=$surface0]#[bg=$surface0,fg=$text,bold] {index} #[bg=$surface0,fg=$subtext0,bold] {name} {sync_indicator}#[bg=$mantle,fg=$surface0]"
+    
+    // Active tabs
+    tab_active   "#[bg=$mantle,fg=$blue]#[bg=$blue,fg=$crust,bold] {index} #[bg=$surface2,fg=$text,bold] {name} {floating_indicator}#[bg=$mantle,fg=$surface2]"
+    tab_active_fullscreen "#[bg=$mantle,fg=$blue]#[bg=$blue,fg=$crust,bold] {index} #[bg=$surface2,fg=$text,bold] {name} {fullscreen_indicator}#[bg=$mantle,fg=$surface2]"
+    tab_active_sync "#[bg=$mantle,fg=$blue]#[bg=$blue,fg=$crust,bold] {index} #[bg=$surface2,fg=$text,bold] {name} {sync_indicator}#[bg=$mantle,fg=$surface2]"
+    
+    tab_separator " "
+
+    // Tab indicators with nerd fonts
+    tab_sync_indicator       " "
     tab_fullscreen_indicator " 󰊓"
-    tab_floating_indicator " 󰹙"
-    notification_format_unread "#[bg=surface0,fg=$yellow]#[bg=$yellow,fg=$crust] #[bg=$surface1,fg=$yellow] {message}#[bg=$surface0,fg=$yellow]"
+    tab_floating_indicator   " 󰹙"
+
+    command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+    command_git_branch_format      "#[fg=$green] {stdout} "
+    command_git_branch_interval    "10"
+    command_git_branch_rendermode  "static"
+
+    // Notifications
+    notification_format_unread           "#[bg=$yellow,fg=$crust] 󰵅 #[bg=$yellow,fg=$crust]{message} #[bg=$mantle,fg=$yellow]"
     notification_format_no_notifications ""
-    notification_show_interval "10"
-    datetime "{format}"
-    datetime_format "%A, %B %d %H:%M %p"
+    notification_show_interval           "10"
+
+    // DateTime
+    datetime        "{format}"
+    datetime_format "%a %d/%m %H:%M"
     datetime_timezone "America/Los_Angeles"
   }
+}
+
+// Compact-bar for keybinding hints with Catppuccin theme
+ui {
+    pane_frames {
+        rounded_corners true
+        hide_session_name false
+    }
 }
 
 mouse_mode true
 copy_on_select true
 scroll_buffer_size 10000
+pane_frames true

@@ -1,21 +1,9 @@
-// work
+// Default layout with zjstatus bar at top
 layout {
   default_tab_template {
     pane size=1 borderless=true {
       plugin location="zjstatus"
     }
     children
-    pane size=2 borderless=true {
-      plugin location="status-bar" {
-        classic true
-      }
-    }
-  }
-  tab name="Work" hide_floating_panes=false {
-    // pane name="Code" cwd="${PROJECTS}"
-    pane split_direction="vertical" {
-      pane name="Code" command="nvim"
-      pane name="Daily Notes" cwd="~/Developer" size="20%"
-    }
   }
 }
