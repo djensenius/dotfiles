@@ -177,6 +177,14 @@ function link_files() {
     ln -sf $(pwd)/yazi ~/.config/yazi
     ln -sf $(pwd)/bottom ~/.config/bottom
     ln -sf $(pwd)/tmux ~/.config/tmux
+    ln -sf $(pwd)/zellij ~/.config/zellij
+    
+    # Download zjstatus plugin for Zellij
+    start_time=$(start_operation "Downloading zjstatus plugin for Zellij")
+    mkdir -p ~/.config/zellij/plugins
+    curl -L https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm \
+      -o ~/.config/zellij/plugins/zjstatus.wasm 2>/dev/null || echo "Warning: Failed to download zjstatus plugin"
+    log_with_timing "Downloading zjstatus plugin for Zellij" $start_time
     ln -sf $(pwd)/delta ~/.config/delta
     ln -sf $(pwd)/eza ~/.config/eza
     ln -sf $(pwd)/k9s ~/.config/k9s

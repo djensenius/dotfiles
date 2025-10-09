@@ -1,0 +1,148 @@
+// Zellij Configuration
+// Catppuccin Mocha theme with tmux-style keybindings
+
+theme "catppuccin-mocha"
+default_layout "default"
+
+// Keybindings
+keybinds {
+    normal {
+        bind "Ctrl a" { SwitchToMode "tmux"; }
+    }
+    
+    tmux {
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "h" { MoveFocus "Left"; SwitchToMode "Normal"; }
+        bind "j" { MoveFocus "Down"; SwitchToMode "Normal"; }
+        bind "k" { MoveFocus "Up"; SwitchToMode "Normal"; }
+        bind "l" { MoveFocus "Right"; SwitchToMode "Normal"; }
+        bind "|" { NewPane "Right"; SwitchToMode "Normal"; }
+        bind "-" { NewPane "Down"; SwitchToMode "Normal"; }
+        bind "x" { CloseFocus; SwitchToMode "Normal"; }
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
+        bind "c" { NewTab; SwitchToMode "Normal"; }
+        bind "p" { GoToPreviousTab; SwitchToMode "Normal"; }
+        bind "n" { GoToNextTab; SwitchToMode "Normal"; }
+        bind "," { SwitchToMode "RenameTab"; }
+        bind "1" { GoToTab 1; SwitchToMode "Normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "Normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "Normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "Normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "Normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "Normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "Normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "Normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "Normal"; }
+        bind "[" { SwitchToMode "Scroll"; }
+    }
+}
+
+plugins {
+  // Tab bar styling matching tmux catppuccin theme
+  zjstatus location="file:~/.config/zellij/plugins/zjstatus.wasm" {
+    // -- Catppuccin Mocha --
+    color_rosewater "#f5e0dc"
+    color_flamingo "#f2cdcd"
+    color_pink "#f5c2e7"
+    color_mauve "#cba6f7"
+    color_red "#f38ba8"
+    color_maroon "#eba0ac"
+    color_peach "#fab387"
+    color_yellow "#f9e2af"
+    color_green "#a6e3a1"
+    color_teal "#94e2d5"
+    color_sky "#89dceb"
+    color_sapphire "#74c7ec"
+    color_blue "#89b4fa"
+    color_lavender "#b4befe"
+    color_text "#cdd6f4"
+    color_subtext1 "#bac2de"
+    color_subtext0 "#a6adc8"
+    color_overlay2 "#9399b2"
+    color_overlay1 "#7f849c"
+    color_overlay0 "#6c7086"
+    color_surface2 "#585b70"
+    color_surface1 "#45475a"
+    color_surface0 "#313244"
+    color_base "#1e1e2e"
+    color_mantle "#181825"
+    color_crust "#11111b"
+
+    // Format - cleaner layout matching tmux
+    format_left  "{mode} {tabs}"
+    format_right " {datetime}"
+    format_space ""
+    
+    format_hide_on_overlength "true"
+    format_precedence "lrc"
+    
+    border_enabled "false"
+    border_char "─"
+    border_format "#[fg=$surface0]{char}"
+    border_position "top"
+    
+    hide_frame_for_single_pane "true"
+
+    // Mode indicators with Catppuccin Mocha colors matching tmux
+    mode_normal        "#[bg=$blue,fg=$crust,bold] NORMAL #[bg=$mantle,fg=$blue]"
+    mode_tmux          "#[bg=$mauve,fg=$crust,bold] TMUX #[bg=$mantle,fg=$mauve]"
+    mode_locked        "#[bg=$red,fg=$crust,bold] LOCKED #[bg=$mantle,fg=$red]"
+    mode_pane          "#[bg=$teal,fg=$crust,bold] PANE #[bg=$mantle,fg=$teal]"
+    mode_tab           "#[bg=$teal,fg=$crust,bold] TAB #[bg=$mantle,fg=$teal]"
+    mode_scroll        "#[bg=$peach,fg=$crust,bold] SCROLL #[bg=$mantle,fg=$peach]"
+    mode_enter_search  "#[bg=$peach,fg=$crust,bold] ENT-SEARCH #[bg=$mantle,fg=$peach]"
+    mode_search        "#[bg=$peach,fg=$crust,bold] SEARCH #[bg=$mantle,fg=$peach]"
+    mode_resize        "#[bg=$yellow,fg=$crust,bold] RESIZE #[bg=$mantle,fg=$yellow]"
+    mode_rename_tab    "#[bg=$yellow,fg=$crust,bold] RENAME #[bg=$mantle,fg=$yellow]"
+    mode_rename_pane   "#[bg=$yellow,fg=$crust,bold] RENAME #[bg=$mantle,fg=$yellow]"
+    mode_move          "#[bg=$yellow,fg=$crust,bold] MOVE #[bg=$mantle,fg=$yellow]"
+    mode_session       "#[bg=$pink,fg=$crust,bold] SESSION #[bg=$mantle,fg=$pink]"
+    mode_prompt        "#[bg=$pink,fg=$crust,bold] PROMPT #[bg=$mantle,fg=$pink]"
+
+    // Tab styling with rounded corners and command names
+    // Normal tabs (inactive)
+    tab_normal   "#[bg=$mantle,fg=$surface0]#[bg=$surface0,fg=$text,bold] {index} #[bg=$surface0,fg=$subtext0,bold] {name} {floating_indicator}#[bg=$mantle,fg=$surface0]"
+    tab_normal_fullscreen "#[bg=$mantle,fg=$surface0]#[bg=$surface0,fg=$text,bold] {index} #[bg=$surface0,fg=$subtext0,bold] {name} {fullscreen_indicator}#[bg=$mantle,fg=$surface0]"
+    tab_normal_sync "#[bg=$mantle,fg=$surface0]#[bg=$surface0,fg=$text,bold] {index} #[bg=$surface0,fg=$subtext0,bold] {name} {sync_indicator}#[bg=$mantle,fg=$surface0]"
+    
+    // Active tabs
+    tab_active   "#[bg=$mantle,fg=$blue]#[bg=$blue,fg=$crust,bold] {index} #[bg=$surface2,fg=$text,bold] {name} {floating_indicator}#[bg=$mantle,fg=$surface2]"
+    tab_active_fullscreen "#[bg=$mantle,fg=$blue]#[bg=$blue,fg=$crust,bold] {index} #[bg=$surface2,fg=$text,bold] {name} {fullscreen_indicator}#[bg=$mantle,fg=$surface2]"
+    tab_active_sync "#[bg=$mantle,fg=$blue]#[bg=$blue,fg=$crust,bold] {index} #[bg=$surface2,fg=$text,bold] {name} {sync_indicator}#[bg=$mantle,fg=$surface2]"
+    
+    tab_separator " "
+
+    // Tab indicators with nerd fonts
+    tab_sync_indicator       " "
+    tab_fullscreen_indicator " 󰊓"
+    tab_floating_indicator   " 󰹙"
+
+    command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+    command_git_branch_format      "#[fg=$green] {stdout} "
+    command_git_branch_interval    "10"
+    command_git_branch_rendermode  "static"
+
+    // Notifications
+    notification_format_unread           "#[bg=$yellow,fg=$crust] 󰵅 #[bg=$yellow,fg=$crust]{message} #[bg=$mantle,fg=$yellow]"
+    notification_format_no_notifications ""
+    notification_show_interval           "10"
+
+    // DateTime
+    datetime        "{format}"
+    datetime_format "%a %d/%m %H:%M"
+    datetime_timezone "America/Los_Angeles"
+  }
+}
+
+// Compact-bar for keybinding hints with Catppuccin theme
+ui {
+    pane_frames {
+        rounded_corners true
+        hide_session_name false
+    }
+}
+
+mouse_mode true
+copy_on_select true
+scroll_buffer_size 10000
+pane_frames true

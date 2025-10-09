@@ -64,7 +64,7 @@ See the [install.sh](install.sh) script for the complete automated setup process
 
 This dotfiles collection includes configurations for:
 
-- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux multiplexer
+- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux/zellij multiplexers
 - **📝 Editor**: Neovim with 46+ plugins for modern development ([details](nvim/README.md))
 - **🔍 Search & Navigation**: fzf, ripgrep, fd, eza, zoxide for enhanced file operations
 - **📊 Git Workflow**: lazygit, delta, gitsigns integration for visual git management
@@ -179,6 +179,12 @@ Vale is a syntax-aware linter for prose built with speed and extensibility in mi
 ### [yazi](https://github.com/yazi-shell/yazi)
 Yazi is a terminal file manager.
 - **Directory**: `yazi/`
+
+### [Zellij](https://zellij.dev) ([repo](https://github.com/zellij-org/zellij))
+Zellij is a terminal workspace with batteries included. It's a modern terminal multiplexer with a Rust-based plugin system.
+- **Directory**: `zellij/`
+- **Features**: Catppuccin Mocha theme with rounded tabs, zjstatus plugin for status bar, vim-style navigation
+- **Alternative to**: tmux
 
 ### [zoxide](https://github.com/ajeetdsouza/zoxide)
 Zoxide is a smarter cd command that learns your habits and jumps to frequently used directories.
