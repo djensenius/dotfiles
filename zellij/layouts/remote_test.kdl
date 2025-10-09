@@ -1,0 +1,6 @@
+layout {
+  pane size=1 borderless=true {
+    plugin location="https://raw.githubusercontent.com/zellij-org/zellij/main/example-plugins/hello-world.wasm"
+  }
+  pane { }
+}

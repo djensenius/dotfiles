@@ -1,0 +1,134 @@
+/* Simplified GitHub code font override for Monaspace Nerd Font (Homebrew font-monaspace-nf).
+   Approach:
+     1. Override GitHub's --fontStack-monospace variable.
+     2. Explicitly set font-family on code/diff/editor surfaces (with !important).
+   Switch FACE or WIDTH by swapping the --ms-stack assignment section.
+*/
+
+/* === CHOOSE YOUR ACTIVE STACK ========================================= */
+/* Pick ONE of these blocks, leave others commented out. */
+
+/* Neon (normal width) */
+html[data-color-mode] {
+  --ms-stack: "MonaspaceNeonNF-Regular","Monaspace Neon NF Regular","Monaspace Neon NF",
+              "MonaspaceNeonNF-Medium","Monaspace Neon NF Medium",
+              "MonaspaceNeonNF-SemiBold","Monaspace Neon NF SemiBold",
+              ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* Argon (normal width)
+html[data-color-mode] {
+  --ms-stack: "MonaspaceArgonNF-Regular","Monaspace Argon NF Regular","Monaspace Argon NF",
+              "MonaspaceArgonNF-Medium","Monaspace Argon NF Medium",
+              "MonaspaceArgonNF-SemiBold","Monaspace Argon NF SemiBold",
+              ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*/
+
+/* Krypton SemiWide
+html[data-color-mode] {
+  --ms-stack: "MonaspaceKryptonNF-SemiWideRegular","Monaspace Krypton NF SemiWide Regular","Monaspace Krypton NF SemiWide",
+              "MonaspaceKryptonNF-SemiWideMedium","Monaspace Krypton NF SemiWide Medium",
+              "MonaspaceKryptonNF-SemiWideSemiBold","Monaspace Krypton NF SemiWide SemiBold",
+              ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*/
+
+/* Xenon Wide
+html[data-color-mode] {
+  --ms-stack: "MonaspaceXenonNF-WideRegular","Monaspace Xenon NF Wide Regular","Monaspace Xenon NF Wide",
+              "MonaspaceXenonNF-WideMedium","Monaspace Xenon NF Wide Medium",
+              "MonaspaceXenonNF-WideSemiBold","Monaspace Xenon NF Wide SemiBold",
+              ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*/
+
+/* === SIZE / LINE-HEIGHT / WEIGHTS ====================================== */
+html[data-color-mode] {
+  --code-size: 13.5px;
+  --code-line: 1.38;
+  --code-line-inline: 1.25;
+  --code-line-diff: 1.32;
+  --code-weight-normal: 400; /* change to 500 if you prefer Medium */
+  --code-weight-bold: 600;   /* 600=SemiBold, 700=Bold */
+  --code-liga-settings: "calt" 1, "liga" 1;
+
+  /* Override GitHub's central monospace variable */
+  --fontStack-monospace: var(--ms-stack) !important;
+}
+
+/* === CORE SELECTORS ==================================================== */
+html[data-color-mode] pre,
+html[data-color-mode] code,
+html[data-color-mode] kbd,
+html[data-color-mode] samp,
+html[data-color-mode] tt,
+html[data-color-mode] .blob-code-inner,
+html[data-color-mode] .blob-code-marker,
+html[data-color-mode] .react-code-text,
+html[data-color-mode] .react-blob-print-hide,
+html[data-color-mode] .diff-table .blob-code,
+html[data-color-mode] .markdown-body pre,
+html[data-color-mode] .markdown-body code,
+html[data-color-mode] .file code,
+html[data-color-mode] .file pre,
+html[data-color-mode] .highlight pre,
+html[data-color-mode] .gist .blob-code,
+html[data-color-mode] .cm-scroller,
+html[data-color-mode] .cm-content,
+html[data-color-mode] .cm-line,
+html[data-color-mode] .cm-gutter,
+html[data-color-mode] .CodeMirror pre,
+html[data-color-mode] .CodeMirror-code,
+html[data-color-mode] .js-file-line {
+  font-family: var(--ms-stack) !important;
+  font-size: var(--code-size) !important;
+  line-height: var(--code-line) !important;
+  font-weight: var(--code-weight-normal);
+  font-feature-settings: var(--code-liga-settings);
+  font-variant-ligatures: contextual common-ligatures discretionary-ligatures;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Bold escalation */
+html[data-color-mode] strong code,
+html[data-color-mode] b code,
+html[data-color-mode] code strong,
+html[data-color-mode] pre strong,
+html[data-color-mode] .pl-ent,
+html[data-color-mode] .pl-k,
+html[data-color-mode] .markdown-body strong code,
+html[data-color-mode] .markdown-body code strong {
+  font-weight: var(--code-weight-bold) !important;
+}
+
+/* Inline code adjustments */
+html[data-color-mode] .markdown-body :not(pre) > code {
+  line-height: var(--code-line-inline) !important;
+  padding: 0.18em 0.4em;
+  border-radius: 4px;
+}
+
+/* Diff line-height tweak */
+html[data-color-mode] .diff-table .blob-code {
+  line-height: var(--code-line-diff) !important;
+}
+
+/* Editor fixups */
+html[data-color-mode] .cm-content,
+html[data-color-mode] .cm-line {
+  font-size: var(--code-size) !important;
+  font-weight: var(--code-weight-normal);
+}
+
+/* Optional tighter lines
+html[data-color-mode] .file .blob-code-inner { line-height: 1.33 !important; }
+*/
+
+/* Optional HiDPI bump
+@media (min-resolution: 2dppx) {
+  html[data-color-mode] { --code-size: 14px; }
+}
+*/

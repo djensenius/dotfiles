@@ -1,35 +1,33 @@
+// work
 layout {
-    default_tab_template {
-        pane size=1 borderless=true {
-            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
-                format_left  "{mode}#[bg=#181825] {tabs}"
-                format_right "{datetime}"
-                format_space "#[bg=#181825]"
-
-                mode_normal        "#[bg=#89b4fa,fg=#181825,bold] NORMAL#[bg=#181825,fg=#89b4fa]"
-                mode_locked        "#[bg=#f38ba8,fg=#181825,bold] LOCKED#[bg=#181825,fg=#f38ba8]"
-                mode_resize        "#[bg=#fab387,fg=#181825,bold] RESIZE#[bg=#181825,fg=#fab387]"
-                mode_pane          "#[bg=#a6e3a1,fg=#181825,bold] PANE#[bg=#181825,fg=#a6e3a1]"
-                mode_tab           "#[bg=#f9e2af,fg=#181825,bold] TAB#[bg=#181825,fg=#f9e2af]"
-                mode_scroll        "#[bg=#f5c2e7,fg=#181825,bold] SCROLL#[bg=#181825,fg=#f5c2e7]"
-                mode_enter_search  "#[bg=#f5c2e7,fg=#181825,bold] SEARCH#[bg=#181825,fg=#f5c2e7]"
-                mode_search        "#[bg=#f5c2e7,fg=#181825,bold] SEARCH#[bg=#181825,fg=#f5c2e7]"
-                mode_rename_tab    "#[bg=#f9e2af,fg=#181825,bold] RENAME#[bg=#181825,fg=#f9e2af]"
-                mode_rename_pane   "#[bg=#a6e3a1,fg=#181825,bold] RENAME#[bg=#181825,fg=#a6e3a1]"
-                mode_session       "#[bg=#cba6f7,fg=#181825,bold] SESSION#[bg=#181825,fg=#cba6f7]"
-                mode_move          "#[bg=#fab387,fg=#181825,bold] MOVE#[bg=#181825,fg=#fab387]"
-                mode_prompt        "#[bg=#a6e3a1,fg=#181825,bold] PROMPT#[bg=#181825,fg=#a6e3a1]"
-                mode_tmux          "#[bg=#f5c2e7,fg=#181825,bold] TMUX#[bg=#181825,fg=#f5c2e7]"
-
-                tab_normal              "#[bg=#181825,fg=#585b70]#[bg=#585b70,fg=#cdd6f4,bold] {index} #[bg=#585b70,fg=#cdd6f4] {name} {floating_indicator}#[bg=#181825,fg=#585b70]"
-                tab_active              "#[bg=#181825,fg=#89b4fa]#[bg=#89b4fa,fg=#181825,bold] {index} #[bg=#89b4fa,fg=#181825] {name} {floating_indicator}#[bg=#181825,fg=#89b4fa]"
-                tab_floating_indicator  "󰉈 "
-
-                datetime        "#[bg=#181825,fg=#89b4fa]#[bg=#89b4fa,fg=#181825] {format} #[bg=#181825,fg=#89b4fa]"
-                datetime_format "%Y-%m-%d %H:%M"
-                datetime_timezone "America/Los_Angeles"
-            }
-        }
-        children
+  default_tab_template {
+    pane size=1 borderless=true {
+      plugin location="zjstatus"
     }
+    children
+    pane size=2 borderless=true {
+      plugin location="status-bar" {
+        classic true
+      }
+    }
+  }
+  tab name="Work" hide_floating_panes=false {
+    // pane name="Code" cwd="${PROJECTS}"
+    pane split_direction="vertical" {
+      pane name="Code" command="nvim"
+      pane name="Daily Notes" cwd="~/Developer" size="20%"
+    }
+  }
+  tab name="Dashboard" {
+    pane split_direction="vertical" {
+      pane split_direction="horizontal" {
+        pane name="Gratitudes"
+        pane name="ToDos"
+      }
+      pane split_direction="horizontal" {
+        pane name="Achievements"
+        pane name="Fleeting Notes"
+      }
+    }
+  }
 }
