@@ -18,16 +18,4 @@ layout {
       pane name="Daily Notes" cwd="~/Developer" size="20%"
     }
   }
-  tab name="Dashboard" {
-    pane split_direction="vertical" {
-      pane split_direction="horizontal" {
-        pane name="Gratitudes"
-        pane name="ToDos"
-      }
-      pane split_direction="horizontal" {
-        pane name="Achievements"
-        pane name="Fleeting Notes"
-      }
-    }
-  }
 }
