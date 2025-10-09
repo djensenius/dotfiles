@@ -1,54 +1,29 @@
 // Zellij Configuration
-// Matching tmux setup with Catppuccin Mocha theme
+// Catppuccin Mocha theme with tmux-style keybindings
 
-// ==================== Theme =======================
 theme "catppuccin-mocha"
+default_layout "default"
 
-// ==================== UI Settings =================
-// Pane frames disabled for clean aesthetic
-pane_frames false
-
-// ==================== Default Mode ================
-default_mode "normal"
-
-// ==================== Keybindings =================
-// Use default Zellij keybindings, only add tmux mode customizations
+// Keybindings
 keybinds {
-    // Add Ctrl+a binding to switch to tmux mode in normal mode
     normal {
         bind "Ctrl a" { SwitchToMode "tmux"; }
-        // Toggle pane frames (matching tmux F1 status toggle)
-        bind "F1" { TogglePaneFrames; }
     }
-
-    // Tmux mode - activated by Ctrl+a prefix (matching tmux configuration)
+    
     tmux {
-        // Toggle pane frames (matching tmux F1 and Ctrl+b status toggle bindings)
-        bind "b" { TogglePaneFrames; SwitchToMode "Normal"; }
-        
-        // Navigation between panes (vim-style, matching tmux-vim-navigator)
+        bind "Esc" { SwitchToMode "Normal"; }
         bind "h" { MoveFocus "Left"; SwitchToMode "Normal"; }
         bind "j" { MoveFocus "Down"; SwitchToMode "Normal"; }
         bind "k" { MoveFocus "Up"; SwitchToMode "Normal"; }
         bind "l" { MoveFocus "Right"; SwitchToMode "Normal"; }
-        
-        // Resize panes (matching tmux pain-control)
-        bind "Ctrl h" { Resize "Increase Left"; }
-        bind "Ctrl j" { Resize "Increase Down"; }
-        bind "Ctrl k" { Resize "Increase Up"; }
-        bind "Ctrl l" { Resize "Increase Right"; }
-        
-        // Split panes (matching tmux pain-control defaults)
         bind "|" { NewPane "Right"; SwitchToMode "Normal"; }
-        bind "\\" { NewPane "Right"; SwitchToMode "Normal"; }
         bind "-" { NewPane "Down"; SwitchToMode "Normal"; }
-        bind "_" { NewPane "Down"; SwitchToMode "Normal"; }
-        
-        // Tab management
+        bind "x" { CloseFocus; SwitchToMode "Normal"; }
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
         bind "c" { NewTab; SwitchToMode "Normal"; }
-        bind "," { SwitchToMode "RenameTab"; TabNameInput 0; }
         bind "p" { GoToPreviousTab; SwitchToMode "Normal"; }
         bind "n" { GoToNextTab; SwitchToMode "Normal"; }
+        bind "," { SwitchToMode "RenameTab"; }
         bind "1" { GoToTab 1; SwitchToMode "Normal"; }
         bind "2" { GoToTab 2; SwitchToMode "Normal"; }
         bind "3" { GoToTab 3; SwitchToMode "Normal"; }
@@ -58,66 +33,10 @@ keybinds {
         bind "7" { GoToTab 7; SwitchToMode "Normal"; }
         bind "8" { GoToTab 8; SwitchToMode "Normal"; }
         bind "9" { GoToTab 9; SwitchToMode "Normal"; }
-        
-        // Close pane
-        bind "q" { CloseFocus; SwitchToMode "Normal"; }
-        bind "x" { CloseFocus; SwitchToMode "Normal"; }
-        
-        // Detach
-        bind "d" { Detach; }
-        
-        // Toggle floating pane
-        bind "w" { ToggleFloatingPanes; SwitchToMode "Normal"; }
-        
-        // Fullscreen
-        bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
-        
-        // Search
-        bind "/" { SwitchToMode "EnterSearch"; SearchInput 0; }
-        
-        // Session management
-        bind "o" { SwitchToMode "Session"; }
-        
-        // Scroll mode
         bind "[" { SwitchToMode "Scroll"; }
-        
-        // Return to normal
-        bind "Esc" { SwitchToMode "Normal"; }
-        bind "Enter" { SwitchToMode "Normal"; }
-        
-        // Send Ctrl+a to terminal (like tmux 'a' binding)
-        bind "a" { Write 1; SwitchToMode "Normal"; } // Write 1 sends ASCII character 0x01 (Ctrl+A)
     }
 }
 
-// ==================== Mouse ======================
 mouse_mode true
 copy_on_select true
-
-// ==================== Scrollback =================
 scroll_buffer_size 10000
-
-// ==================== Session ====================
-// Auto-attach to existing session or create new one
-// session_name "main"
-
-// ==================== Copy Command ===============
-// Use system clipboard
-copy_command "wl-copy"
-
-// On macOS, use pbcopy
-// copy_command "pbcopy"
-
-// ==================== Default Shell ==============
-// Use fish shell if running on Linux (matching tmux config)
-// default_shell "fish"
-
-// ==================== Layout =====================
-default_layout "default-local"
-// For minimal UI with only keybinding hints:
-// default_layout "hints-only"
-
-// ==================== Plugins ====================
-// Plugins are loaded via layouts
-// zjstatus plugin is downloaded automatically by install.sh to ~/.config/zellij/plugins/
-// The default-local layout uses the local plugin file for better reliability
