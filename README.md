@@ -64,7 +64,7 @@ See the [install.sh](install.sh) script for the complete automated setup process
 
 This dotfiles collection includes configurations for:
 
-- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux/zellij multiplexers
+- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux multiplexer
 - **📝 Editor**: Neovim with 46+ plugins for modern development ([details](nvim/README.md))
 - **🔍 Search & Navigation**: fzf, ripgrep, fd, eza, zoxide for enhanced file operations
 - **📊 Git Workflow**: lazygit, delta, gitsigns integration for visual git management
@@ -167,6 +167,34 @@ Starship is a cross-shell prompt that displays information about the current dir
 ### [tmux](https://github.com/tmux/tmux/wiki) ([repo](https://github.com/tmux/tmux))
 Tmux is a terminal multiplexer that allows multiple terminal sessions to be accessed and controlled from a single screen.
 - **Directory**: `tmux/`
+- **Features**: Catppuccin Mocha theme, vim-style navigation, floating windows, session management
+- **Battery Status**: Uses [battery_hearts](https://github.com/djensenius/battery_hearts) plugin to display battery level with heart icons in the status bar
+
+#### Installing battery_hearts
+The battery_hearts tool displays battery status using heart icons and is integrated into the tmux status bar. Install it using one of these methods:
+
+**From crates.io (Recommended):**
+```bash
+cargo install battery_hearts
+```
+
+**From releases:**
+```bash
+# Download the latest binary for your platform from:
+# https://github.com/djensenius/battery_hearts/releases
+chmod +x battery_hearts-*
+# Move to PATH, e.g., /usr/local/bin/
+```
+
+**From source:**
+```bash
+git clone https://github.com/djensenius/battery_hearts.git
+cd battery_hearts
+cargo build --release
+# Copy ./target/release/battery_hearts to your PATH
+```
+
+Once installed, the tmux configuration will automatically use it to display battery status with heart icons (❤️ 🧡 🤍) in the status bar.
 
 ### [tmuxinator](https://github.com/tmuxinator/tmuxinator)
 Tmuxinator is a tool to manage complex tmux sessions easily.
@@ -180,11 +208,6 @@ Vale is a syntax-aware linter for prose built with speed and extensibility in mi
 Yazi is a terminal file manager.
 - **Directory**: `yazi/`
 
-### [Zellij](https://zellij.dev) ([repo](https://github.com/zellij-org/zellij))
-Zellij is a terminal workspace with batteries included. It's a modern terminal multiplexer with a Rust-based plugin system.
-- **Directory**: `zellij/`
-- **Features**: Catppuccin Mocha theme with rounded tabs, zjstatus plugin for status bar, vim-style navigation
-- **Alternative to**: tmux
 
 ### [zoxide](https://github.com/ajeetdsouza/zoxide)
 Zoxide is a smarter cd command that learns your habits and jumps to frequently used directories.
