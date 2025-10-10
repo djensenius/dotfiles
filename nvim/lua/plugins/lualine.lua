@@ -113,7 +113,8 @@ return {
 						icon = "", -- f013
 						symbols = {
 							-- Standard unicode symbols to cycle through for LSP progress:
-							spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
+							spinner = { "∙", "●", "◉", "◎" },
+							-- spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
 							done = "✓",
 							-- Delimiter inserted between LSP names:
 							separator = " ",
