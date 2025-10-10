@@ -100,6 +100,10 @@ if test -d /workspaces/github
         end
     end
 
+    # Interactive override: calling 'git' uses system binary.
+    function git --description 'Use system /usr/bin/git regardless of PATH'
+        command /usr/bin/git $argv
+    end
     # Uncomment to inspect:
     # type -ap ruby
 end
