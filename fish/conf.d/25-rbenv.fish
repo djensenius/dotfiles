@@ -75,20 +75,20 @@ if test -d /workspaces/github
         "$RAILS_ROOT/vendor/gitrpcd/build" \
         "$RAILS_ROOT/bin" \
         "$RAILS_ROOT/vendor/node" \
-        "/usr/local/share" \
-        "/usr/local/go/bin" \
-        "/go/bin" \
+        /usr/local/share \
+        /usr/local/go/bin \
+        /go/bin \
         "/root/.rbenv/bin" \
-        "/usr/local/share/rbenv/bin" \
-        "/usr/local/sbin" \
-        "/usr/local/bin" \
-        "/usr/sbin" \
-        "/usr/bin" \
-        "/sbin" \
-        "/bin" \
+        /usr/local/share/rbenv/bin \
+        /usr/local/sbin \
+        /usr/local/bin \
+        /usr/sbin \
+        /usr/bin \
+        /sbin \
+        /bin \
         "/workspaces/insights-dataplatform/.dotnet" \
         "/workspaces/actions/actions-dotnet/.dotnet" \
-        "/workspaces/actions/actions-codespaces/script" \
+        /workspaces/actions/actions-codespaces/script \
         "$RAILS_ROOT/vendor/node/bin" \
         "$RAILS_ROOT-ui/node_modules/.bin"
 
