@@ -179,6 +179,14 @@ install_external_tools_parallel() {
         tar xf lazygit.tar.gz lazygit &&
         sudo install lazygit -D -t /usr/local/bin/
     "
+    run_parallel "ruby_lsp_install" "
+      if [ -d '/workspaces/github' ]; then
+        export RAILS_ROOT='/workspaces/github'
+        export PATH=\$RAILS_ROOT/vendor/ruby/\'$(/workspaces/github/config/ruby-version)\'/bin:\$PATH
+        gem install ruby-lsp
+        gem install rainbow regexp_parser unicode-display_width rubocop-ast ruby-progressbar lint_roller parallel
+      fi
+    "
     
     # Wait for all downloads to complete
     local download_operations=(

@@ -100,6 +100,18 @@ return {
 		})
 		vim.lsp.enable("gopls")
 
+		-- Special stuff for GitHub Ruby
+		local cwd = vim.loop.cwd()
+		local ruby_lsp_gemfile = ".ruby-lsp/Gemfile"
+		local ruby_lsp_path = cwd .. ruby_lsp_gemfile
+
+		vim.lsp.config("ruby_lsp", {
+			cmd = { "ruby-lsp" },
+			cmd_env = {
+				BUNDLE_GEMFILE = ruby_lsp_path,
+			},
+		})
+
 		vim.env.SRB_SKIP_GEM_RBIS = 1
 		vim.lsp.config("sorbet", {
 			cmd = { "bundle", "exec", "srb", "tc", "--lsp" },
