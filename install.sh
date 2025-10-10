@@ -215,9 +215,12 @@ function install_software() {
       
       # APT package installation (must be done first - dependencies for other tools)
       start_time=$(start_operation "Installing APT packages")
-      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most -y
+      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most luarocks -y
       log_with_timing "Installing APT packages" $start_time
       
+      sudo luarocks install luacheck
+      log_with_timing "Installing luarocks package" $start_time
+
       start_time=$(start_operation "Removing conflicting APT packages")
       sudo apt remove bat ripgrep -y
       log_with_timing "Removing conflicting APT packages" $start_time

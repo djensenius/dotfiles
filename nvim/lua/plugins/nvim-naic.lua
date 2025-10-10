@@ -6,6 +6,14 @@ return {
 			lsp = {
 				auto_attach = true,
 			},
+			preference = {
+				"sorbet",
+				"ruby_lsp",
+				"lua_ls",
+				"gopls",
+				"tsserver",
+				-- add others if you use navic with them
+			},
 			separator = " 󰁔 ",
 		})
 	end,
