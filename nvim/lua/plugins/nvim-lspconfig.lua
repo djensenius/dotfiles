@@ -100,13 +100,13 @@ return {
 		})
 		vim.lsp.enable("gopls")
 
-		local ruby_cmd = { "ruby-lsp" }
-		vim.lsp.config("ruby_lsp", {
-			on_attach = on_attach,
-			cmd = ruby_cmd,
-			capabilities = capabilities,
-		})
-		vim.lsp.enable("ruby_lsp")
+		-- local ruby_cmd = { "ruby-lsp" }
+		-- vim.lsp.config("ruby_lsp", {
+		-- 	on_attach = on_attach,
+		-- 	cmd = ruby_cmd,
+		-- 	capabilities = capabilities,
+		-- })
+		-- vim.lsp.enable("ruby_lsp")
 
 		vim.env.SRB_SKIP_GEM_RBIS = 1
 		vim.lsp.config("sorbet", {
