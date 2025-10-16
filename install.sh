@@ -213,74 +213,101 @@ function link_files() {
 
 function install_software() {
     if [ -d /workspaces/github ]; then
-      # Initial delay for system stability
-      start_time=$(start_operation "Initial system wait (20s)")
-      sleep 20
-      log_with_timing "Initial system wait (20s)" $start_time
+      # Reduce initial delay for faster startup
+      start_time=$(start_operation "Initial system wait (5s)")
+      sleep 5
+      log_with_timing "Initial system wait (5s)" $start_time
       
-      # APT package installation (must be done first - dependencies for other tools)
-      start_time=$(start_operation "Installing APT packages")
-      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most luarocks clang -y
-      log_with_timing "Installing APT packages" $start_time
+      # APT package installation - split into essential and non-essential
+      start_time=$(start_operation "Installing essential APT packages")
+      sudo apt -o DPkg::Lock::Timeout=600 install tmux jq ruby-dev -y
+      log_with_timing "Installing essential APT packages" $start_time
       
-      sudo luarocks install luacheck
-      log_with_timing "Installing luarocks package" $start_time
+      # Install remaining APT packages and luarocks in background
+      start_time=$(start_operation "Installing additional packages in background")
+      (
+        sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat libfuse2 fuse software-properties-common most luarocks clang -y
+        sudo luarocks install luacheck
+      ) &
+      additional_packages_pid=$!
+      log_with_timing "Installing additional packages in background" $start_time
 
       start_time=$(start_operation "Removing conflicting APT packages")
       sudo apt remove bat ripgrep -y
       log_with_timing "Removing conflicting APT packages" $start_time
       
       if [[ "$PARALLEL_MODE" == "true" ]]; then
-        # Parallel installation mode
-        echo "🚀 Using parallel installation for major components..."
+        # Parallel installation mode with fast track for essential tools
+        echo "🚀 Using parallel installation with fast track for essential tools..."
         
-        # Start external tools installation (faster, can complete first)
+        # FAST TRACK: Setup essential tools immediately (tmux, nvim ready)
+        start_time=$(start_operation "Fast track: Essential tool setup")
+        
+        # 1. Clone TPM immediately (user priority #1: tmux plugins)
+        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm &
+        tpm_pid=$!
+        
+        # 2. Install only tmuxinator immediately (user priority #2) - minimal Ruby setup
+        sudo gem install tmuxinator &
+        tmuxinator_pid=$!
+        
+        # 3. Wait for TPM and install plugins
+        wait $tpm_pid
+        ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+        
+        # 4. Wait for tmuxinator 
+        wait $tmuxinator_pid
+        
+        # 5. Start additional Ruby gems in background (neovim-ruby-host not immediately needed)
+        (sudo gem install neovim-ruby-host) &
+        ruby_background_pid=$!
+        
+        log_with_timing "Fast track: Essential tool setup" $start_time
+        
+        echo "✅ Essential tools ready! (tmux + plugins + tmuxinator + nvim configs)"
+        echo "🚀 Starting background installations for remaining tools..."
+        
+        # Start external tools installation (now lower priority)
         install_external_tools_parallel &
         parallel_externals_pid=$!
         
         # Start Rust/Cargo installations in background and return immediately
-        start_rust_background_installation &
+        (start_rust_background_installation) &
         rust_background_pid=$!
         
         # Start NPM packages installation in background
-        start_npm_background_installation &
+        (start_npm_background_installation) &
         npm_background_pid=$!
+        
+        # Start Neovim setup in background
+        (start_neovim_background_setup) &
+        neovim_background_pid=$!
         
         # Store the background process PIDs for tracking
         echo $rust_background_pid > ~/.dotfiles_rust_install.pid
         echo $npm_background_pid > ~/.dotfiles_npm_install.pid
+        echo $neovim_background_pid > ~/.dotfiles_neovim_setup.pid
         
-        # Wait for external tools to complete first (they're generally faster)
+        # Wait for external tools to complete (now lower priority)
         wait $parallel_externals_pid
         if [ $? -ne 0 ]; then
           echo "❌ External tools installation failed" >> $LOG_FILE
         fi
         
-        # Setup git tools immediately after external tools complete
-        start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
-        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-        log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
-        
-        # Install tmux plugins immediately after TPM is available
-        start_time=$(start_operation "Installing tmux plugins")
-        ~/.tmux/plugins/tpm/scripts/install_plugins.sh
-        log_with_timing "Installing tmux plugins" $start_time
-        
-        # Install Ruby gems in parallel (now foreground but parallelized)
-        start_time=$(start_operation "Installing Ruby gems in parallel")
-        install_ruby_gems_parallel
-        log_with_timing "Installing Ruby gems in parallel" $start_time
-        
         # Let user know about background installations
         echo ""
         echo "🦀 Rust tools are installing in the background (PID: $rust_background_pid)"
         echo "📦 NPM packages are installing in the background (PID: $npm_background_pid)"
+        echo "🔌 Neovim plugins are setting up in the background (PID: $neovim_background_pid)"
         echo "📄 Check Rust progress: tail -f ~/.dotfiles_rust_install.log"
         echo "📄 Check NPM progress: tail -f ~/.dotfiles_npm_install.log"
+        echo "📄 Check Neovim progress: tail -f ~/.dotfiles_neovim_setup.log"
         echo "🔍 Check Rust status: $(dirname "$0")/scripts/check-rust-install.sh"
         echo "🔍 Check NPM status: $(dirname "$0")/scripts/check-npm-install.sh"
+        echo "🔍 Check Neovim status: $(dirname "$0")/scripts/check-neovim-setup.sh"
         echo "⏳ Wait for Rust completion: wait $rust_background_pid"
         echo "⏳ Wait for NPM completion: wait $npm_background_pid"
+        echo "⏳ Wait for Neovim completion: wait $neovim_background_pid"
         echo ""
         
         # Refresh tmux status to show new indicators immediately
@@ -409,18 +436,8 @@ function install_software() {
       
     fi
     
-    # Setup Neovim plugins immediately after neovim dependencies are installed
-    start_time=$(start_operation "Syncing Neovim plugins (Lazy)")
-    nvim --headless "+Lazy! sync" +qa
-    log_with_timing "Syncing Neovim plugins (Lazy)" $start_time
-    
-    start_time=$(start_operation "Installing Mason tools in Neovim")
-    nvim --headless "+MasonToolsInstallSync" +qa
-    log_with_timing "Installing Mason tools in Neovim" $start_time
-    
-    start_time=$(start_operation "Downloading tmuxinator completions")
-    curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/
-    log_with_timing "Downloading tmuxinator completions" $start_time
+    # Most software setup now handled in background processes
+    # Only essential immediate setup remains in foreground
 }
 
 function setup_software() {
@@ -551,6 +568,63 @@ function install_ruby_gems_parallel() {
             echo "⚠️  Some Ruby gem installations may have failed"
         fi
     fi
+}
+
+function start_neovim_background_setup() {
+    local neovim_log=~/.dotfiles_neovim_setup.log
+    local neovim_pid_file=~/.dotfiles_neovim_setup.pid
+    
+    # Log the start of Neovim setup
+    echo "🔌 Starting Neovim plugins setup in background at $(date)" > $neovim_log
+    echo "PID: $$" >> $neovim_log
+    echo "" >> $neovim_log
+    
+    # Setup Neovim in background
+    {
+        echo "Syncing Neovim plugins (Lazy)..." >> $neovim_log
+        nvim --headless "+Lazy! sync" +qa >> $neovim_log 2>&1
+        lazy_exit_code=$?
+        
+        if [ $lazy_exit_code -eq 0 ]; then
+            echo "✅ Lazy sync completed successfully" >> $neovim_log
+        else
+            echo "⚠️  Lazy sync failed with exit code $lazy_exit_code" >> $neovim_log
+        fi
+        
+        echo "Installing Mason tools in Neovim..." >> $neovim_log
+        nvim --headless "+MasonToolsInstallSync" +qa >> $neovim_log 2>&1
+        mason_exit_code=$?
+        
+        if [ $mason_exit_code -eq 0 ]; then
+            echo "✅ Mason tools installation completed successfully" >> $neovim_log
+        else
+            echo "⚠️  Mason tools installation failed with exit code $mason_exit_code" >> $neovim_log
+        fi
+        
+        echo "Downloading tmuxinator completions..." >> $neovim_log
+        curl -L https://raw.githubusercontent.com/tmuxinator/tmuxinator/master/completion/tmuxinator.fish > ~/.config/fish/completions/tmuxinator.fish >> $neovim_log 2>&1
+        curl_exit_code=$?
+        
+        if [ $curl_exit_code -eq 0 ]; then
+            echo "✅ Tmuxinator completions downloaded successfully" >> $neovim_log
+        else
+            echo "⚠️  Tmuxinator completions download failed with exit code $curl_exit_code" >> $neovim_log
+        fi
+        
+        if [ $lazy_exit_code -eq 0 ] && [ $mason_exit_code -eq 0 ] && [ $curl_exit_code -eq 0 ]; then
+            echo "🎉 All Neovim setup completed successfully at $(date)" >> $neovim_log
+        else
+            echo "⚠️  Some Neovim setup steps failed - check logs above" >> $neovim_log
+        fi
+        
+        # Remove PID file when done and refresh tmux status
+        rm -f $neovim_pid_file
+        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        
+    } &
+    
+    # Store the background process PID
+    echo $! > $neovim_pid_file
 }
 
 echo '🔗 Starting file linking phase' >> $LOG_FILE
