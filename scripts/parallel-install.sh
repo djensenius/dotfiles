@@ -92,36 +92,51 @@ wait_for_parallel() {
     return 0
 }
 
-# Enhanced cargo installation with parallel execution
+# Enhanced cargo installation with parallel execution and priority ordering
 install_cargo_packages_parallel() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel cargo installations..." >> $LOG_FILE
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel cargo installations with priority ordering..." >> $LOG_FILE
     
-    # Start all cargo installations in parallel
-    run_parallel "cargo_eza" "CC=clang cargo install eza"
+    # PRIORITY BATCH 1: Essential tools needed soonest (atuin, zoxide)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 1: Essential shell tools" >> $LOG_FILE
+    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
     run_parallel "cargo_zoxide" "CC=clang cargo install --locked zoxide"
+    
+    # Wait for priority tools first
+    local priority_operations=("cargo_atuin" "cargo_zoxide")
+    if wait_for_parallel "${priority_operations[@]}"; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Priority batch 1 completed - essential shell tools ready" >> $LOG_FILE
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Priority batch 1 failed" >> $LOG_FILE
+    fi
+    
+    # PRIORITY BATCH 2: Common file tools
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 2: File management tools" >> $LOG_FILE
+    run_parallel "cargo_eza" "CC=clang cargo install eza"
     run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
     run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
     run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
-    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
+    
+    # PRIORITY BATCH 3: Development tools
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 3: Development tools" >> $LOG_FILE
     run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
     run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
     run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
     
-    # Pay-respects tools (group them since they're related)
+    # PRIORITY BATCH 4: Optional tools (lowest priority)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
     run_parallel "cargo_pay_respects" "
         CC=clang cargo install --locked pay-respects &&
         CC=clang cargo install --locked pay-respects-module-runtime-rules &&
         CC=clang cargo install --locked pay-respects-module-request-ai
     "
     
-    # Wait for all cargo installations to complete
-    local cargo_operations=(
-        "cargo_eza" "cargo_zoxide" "cargo_ripgrep" "cargo_fd_find" 
-        "cargo_bat" "cargo_atuin" "cargo_tree_sitter" "cargo_pay_respects"
-        "cargo_zellij" "cargo_bottom"
+    # Wait for all remaining installations to complete
+    local remaining_operations=(
+        "cargo_eza" "cargo_ripgrep" "cargo_fd_find" "cargo_bat"
+        "cargo_tree_sitter" "cargo_bottom" "cargo_zellij" "cargo_pay_respects"
     )
     
-    if wait_for_parallel "${cargo_operations[@]}"; then
+    if wait_for_parallel "${remaining_operations[@]}"; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
         return 0
     else
@@ -130,38 +145,69 @@ install_cargo_packages_parallel() {
     fi
 }
 
-# Cargo installation without Atuin setup (for background installation)
+# Cargo installation without Atuin setup (for background installation) with priority ordering
 install_cargo_packages_background() {
     # Use the same LOG_FILE that was set up by the background function
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel cargo installations..." >> $LOG_FILE
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel cargo installations with priority ordering..." >> $LOG_FILE
     
-    # Start all cargo installations in parallel
-    run_parallel "cargo_eza" "CC=clang cargo install eza"
+    # PRIORITY BATCH 1: Essential tools needed soonest (atuin, zoxide)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 1: Essential shell tools" >> $LOG_FILE
+    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
     run_parallel "cargo_zoxide" "CC=clang cargo install --locked zoxide"
+    
+    # Wait for priority tools first and make them available immediately
+    local priority_operations=("cargo_atuin" "cargo_zoxide")
+    if wait_for_parallel "${priority_operations[@]}"; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Priority batch 1 completed - essential shell tools ready" >> $LOG_FILE
+        
+        # Immediately setup atuin if credentials are available (don't wait for other tools)
+        if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up Atuin immediately after installation..." >> $LOG_FILE
+            ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY >> $LOG_FILE 2>&1
+            if [ $? -eq 0 ]; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin login completed immediately" >> $LOG_FILE
+            else
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  Atuin login failed - check credentials" >> $LOG_FILE
+            fi
+        fi
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Priority batch 1 failed" >> $LOG_FILE
+    fi
+    
+    # PRIORITY BATCH 2: Common file tools
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 2: File management tools" >> $LOG_FILE
+    run_parallel "cargo_eza" "CC=clang cargo install eza"
     run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
     run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
     run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
-    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
+    
+    # PRIORITY BATCH 3: Development tools
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 3: Development tools" >> $LOG_FILE
     run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
     run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
     run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
     
-    # Pay-respects tools (group them since they're related)
+    # PRIORITY BATCH 4: Optional tools (lowest priority)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
     run_parallel "cargo_pay_respects" "
         CC=clang cargo install --locked pay-respects &&
         CC=clang cargo install --locked pay-respects-module-runtime-rules &&
         CC=clang cargo install --locked pay-respects-module-request-ai
     "
     
-    # Wait for all cargo installations to complete
-    local cargo_operations=(
-        "cargo_eza" "cargo_zoxide" "cargo_ripgrep" "cargo_fd_find" 
-        "cargo_bat" "cargo_atuin" "cargo_tree_sitter" "cargo_pay_respects"
-        "cargo_zellij" "cargo_bottom"
+    # Wait for all remaining installations to complete
+    local remaining_operations=(
+        "cargo_eza" "cargo_ripgrep" "cargo_fd_find" "cargo_bat"
+        "cargo_tree_sitter" "cargo_bottom" "cargo_zellij" "cargo_pay_respects"
     )
     
-    if wait_for_parallel "${cargo_operations[@]}"; then
+    if wait_for_parallel "${remaining_operations[@]}"; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
+        
+        # Build bat cache after successful installation
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Building bat cache..." >> $LOG_FILE
+        ~/.cargo/bin/bat cache --build >> $LOG_FILE 2>&1
+        
         return 0
     else
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> $LOG_FILE
