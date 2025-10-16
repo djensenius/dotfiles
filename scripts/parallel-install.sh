@@ -215,6 +215,51 @@ install_cargo_packages_background() {
     fi
 }
 
+# Cargo installation for remaining tools (atuin, zoxide, tree-sitter already installed)
+install_cargo_packages_background_remaining() {
+    # Use the same LOG_FILE that was set up by the background function
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting remaining cargo installations (atuin, zoxide, tree-sitter already done)..." >> $LOG_FILE
+    
+    # PRIORITY BATCH 2: Common file tools
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting file management tools" >> $LOG_FILE
+    run_parallel "cargo_eza" "CC=clang cargo install eza"
+    run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
+    run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
+    run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
+    
+    # PRIORITY BATCH 3: Development tools
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting development tools" >> $LOG_FILE
+    run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
+    run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
+    
+    # PRIORITY BATCH 4: Optional tools (lowest priority)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting optional tools" >> $LOG_FILE
+    run_parallel "cargo_pay_respects" "
+        CC=clang cargo install --locked pay-respects &&
+        CC=clang cargo install --locked pay-respects-module-runtime-rules &&
+        CC=clang cargo install --locked pay-respects-module-request-ai
+    "
+    
+    # Wait for all remaining installations to complete
+    local remaining_operations=(
+        "cargo_eza" "cargo_ripgrep" "cargo_fd_find" "cargo_bat"
+        "cargo_bottom" "cargo_zellij" "cargo_pay_respects"
+    )
+    
+    if wait_for_parallel "${remaining_operations[@]}"; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All remaining cargo installations completed successfully" >> $LOG_FILE
+        
+        # Build bat cache after successful installation
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Building bat cache..." >> $LOG_FILE
+        ~/.cargo/bin/bat cache --build >> $LOG_FILE 2>&1
+        
+        return 0
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some remaining cargo installations failed" >> $LOG_FILE
+        return 1
+    fi
+}
+
 # Parallel external tool downloads
 install_external_tools_parallel() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel external tool downloads..." >> $LOG_FILE
@@ -359,6 +404,7 @@ export -f run_parallel
 export -f wait_for_parallel
 export -f install_cargo_packages_parallel
 export -f install_cargo_packages_background
+export -f install_cargo_packages_background_remaining
 export -f install_external_tools_parallel
 export -f setup_git_tools_parallel
 export -f generate_timing_summary
