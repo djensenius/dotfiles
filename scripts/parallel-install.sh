@@ -97,25 +97,28 @@ install_cargo_packages_parallel() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel cargo installations..." >> $LOG_FILE
     
     # Start all cargo installations in parallel
-    run_parallel "cargo_eza" "cargo install eza"
-    run_parallel "cargo_zoxide" "cargo install --locked zoxide"
-    run_parallel "cargo_ripgrep" "cargo install ripgrep"
-    run_parallel "cargo_fd_find" "cargo install fd-find"
-    run_parallel "cargo_bat" "cargo install --locked bat"
-    run_parallel "cargo_atuin" "cargo install --locked atuin"
-    run_parallel "cargo_tree_sitter" "cargo install --locked tree-sitter-cli"
+    run_parallel "cargo_eza" "CC=clang cargo install eza"
+    run_parallel "cargo_zoxide" "CC=clang cargo install --locked zoxide"
+    run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
+    run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
+    run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
+    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
+    run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
+    run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
+    run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
     
     # Pay-respects tools (group them since they're related)
     run_parallel "cargo_pay_respects" "
-        cargo install --locked pay-respects &&
-        cargo install --locked pay-respects-module-runtime-rules &&
-        cargo install --locked pay-respects-module-request-ai
+        CC=clang cargo install --locked pay-respects &&
+        CC=clang cargo install --locked pay-respects-module-runtime-rules &&
+        CC=clang cargo install --locked pay-respects-module-request-ai
     "
     
     # Wait for all cargo installations to complete
     local cargo_operations=(
         "cargo_eza" "cargo_zoxide" "cargo_ripgrep" "cargo_fd_find" 
         "cargo_bat" "cargo_atuin" "cargo_tree_sitter" "cargo_pay_respects"
+        "cargo_zellij" "cargo_bottom"
     )
     
     if wait_for_parallel "${cargo_operations[@]}"; then
