@@ -244,19 +244,55 @@ function install_software() {
         # Parallel installation mode with fast track for essential tools
         echo "🚀 Using parallel installation with fast track for essential tools..."
         
+        # FOREGROUND PRIORITY: Install atuin, zoxide, and tree-sitter in parallel before login
+        start_time=$(start_operation "Foreground priority: atuin, zoxide, tree-sitter")
+        echo "🎯 Installing atuin, zoxide, and tree-sitter in foreground (parallel)..."
+        
+        # Install the three critical tools in parallel in foreground
+        CC=clang cargo install --locked atuin &
+        atuin_pid=$!
+        CC=clang cargo install --locked zoxide &
+        zoxide_pid=$!
+        CC=clang cargo install --locked tree-sitter-cli &
+        tree_sitter_pid=$!
+        
+        # Wait for all three to complete
+        wait $atuin_pid
+        atuin_exit=$?
+        wait $zoxide_pid
+        zoxide_exit=$?
+        wait $tree_sitter_pid
+        tree_sitter_exit=$?
+        
+        if [ $atuin_exit -eq 0 ] && [ $zoxide_exit -eq 0 ] && [ $tree_sitter_exit -eq 0 ]; then
+            echo "✅ All priority tools installed successfully!"
+        else
+            echo "⚠️ Some priority tools failed to install"
+        fi
+        
+        log_with_timing "Foreground priority: atuin, zoxide, tree-sitter" $start_time
+        
+        # Setup atuin immediately if credentials are available
+        if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ] && [ $atuin_exit -eq 0 ]; then
+            start_time=$(start_operation "Atuin login setup")
+            echo "🔐 Setting up Atuin login..."
+            ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+            log_with_timing "Atuin login setup" $start_time
+        fi
+        
         # FAST TRACK: Setup essential tools immediately (tmux, nvim ready)
         start_time=$(start_operation "Fast track: Essential tool setup")
         
         # 1. Clone TPM immediately (user priority #1: tmux plugins)
         git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm &
-        tpm_pid=$!
+        tmp_pid=$!
         
         # 2. Install only tmuxinator immediately (user priority #2) - minimal Ruby setup
         sudo gem install tmuxinator &
         tmuxinator_pid=$!
         
         # 3. Wait for TPM and install plugins
-        wait $tpm_pid
+        wait $tmp_pid
         ~/.tmux/plugins/tpm/scripts/install_plugins.sh
         
         # 4. Wait for tmuxinator 
@@ -268,15 +304,15 @@ function install_software() {
         
         log_with_timing "Fast track: Essential tool setup" $start_time
         
-        echo "✅ Essential tools ready! (tmux + plugins + tmuxinator + nvim configs)"
+        echo "✅ Essential tools ready! (atuin + zoxide + tree-sitter + tmux + plugins + tmuxinator + nvim configs)"
         echo "🚀 Starting background installations for remaining tools..."
         
         # Start external tools installation (now lower priority)
         install_external_tools_parallel &
         parallel_externals_pid=$!
         
-        # Start Rust/Cargo installations in background and return immediately
-        (start_rust_background_installation) &
+        # Start Rust/Cargo installations in background (excluding the tools we already installed)
+        (start_rust_background_installation_remaining) &
         rust_background_pid=$!
         
         # Start NPM packages installation in background
@@ -507,6 +543,47 @@ function start_rust_background_installation() {
             echo "🎉 All Rust tools installation completed successfully at $(date)" >> $rust_log
         else
             echo "❌ Cargo installations failed with exit code $cargo_exit_code" >> $rust_log
+        fi
+        
+        # Remove PID file when done and refresh tmux status
+        rm -f $rust_pid_file
+        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        
+    } &
+    
+    # Store the background process PID
+    echo $! > $rust_pid_file
+}
+
+function start_rust_background_installation_remaining() {
+    local rust_log=~/.dotfiles_rust_install.log
+    local rust_pid_file=~/.dotfiles_rust_install.pid
+    
+    # Log the start of Rust installation (remaining tools)
+    echo "🦀 Starting remaining Rust tools installation in background at $(date)" > $rust_log
+    echo "PID: $$" >> $rust_log
+    echo "Note: atuin, zoxide, tree-sitter already installed in foreground" >> $rust_log
+    echo "" >> $rust_log
+    
+    # Install remaining Rust/Cargo packages in background
+    {
+        # Set LOG_FILE for the parallel installation functions
+        export LOG_FILE=$rust_log
+        
+        echo "Installing remaining Rust/Cargo packages..." >> $rust_log
+        install_cargo_packages_background_remaining
+        cargo_exit_code=$?
+        
+        if [ $cargo_exit_code -eq 0 ]; then
+            echo "✅ Remaining cargo installations completed successfully" >> $rust_log
+            
+            # Build bat cache after successful installation
+            echo "Building bat cache..." >> $rust_log
+            ~/.cargo/bin/bat cache --build >> $rust_log 2>&1
+            
+            echo "🎉 All remaining Rust tools installation completed successfully at $(date)" >> $rust_log
+        else
+            echo "❌ Remaining cargo installations failed with exit code $cargo_exit_code" >> $rust_log
         fi
         
         # Remove PID file when done and refresh tmux status
