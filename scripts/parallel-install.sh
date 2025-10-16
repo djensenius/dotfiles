@@ -123,19 +123,45 @@ install_cargo_packages_parallel() {
     
     if wait_for_parallel "${cargo_operations[@]}"; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
-        
-        # Setup atuin immediately after cargo installations complete
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up atuin after cargo installation..." >> $LOG_FILE
-        atuin_start_time=$(date +%s)
-        if [ -d /workspaces/github ]; then
-          ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-        else
-          /usr/local/cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-        fi 2>/dev/null || echo "Atuin login failed - credentials may be missing"
-        atuin_end_time=$(date +%s)
-        TIMING_DATA["Logging into Atuin"]=$((atuin_end_time - atuin_start_time))
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin setup completed" >> $LOG_FILE
-        
+        return 0
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> $LOG_FILE
+        return 1
+    fi
+}
+
+# Cargo installation without Atuin setup (for background installation)
+install_cargo_packages_background() {
+    # Use the same LOG_FILE that was set up by the background function
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 Starting parallel cargo installations..." >> $LOG_FILE
+    
+    # Start all cargo installations in parallel
+    run_parallel "cargo_eza" "CC=clang cargo install eza"
+    run_parallel "cargo_zoxide" "CC=clang cargo install --locked zoxide"
+    run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
+    run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
+    run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
+    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
+    run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
+    run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
+    run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
+    
+    # Pay-respects tools (group them since they're related)
+    run_parallel "cargo_pay_respects" "
+        CC=clang cargo install --locked pay-respects &&
+        CC=clang cargo install --locked pay-respects-module-runtime-rules &&
+        CC=clang cargo install --locked pay-respects-module-request-ai
+    "
+    
+    # Wait for all cargo installations to complete
+    local cargo_operations=(
+        "cargo_eza" "cargo_zoxide" "cargo_ripgrep" "cargo_fd_find" 
+        "cargo_bat" "cargo_atuin" "cargo_tree_sitter" "cargo_pay_respects"
+        "cargo_zellij" "cargo_bottom"
+    )
+    
+    if wait_for_parallel "${cargo_operations[@]}"; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
         return 0
     else
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> $LOG_FILE
@@ -286,6 +312,7 @@ generate_timing_summary() {
 export -f run_parallel
 export -f wait_for_parallel
 export -f install_cargo_packages_parallel
+export -f install_cargo_packages_background
 export -f install_external_tools_parallel
 export -f setup_git_tools_parallel
 export -f generate_timing_summary

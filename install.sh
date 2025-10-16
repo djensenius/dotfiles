@@ -187,6 +187,12 @@ function link_files() {
     ln -sf $(pwd)/delta ~/.config/delta
     ln -sf $(pwd)/eza ~/.config/eza
     ln -sf $(pwd)/k9s ~/.config/k9s
+    
+    # Make tmux indicator script available in PATH for tmux config
+    if [ -d /workspaces/github ]; then
+        sudo ln -sf $(pwd)/scripts/tmux-background-install-indicator.sh /usr/local/bin/
+    fi
+    
     log_with_timing "Linking terminal tool configs" $start_time
     
     # Codespaces-specific configuration
@@ -228,12 +234,21 @@ function install_software() {
         # Parallel installation mode
         echo "🚀 Using parallel installation for major components..."
         
-        # Start all parallel installation groups
+        # Start external tools installation (faster, can complete first)
         install_external_tools_parallel &
         parallel_externals_pid=$!
         
-        install_cargo_packages_parallel &
-        parallel_cargo_pid=$!
+        # Start Rust/Cargo installations in background and return immediately
+        start_rust_background_installation &
+        rust_background_pid=$!
+        
+        # Start NPM packages installation in background
+        start_npm_background_installation &
+        npm_background_pid=$!
+        
+        # Store the background process PIDs for tracking
+        echo $rust_background_pid > ~/.dotfiles_rust_install.pid
+        echo $npm_background_pid > ~/.dotfiles_npm_install.pid
         
         # Wait for external tools to complete first (they're generally faster)
         wait $parallel_externals_pid
@@ -241,27 +256,7 @@ function install_software() {
           echo "❌ External tools installation failed" >> $LOG_FILE
         fi
         
-        # Wait for cargo installations (these are the longest)
-        wait $parallel_cargo_pid
-        if [ $? -ne 0 ]; then
-          echo "❌ Cargo installations failed" >> $LOG_FILE
-        fi
-        
-        # Sequential operations that depend on cargo tools
-        start_time=$(start_operation "Building bat cache")
-        ~/.cargo/bin/bat cache --build
-        log_with_timing "Building bat cache" $start_time
-        
-        # Setup software immediately after installation to avoid race conditions
-        echo "🔧 Setting up installed software..."
-        
-        # Setup Atuin immediately after cargo installation
-        start_time=$(start_operation "Logging into Atuin")
-        echo "Log in to atuin"
-        ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-        log_with_timing "Logging into Atuin" $start_time
-        
-        # Setup git tools immediately after installation
+        # Setup git tools immediately after external tools complete
         start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
         git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
         log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
@@ -270,6 +265,26 @@ function install_software() {
         start_time=$(start_operation "Installing tmux plugins")
         ~/.tmux/plugins/tpm/scripts/install_plugins.sh
         log_with_timing "Installing tmux plugins" $start_time
+        
+        # Install Ruby gems in parallel (now foreground but parallelized)
+        start_time=$(start_operation "Installing Ruby gems in parallel")
+        install_ruby_gems_parallel
+        log_with_timing "Installing Ruby gems in parallel" $start_time
+        
+        # Let user know about background installations
+        echo ""
+        echo "🦀 Rust tools are installing in the background (PID: $rust_background_pid)"
+        echo "📦 NPM packages are installing in the background (PID: $npm_background_pid)"
+        echo "📄 Check Rust progress: tail -f ~/.dotfiles_rust_install.log"
+        echo "📄 Check NPM progress: tail -f ~/.dotfiles_npm_install.log"
+        echo "🔍 Check Rust status: $(dirname "$0")/scripts/check-rust-install.sh"
+        echo "🔍 Check NPM status: $(dirname "$0")/scripts/check-npm-install.sh"
+        echo "⏳ Wait for Rust completion: wait $rust_background_pid"
+        echo "⏳ Wait for NPM completion: wait $npm_background_pid"
+        echo ""
+        
+        # Refresh tmux status to show new indicators immediately
+        $(dirname "$0")/scripts/refresh-tmux-status.sh
         
       else
         # Original sequential mode
@@ -383,18 +398,16 @@ function install_software() {
         tar xf lazygit.tar.gz lazygit
         sudo install lazygit -D -t /usr/local/bin/
         log_with_timing "Installing LazyGit" $start_time
+        
+        # Install Ruby gems in parallel
+        start_time=$(start_operation "Installing Ruby gems in parallel")
+        install_ruby_gems_parallel
+        log_with_timing "Installing Ruby gems in parallel" $start_time
       fi
       
-      # NPM installations (keep sequential for now)
-      start_time=$(start_operation "Installing NPM global packages")
-      npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim
-      log_with_timing "Installing NPM global packages" $start_time
+      # Sequential installations removed - now handled in background or parallel
+      
     fi
-    
-    # Ruby gems installation
-    start_time=$(start_operation "Installing Ruby gems")
-    sudo gem install tmuxinator neovim-ruby-host
-    log_with_timing "Installing Ruby gems" $start_time
     
     # Setup Neovim plugins immediately after neovim dependencies are installed
     start_time=$(start_operation "Syncing Neovim plugins (Lazy)")
@@ -421,6 +434,122 @@ function setup_software() {
       cd /workspaces/github
       git status
       log_with_timing "Checking git status in workspace" $start_time
+    fi
+}
+
+function start_rust_background_installation() {
+    local rust_log=~/.dotfiles_rust_install.log
+    local rust_pid_file=~/.dotfiles_rust_install.pid
+    
+    # Log the start of Rust installation
+    echo "🦀 Starting Rust tools installation in background at $(date)" > $rust_log
+    echo "PID: $$" >> $rust_log
+    echo "" >> $rust_log
+    
+    # Install Rust/Cargo packages in background
+    {
+        # Set LOG_FILE for the parallel installation functions
+        export LOG_FILE=$rust_log
+        
+        echo "Installing Rust/Cargo packages..." >> $rust_log
+        install_cargo_packages_background
+        cargo_exit_code=$?
+        
+        if [ $cargo_exit_code -eq 0 ]; then
+            echo "✅ Cargo installations completed successfully" >> $rust_log
+            
+            # Build bat cache after successful installation
+            echo "Building bat cache..." >> $rust_log
+            ~/.cargo/bin/bat cache --build >> $rust_log 2>&1
+            
+            # Setup Atuin after successful installation
+            if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ]; then
+                echo "Setting up Atuin..." >> $rust_log
+                ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY >> $rust_log 2>&1
+                if [ $? -eq 0 ]; then
+                    echo "✅ Atuin login completed" >> $rust_log
+                else
+                    echo "⚠️  Atuin login failed - check credentials" >> $rust_log
+                fi
+            else
+                echo "⚠️  Atuin credentials not found - skipping login" >> $rust_log
+            fi
+            
+            echo "🎉 All Rust tools installation completed successfully at $(date)" >> $rust_log
+        else
+            echo "❌ Cargo installations failed with exit code $cargo_exit_code" >> $rust_log
+        fi
+        
+        # Remove PID file when done and refresh tmux status
+        rm -f $rust_pid_file
+        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        
+    } &
+    
+    # Store the background process PID
+    echo $! > $rust_pid_file
+}
+
+function start_npm_background_installation() {
+    local npm_log=~/.dotfiles_npm_install.log
+    local npm_pid_file=~/.dotfiles_npm_install.pid
+    
+    # Log the start of NPM installation
+    echo "📦 Starting NPM packages installation in background at $(date)" > $npm_log
+    echo "PID: $$" >> $npm_log
+    echo "" >> $npm_log
+    
+    # Install NPM packages in background
+    {
+        echo "Installing NPM global packages..." >> $npm_log
+        
+        if [ -d /workspaces/github ]; then
+            npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim >> $npm_log 2>&1
+            npm_exit_code=$?
+            
+            if [ $npm_exit_code -eq 0 ]; then
+                echo "✅ NPM packages installation completed successfully" >> $npm_log
+                echo "🎉 All NPM packages installed successfully at $(date)" >> $npm_log
+            else
+                echo "❌ NPM packages installation failed with exit code $npm_exit_code" >> $npm_log
+            fi
+        else
+            echo "⚠️  Not in Codespaces environment - skipping NPM installation" >> $npm_log
+        fi
+        
+        # Remove PID file when done and refresh tmux status
+        rm -f $npm_pid_file
+        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        
+    } &
+    
+    # Store the background process PID
+    echo $! > $npm_pid_file
+}
+
+function install_ruby_gems_parallel() {
+    if [ -d /workspaces/github ]; then
+        echo "Installing Ruby gems in parallel..."
+        
+        # Install gems in parallel using background processes
+        sudo gem install tmuxinator &
+        tmuxinator_pid=$!
+        
+        sudo gem install neovim-ruby-host &
+        neovim_ruby_pid=$!
+        
+        # Wait for both installations to complete
+        wait $tmuxinator_pid
+        tmuxinator_exit=$?
+        
+        wait $neovim_ruby_pid  
+        neovim_ruby_exit=$?
+        
+        if [ $tmuxinator_exit -eq 0 ] && [ $neovim_ruby_exit -eq 0 ]; then
+            echo "✅ All Ruby gems installed successfully"
+        else
+            echo "⚠️  Some Ruby gem installations may have failed"
+        fi
     fi
 }
 

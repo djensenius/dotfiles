@@ -18,12 +18,31 @@ All configurations use the [Catppuccin Mocha theme](https://github.com/catppucci
 
 For GitHub Codespaces, the setup is fully automated with **parallel installation** for faster setup:
 ```bash
-./install.sh                    # Fast parallel mode (5-8 minutes)
+./install.sh                    # Fast parallel mode (3-5 minutes foreground + background Rust tools)
 ./install.sh --sequential       # Original sequential mode (10-15 minutes)
 ./install.sh --help             # See all options
 ```
 
-**Performance:** The new parallel installation reduces setup time by 40-60% by running independent operations simultaneously.
+**New Background Installation:** The parallel mode now runs Rust/Cargo tool installation and NPM packages in the background, allowing you to start using your environment immediately while tools like `bat`, `rg`, `fd`, `eza`, `zoxide`, `atuin`, and various language servers install in the background.
+
+**Visual Progress Indicator:** When using tmux, a spinning indicator ( ) appears in the status line showing active background installations with the same animation used by lualine in nvim.
+
+**Background Installation Monitoring:**
+```bash
+# Check installation status
+./scripts/check-rust-install.sh    # Rust tools (bat, rg, fd, etc.)
+./scripts/check-npm-install.sh     # NPM packages (language servers, etc.)
+
+# Monitor installation progress
+tail -f ~/.dotfiles_rust_install.log    # Rust tools progress
+tail -f ~/.dotfiles_npm_install.log     # NPM packages progress
+
+# Wait for completion (if needed)
+wait $(cat ~/.dotfiles_rust_install.pid)  # Wait for Rust tools
+wait $(cat ~/.dotfiles_npm_install.pid)   # Wait for NPM packages
+```
+
+**Performance:** The new parallel installation reduces foreground setup time by 70-80% by running Rust compilations and NPM installations in the background.
 
 ### Manual Local Installation
 
