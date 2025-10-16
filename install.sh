@@ -178,12 +178,6 @@ function link_files() {
     ln -sf $(pwd)/bottom ~/.config/bottom
     ln -sf $(pwd)/tmux ~/.config/tmux
     
-    # Download zjstatus plugin for Zellij
-    start_time=$(start_operation "Downloading zjstatus plugin for Zellij")
-    mkdir -p ~/.config/zellij/plugins
-    curl -L https://github.com/dj95/zjstatus/releases/download/v0.21.1/zjstatus.wasm \
-      -o ~/.config/zellij/plugins/zjstatus.wasm 2>/dev/null || echo "Warning: Failed to download zjstatus plugin"
-    log_with_timing "Downloading zjstatus plugin for Zellij" $start_time
     ln -sf $(pwd)/delta ~/.config/delta
     ln -sf $(pwd)/eza ~/.config/eza
     ln -sf $(pwd)/k9s ~/.config/k9s
@@ -195,7 +189,7 @@ function link_files() {
     
     log_with_timing "Linking terminal tool configs" $start_time
     
-    # Codespaces-specific configuration
+    # Codespaces-specific configuration - background non-critical operations
     if [ -d /workspaces/github ]; then
       start_time=$(start_operation "Linking GitHub Codespaces Ruby tools")
       sudo ln -sf /workspaces/github/bin/rubocop /usr/local/bin/rubocop
@@ -205,9 +199,14 @@ function link_files() {
       sudo ln -sf /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
       log_with_timing "Linking GitHub Codespaces Ruby tools" $start_time
       
+      # Background locale update as it's not immediately critical
       start_time=$(start_operation "Updating locale settings")
-      sudo update-locale LANG=en_US.UTF-8 LC_TYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8
+      (sudo update-locale LANG=en_US.UTF-8 LC_TYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8) &
+      locale_update_pid=$!
       log_with_timing "Updating locale settings" $start_time
+      
+      # Store locale update PID for later synchronization
+      echo $locale_update_pid > ~/.dotfiles_locale_update.pid
     fi
 }
 
@@ -231,9 +230,14 @@ function install_software() {
       ) &
       additional_packages_pid=$!
       log_with_timing "Installing additional packages in background" $start_time
+      
+      # Wait for apt remove to complete before continuing
+      wait $apt_remove_pid
 
+      # Remove conflicting APT packages in background to avoid blocking
       start_time=$(start_operation "Removing conflicting APT packages")
-      sudo apt remove bat ripgrep -y
+      (sudo apt remove bat ripgrep -y) &
+      apt_remove_pid=$!
       log_with_timing "Removing conflicting APT packages" $start_time
       
       if [[ "$PARALLEL_MODE" == "true" ]]; then
@@ -259,7 +263,7 @@ function install_software() {
         wait $tmuxinator_pid
         
         # 5. Start additional Ruby gems in background (neovim-ruby-host not immediately needed)
-        (sudo gem install neovim-ruby-host) &
+        (sudo gem install neovim-ruby-host > /dev/null 2>&1) &
         ruby_background_pid=$!
         
         log_with_timing "Fast track: Essential tool setup" $start_time
@@ -288,26 +292,38 @@ function install_software() {
         echo $npm_background_pid > ~/.dotfiles_npm_install.pid
         echo $neovim_background_pid > ~/.dotfiles_neovim_setup.pid
         
+        # Start git status check as completely independent background process
+        start_git_status_background &
+        git_status_background_pid=$!
+        echo $git_status_background_pid > ~/.dotfiles_git_status.pid
+        
         # Wait for external tools to complete (now lower priority)
         wait $parallel_externals_pid
         if [ $? -ne 0 ]; then
           echo "❌ External tools installation failed" >> $LOG_FILE
         fi
         
+        # Wait for additional packages to complete before showing status
+        wait $additional_packages_pid
+        
         # Let user know about background installations
         echo ""
         echo "🦀 Rust tools are installing in the background (PID: $rust_background_pid)"
+        echo "   📊 Priority: atuin & zoxide install first, then other tools"
         echo "📦 NPM packages are installing in the background (PID: $npm_background_pid)"
         echo "🔌 Neovim plugins are setting up in the background (PID: $neovim_background_pid)"
+        echo "📊 Git status check running in background (PID: $git_status_background_pid)"
         echo "📄 Check Rust progress: tail -f ~/.dotfiles_rust_install.log"
         echo "📄 Check NPM progress: tail -f ~/.dotfiles_npm_install.log"
         echo "📄 Check Neovim progress: tail -f ~/.dotfiles_neovim_setup.log"
+        echo "📄 Check Git status: tail -f ~/.dotfiles_git_status.log"
         echo "🔍 Check Rust status: $(dirname "$0")/scripts/check-rust-install.sh"
         echo "🔍 Check NPM status: $(dirname "$0")/scripts/check-npm-install.sh"
         echo "🔍 Check Neovim status: $(dirname "$0")/scripts/check-neovim-setup.sh"
         echo "⏳ Wait for Rust completion: wait $rust_background_pid"
         echo "⏳ Wait for NPM completion: wait $npm_background_pid"
         echo "⏳ Wait for Neovim completion: wait $neovim_background_pid"
+        echo "⏳ Wait for Git status completion: wait $git_status_background_pid"
         echo ""
         
         # Refresh tmux status to show new indicators immediately
@@ -443,14 +459,20 @@ function install_software() {
 function setup_software() {
     # Final environment and shell setup (must run at the very end)
     if [ -d /workspaces/github ]; then
+      # Change shell is the only critical operation that must complete
       start_time=$(start_operation "Changing default shell to fish")
       sudo chsh -s /usr/bin/fish vscode
       log_with_timing "Changing default shell to fish" $start_time
       
-      start_time=$(start_operation "Checking git status in workspace")
-      cd /workspaces/github
-      git status
-      log_with_timing "Checking git status in workspace" $start_time
+      # Wait for locale update from linking phase if it's still running
+      if [ -f ~/.dotfiles_locale_update.pid ]; then
+        locale_pid=$(cat ~/.dotfiles_locale_update.pid)
+        if kill -0 $locale_pid 2>/dev/null; then
+          echo "⏳ Waiting for locale update to complete..."
+          wait $locale_pid
+        fi
+        rm -f ~/.dotfiles_locale_update.pid
+      fi
     fi
 }
 
@@ -479,18 +501,8 @@ function start_rust_background_installation() {
             echo "Building bat cache..." >> $rust_log
             ~/.cargo/bin/bat cache --build >> $rust_log 2>&1
             
-            # Setup Atuin after successful installation
-            if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ]; then
-                echo "Setting up Atuin..." >> $rust_log
-                ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY >> $rust_log 2>&1
-                if [ $? -eq 0 ]; then
-                    echo "✅ Atuin login completed" >> $rust_log
-                else
-                    echo "⚠️  Atuin login failed - check credentials" >> $rust_log
-                fi
-            else
-                echo "⚠️  Atuin credentials not found - skipping login" >> $rust_log
-            fi
+            # Note: Atuin setup is now handled immediately in the priority batch
+            # within install_cargo_packages_background function
             
             echo "🎉 All Rust tools installation completed successfully at $(date)" >> $rust_log
         else
@@ -625,6 +637,44 @@ function start_neovim_background_setup() {
     
     # Store the background process PID
     echo $! > $neovim_pid_file
+}
+
+function start_git_status_background() {
+    local git_log=~/.dotfiles_git_status.log
+    local git_pid_file=~/.dotfiles_git_status.pid
+    
+    # Log the start of Git status check
+    echo "📊 Starting Git status check in background at $(date)" > $git_log
+    echo "PID: $$" >> $git_log
+    echo "" >> $git_log
+    
+    # Run git status in background
+    {
+        if [ -d /workspaces/github ]; then
+            echo "Checking git status in /workspaces/github..." >> $git_log
+            cd /workspaces/github
+            git --no-pager status >> $git_log 2>&1
+            git_exit_code=$?
+            
+            if [ $git_exit_code -eq 0 ]; then
+                echo "✅ Git status check completed successfully" >> $git_log
+            else
+                echo "⚠️  Git status check failed with exit code $git_exit_code" >> $git_log
+            fi
+            
+            echo "🎉 Git status check completed at $(date)" >> $git_log
+        else
+            echo "⚠️  Not in Codespaces environment - skipping git status check" >> $git_log
+        fi
+        
+        # Remove PID file when done and refresh tmux status
+        rm -f $git_pid_file
+        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        
+    } &
+    
+    # Store the background process PID
+    echo $! > $git_pid_file
 }
 
 echo '🔗 Starting file linking phase' >> $LOG_FILE
