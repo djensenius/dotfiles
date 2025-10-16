@@ -177,7 +177,6 @@ function link_files() {
     ln -sf $(pwd)/yazi ~/.config/yazi
     ln -sf $(pwd)/bottom ~/.config/bottom
     ln -sf $(pwd)/tmux ~/.config/tmux
-    ln -sf $(pwd)/zellij ~/.config/zellij
     
     # Download zjstatus plugin for Zellij
     start_time=$(start_operation "Downloading zjstatus plugin for Zellij")
@@ -215,7 +214,7 @@ function install_software() {
       
       # APT package installation (must be done first - dependencies for other tools)
       start_time=$(start_operation "Installing APT packages")
-      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most luarocks -y
+      sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat ruby-dev jq tmux libfuse2 fuse software-properties-common most luarocks clang -y
       log_with_timing "Installing APT packages" $start_time
       
       sudo luarocks install luacheck
@@ -302,39 +301,47 @@ function install_software() {
         
         # Cargo installations (these tend to be slow)
         start_time=$(start_operation "Installing eza via cargo")
-        cargo install eza
+        CC=clang cargo install eza
         log_with_timing "Installing eza via cargo" $start_time
         
         start_time=$(start_operation "Installing zoxide via cargo")
-        cargo install --locked zoxide
+        CC=clangcargo install --locked zoxide
         log_with_timing "Installing zoxide via cargo" $start_time
         
         start_time=$(start_operation "Installing ripgrep via cargo")
-        cargo install ripgrep
+        CC=clang cargo install ripgrep
         log_with_timing "Installing ripgrep via cargo" $start_time
         
         start_time=$(start_operation "Installing fd-find via cargo")
-        cargo install fd-find
+        CC=clang cargo install fd-find
         log_with_timing "Installing fd-find via cargo" $start_time
         
         start_time=$(start_operation "Installing bat via cargo")
-        cargo install --locked bat
+        CC=clang cargo install --locked bat
         log_with_timing "Installing bat via cargo" $start_time
         
         start_time=$(start_operation "Installing atuin via cargo")
-        cargo install --locked atuin
+        CC=clang cargo install --locked atuin
         log_with_timing "Installing atuin via cargo" $start_time
         
         start_time=$(start_operation "Installing tree-sitter-cli via cargo")
-        cargo install --locked tree-sitter-cli
+        CC=clang cargo install --locked tree-sitter-cli
         log_with_timing "Installing tree-sitter-cli via cargo" $start_time
         
         start_time=$(start_operation "Installing pay-respects tools via cargo")
-        cargo install --locked pay-respects
-        cargo install --locked pay-respects-module-runtime-rules
-        cargo install --locked pay-respects-module-request-ai
+        CC=clang cargo install --locked pay-respects
+        CC=clang cargo install --locked pay-respects-module-runtime-rules
+        CC=clang cargo install --locked pay-respects-module-request-ai
         log_with_timing "Installing pay-respects tools via cargo" $start_time
         
+        start_time=$(start_operation "Installing zellij via cargo")
+        CC=clang cargo install --locked zellij
+        log_with_timing "Installing zellij via cargo" $start_time
+        
+        start_time=$(start_operation "Installing bottom tools via cargo")
+        CC=clang cargo install --locked bottom
+        log_with_timing "Installing bottom tools via cargo" $start_time
+
         # Bat cache build
         start_time=$(start_operation "Building bat cache")
         ~/.cargo/bin/bat cache --build

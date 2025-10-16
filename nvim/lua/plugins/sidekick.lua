@@ -5,7 +5,7 @@ return {
 		-- add any options here
 		cli = {
 			mux = {
-				backend = "tmux",
+				backend = "zellij",
 				enabled = true,
 			},
 			win = {
@@ -81,7 +81,7 @@ return {
 			function()
 				require("sidekick.cli").toggle({ name = "copilot", focus = true })
 			end,
-			desc = "Sidekick Toggle Claude",
+			desc = "Sidekick Toggle Copilot",
 		},
 	},
 }
