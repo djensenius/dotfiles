@@ -1,0 +1,61 @@
+[core]
+	editor = nvim
+  excludesfile = ~/.gitignore_local
+	fsmonitor = true
+  pager = delta
+	untrackedCache = true
+
+[include]
+  path = ~/.config/delta/delta-themes.gitconfig
+
+[pull]
+	rebase = false
+
+[codespaces-theme]
+	hide-status = 1
+
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  features = side-by-side line-numbers decorations Catppuccin-mocha
+  navigate = true
+
+[gpg]
+	program = /.codespaces/bin/gh-gpgsign
+
+[init]
+	defaultBranch = main
+
+[credential]
+	helper = /.codespaces/bin/gitcredential_github.sh
+
+[user]
+	name = David Jensenius
+	email = david@jensenius.com
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[push]
+  default = current
+
+[github]
+	user = djensenius
+
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+
+[credential]
+	helper = cache
+
+
+[alias]
+  m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout
+  mp = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout && git pull origin $(git rev-parse --abbrev-ref HEAD)
+
+[help]
+	autocorrect = 20

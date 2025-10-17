@@ -139,10 +139,10 @@ function link_files() {
     
     # Link core config files
     start_time=$(start_operation "Linking gitconfig")
-    # if [ -e ~/.gitconfig ]; then
-    #  rm ~/.gitconfig
-    # fi
-    # ln -s $(pwd)/gitconfig ~/.gitconfig
+    if [ -e ~/.gitconfig ]; then
+      rm ~/.gitconfig
+    fi
+    ln -s $(pwd)/gitconfig-github ~/.gitconfig
     log_with_timing "Linking gitconfig" $start_time
     
     start_time=$(start_operation "Linking gitignore_local")
