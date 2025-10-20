@@ -9,3 +9,4 @@ windows:
       panes:
         - tmux set-window-option -t2 automatic-rename on && nvim
   - Fish: tmux set-window-option -t3 automatic-rename
+  - Bottom: tmux set-window-option -t3 automatic-rename && btm
