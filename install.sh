@@ -177,6 +177,7 @@ function link_files() {
     ln -sf $(pwd)/yazi ~/.config/yazi
     ln -sf $(pwd)/bottom ~/.config/bottom
     ln -sf $(pwd)/tmux ~/.config/tmux
+    ln -sf $(pwd)/zellij ~/.config/zellij
     
     ln -sf $(pwd)/delta ~/.config/delta
     ln -sf $(pwd)/eza ~/.config/eza
