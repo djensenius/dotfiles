@@ -1,0 +1,4 @@
+// Zellij configuration for GitHub Copilot
+// Minimal config that disables the welcome message
+
+welcome_screen false
