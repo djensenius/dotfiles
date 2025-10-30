@@ -1,6 +1,11 @@
 return {
 	"neovim/nvim-lspconfig",
-	dependencies = { "nvim-tree/nvim-web-devicons", "folke/trouble.nvim", "saghen/blink.cmp" },
+	dependencies = {
+		"nvim-tree/nvim-web-devicons",
+		"folke/trouble.nvim",
+		"saghen/blink.cmp",
+		"williamboman/mason-lspconfig.nvim",
+	},
 	event = "VeryLazy",
 
 	config = function()
