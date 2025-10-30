@@ -5,6 +5,7 @@ if status is-interactive
     if test -d /workspaces
         __fish_reconstruct_path
     end
+    
     # Prompt and tools that hook into the interactive shell
     starship init fish | source
     zoxide init fish | source
@@ -21,4 +22,9 @@ if status is-interactive
 
     # Optional extra plugin
     command -q pay-respects; and pay-respects fish | source
+    
+    # Initialize mise for interactive shells
+    if command -q mise
+        mise activate fish | source
+    end
 end

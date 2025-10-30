@@ -1,4 +1,1 @@
-# mise activation
-if command -q mise
-    mise activate fish | source
-end
+# mise activation moved to config.fish to run after all PATH setup

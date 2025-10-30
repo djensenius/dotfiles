@@ -8,7 +8,6 @@ return {
 			},
 			preference = {
 				"sorbet",
-				"ruby_lsp",
 				"lua_ls",
 				"gopls",
 				"tsserver",

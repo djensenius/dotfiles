@@ -1,45 +1,20 @@
 return {
 	"williamboman/mason-lspconfig.nvim",
-	event = { "BufReadPre", "BufNewFile" },
+	lazy = true,
+	cmd = { "Mason", "MasonInstall", "MasonUpdate" },
 	build = ":MasonUpdate",
 	dependencies = {
 		{
 			"williamboman/mason.nvim",
-			dependencies = {
-				"WhoIsSethDaniel/mason-tool-installer.nvim",
-			},
 			config = function()
-				require("mason").setup()
-				local mason_tool_installer = require("mason-tool-installer")
-				mason_tool_installer.setup({
-					ensure_installed = {
-						"delve",
-						"eslint-lsp",
-						"eslint_d",
-						"goimports",
-						"golangci-lint",
-						"gopls",
-						"isort",
-						"jq-lsp",
-						"jsonlint",
-						"json-lsp",
-						"luacheck",
-						"lua-language-server",
-						"prettierd",
-						"prettier",
-						"rubocop",
-						"ruby_lsp",
-						"sorbet",
-						"shellcheck",
-						"stylelint-lsp",
-						"stylua",
-						"tailwindcss-language-server",
-						"typescript-language-server",
-						"vale",
-						"vale_ls",
-						"yaml-language-server",
+				require("mason").setup({
+					ui = {
+						icons = {
+							package_installed = "✓",
+							package_pending = "➜",
+							package_uninstalled = "✗",
+						},
 					},
-					debounce_hours = 96,
 				})
 			end,
 		},
@@ -57,6 +32,7 @@ return {
 					ensure_installed = {
 						"delve",
 					},
+					automatic_installation = true,
 				})
 				require("dap-go").setup()
 				require("dapui").setup()
@@ -129,15 +105,46 @@ return {
 	},
 	config = function()
 		require("mason-lspconfig").setup({
-			automatic_installation = true,
-			automatic_enable = false,
+			automatic_installation = false,
 			ensure_installed = {
+				-- Language servers
 				"ts_ls",
 				"lua_ls",
-				"ruby_lsp",
 				"gopls",
 				"sorbet",
+				"eslint",
+				"jsonls",
+				"yamlls",
+				"jqls",
+				"vale_ls",
+				"tailwindcss",
+				"stylelint_lsp",
 			},
 		})
+
+		-- Auto-install formatters/linters via Mason registry on first load
+		local registry = require("mason-registry")
+		local tools = {
+			"delve",
+			"eslint_d",
+			"goimports",
+			"golangci-lint",
+			"isort",
+			"jsonlint",
+			"luacheck",
+			"prettierd",
+			"prettier",
+			"rubocop",
+			"shellcheck",
+			"stylua",
+			"vale",
+		}
+
+		for _, tool in ipairs(tools) do
+			local p = registry.get_package(tool)
+			if not p:is_installed() then
+				p:install()
+			end
+		end
 	end,
 }
