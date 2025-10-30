@@ -1,5 +1,5 @@
-# rbenv only outside Codespaces
-if not test -d /workspaces
+# rbenv only outside Codespaces and only if mise is not installed
+if not test -d /workspaces; and not command -q mise
     status is-interactive; and command -q rbenv; and rbenv init - fish | source
 end
 
