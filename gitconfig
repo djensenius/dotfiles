@@ -16,7 +16,7 @@
 [user]
 	email = david@jensenius.com
 	name = David Jensenius
-	signingkey = 3C99585F0FFC7101
+  signingkey = ~/.ssh/id_rsa.pub
 
 [filter "lfs"]
 	clean = git-lfs clean -- %f
@@ -48,3 +48,6 @@
 
 [help]
 	autocorrect = 20
+
+[gpg]
+	format = ssh
