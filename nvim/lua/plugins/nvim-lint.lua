@@ -21,6 +21,9 @@ return {
 			typescriptreact = { "eslint_d" },
 		}
 
+		-- Use system rubocop (from mise) instead of Mason's version
+		lint.linters.rubocop.cmd = "rubocop"
+
 		local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
 
 		vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {

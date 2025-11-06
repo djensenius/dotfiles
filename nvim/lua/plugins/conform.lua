@@ -53,6 +53,10 @@ return {
 			shfmt = {
 				prepend_args = { "-i", "2" },
 			},
+			-- Use system rubocop (from mise) instead of Mason's version
+			rubocop = {
+				command = "rubocop",
+			},
 		},
 	},
 	init = function()
