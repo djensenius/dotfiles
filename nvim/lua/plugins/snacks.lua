@@ -8,7 +8,7 @@ return {
 		-- refer to the configuration section below
 		bigfile = { enabled = true },
 		image = { enabled = true },
-		indent = { enabled = true },
+		indent = { enabled = false },
 		quickfile = { enabled = true },
 		scroll = { enabled = true },
 	},
