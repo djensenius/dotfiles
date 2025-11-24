@@ -8,7 +8,7 @@ command_timeout = 5000
 # left prompt
 format = """$battery$hostname$container$os$directory$character"""
 # move the rest of the prompt to the right
-right_format = """$all"""
+right_format = """$all${custom.jj_branch}${custom.jj_op}${custom.jj_git_notinsync}"""
 
 [aws]
 disabled = true
@@ -416,3 +416,26 @@ surface0 = "#363a4f"
 base = "#24273a"
 mantle = "#1e2030"
 crust = "#181926"
+
+[custom.jj_branch]
+when = "jj workspace root --ignore-working-copy > /dev/null 2>&1"
+command = '''
+jj log -r "(immutable_heads()..@):: & branches()" -T 'local_branches.join(\"\n\") ++ \"\n\"' --no-graph --ignore-working-copy | head -n 1
+'''
+style = 'yellow'
+
+[custom.jj_op]
+when = "jj workspace root --ignore-working-copy > /dev/null 2>&1"
+command = 'jj op log -n 1 -T "id.short()" --no-graph --ignore-working-copy'
+symbol = 'op:'
+style = "bright-yellow"
+
+[custom.jj_git_notinsync]
+when = '''
+[ -n "${jj_git_head:=$(jj log -T commit_id --no-graph --ignore-working-copy -r HEAD@git)}" ] \
+&& [ -n "${git_head:=$(git rev-parse HEAD)}" ] \
+&& [ "$git_head" != "$jj_git_head" ]
+'''
+command = 'jj log -T "commit_id.short()" --no-graph --ignore-working-copy -r HEAD@git'
+symbol = 'jj:git≠'
+style = 'bold red'
