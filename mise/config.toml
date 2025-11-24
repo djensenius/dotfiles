@@ -30,6 +30,10 @@ zig = 'latest'
 "cargo:battery_hearts" = "latest"
 "cargo:cargo-hack" = "latest"
 "cargo:cargo-minimal-versions" = "latest"
+"cargo:cargo-update" = "latest"
+
+## Go packages
+"go:github.com/Gelio/go-global-update" = "latest"
 
 ## Ruby gems
 "gem:rubocop" = "latest"
