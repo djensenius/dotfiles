@@ -1,7 +1,11 @@
 return {
 	"oribarilan/lensline.nvim",
 	branch = "release/2.x",
-	event = "LspAttach",
+	keys = {
+		{ "<leader>ll", "<cmd>LenslineShow<cr>", desc = "Toggle Lensline" },
+		{ "<leader>lh", "<cmd>LenslineHide<cr>", desc = "Toggle Lensline" },
+		{ "<leader>lp", "<cmd>LenslineProfile<cr>", desc = "Switch Lensline Profile" },
+	},
 	config = function()
 		require("lensline").setup({
 			-- Profile definitions, first is default
