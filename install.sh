@@ -285,7 +285,7 @@ function install_software() {
         start_time=$(start_operation "Fast track: Essential tool setup")
         
         # 1. Clone TPM immediately (user priority #1: tmux plugins)
-        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm &
+        git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm &
         tmp_pid=$!
         
         # 2. Install only tmuxinator immediately (user priority #2) - minimal Ruby setup
