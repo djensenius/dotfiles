@@ -286,6 +286,7 @@ function install_software() {
         
         # 1. Clone TPM immediately (user priority #1: tmux plugins)
         git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm &
+        ln -s ~/.config/tmux/plugin/tpm ~/.tmux/plugins/tpm
         tmp_pid=$!
         
         # 2. Install only tmuxinator immediately (user priority #2) - minimal Ruby setup
