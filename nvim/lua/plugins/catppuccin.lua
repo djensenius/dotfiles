@@ -62,7 +62,7 @@ return {
 					enabled = true,
 				},
 				telescope = {
-					enabled = true,
+					enabled = false,
 				},
 				treesitter = true,
 				which_key = true,

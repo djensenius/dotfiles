@@ -9,7 +9,17 @@ return {
 		bigfile = { enabled = true },
 		image = { enabled = true },
 		indent = { enabled = false },
+		notifier = { enabled = true },
 		quickfile = { enabled = true },
 		scroll = { enabled = true },
+	},
+	keys = {
+		{
+			"<leader>fn",
+			function()
+				require("snacks").notifier.show_history()
+			end,
+			desc = "Notification History",
+		},
 	},
 }

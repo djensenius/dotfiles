@@ -31,6 +31,14 @@ return {
 		vim.keymap.set("n", "<leader>fzlD", require("fzf-lua").lsp_definitions, { desc = "Definitions" })
 		vim.keymap.set("n", "<leader>fzlc", require("fzf-lua").lsp_declarations, { desc = "Declarations" })
 		vim.keymap.set("n", "<leader>fzlt", require("fzf-lua").lsp_typedefs, { desc = "Type Definitions" })
+		vim.keymap.set("n", "<leader>ff", require("fzf-lua").files, { desc = "Files" })
+		vim.keymap.set("n", "<leader>fg", require("fzf-lua").live_grep, { desc = "Live grep" })
+		vim.keymap.set("n", "<leader>fb", require("fzf-lua").buffers, { desc = "Buffers" })
+		vim.keymap.set("n", "<leader>fh", require("fzf-lua").help_tags, { desc = "Help tags" })
+		vim.keymap.set("n", "<leader>fd", function()
+			require("fzf-lua").lsp_definitions({ jump1 = false })
+		end, { desc = "Definitions" })
+		vim.keymap.set("n", "<leader>fr", require("fzf-lua").lsp_references, { desc = "References" })
 		require("fzf-lua").register_ui_select()
 	end,
 }
