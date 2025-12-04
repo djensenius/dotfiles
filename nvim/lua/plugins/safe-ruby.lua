@@ -1,7 +1,7 @@
 return {
 	name = "ruby-safe-path-bootstrap",
 	dir = vim.fn.stdpath("config") .. "/lua/plugins",
-	lazy = false,
+	event = { "BufReadPre", "BufNewFile" },
 	priority = 1000,
 	config = function()
 		local ORIGINAL_PATH = vim.env.PATH
