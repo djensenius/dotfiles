@@ -6,25 +6,34 @@ return {
 		"saghen/blink.cmp",
 		"williamboman/mason-lspconfig.nvim",
 	},
-	event = "VeryLazy",
+	event = { "BufReadPre", "BufNewFile" },
 
 	config = function()
 		-- Prepare completion
 		local on_attach = function(client, _)
 			-- Mappings.
-			vim.keymap.set("n", "<leader><space>c", vim.lsp.buf.declaration, { desc = "Go to declaration" })
+			vim.keymap.set("n", "<leader><space>c", function()
+				require("fzf-lua").lsp_declarations({ jump1 = false })
+			end, { desc = "Show declaration" })
 			vim.keymap.set("n", "<leader><space>D", function()
-				require("telescope.builtin").lsp_definitions({ jump_type = "never" })
-			end, { desc = "Go to definition" })
+				require("fzf-lua").lsp_definitions({ jump1 = false })
+			end, { desc = "Show definition" })
 			vim.keymap.set("n", "<leader><space>h", vim.lsp.buf.hover, { desc = "Show hover" })
-			vim.keymap.set("n", "<leader><space>i", vim.lsp.buf.implementation, { desc = "Go to implementation" })
+			vim.keymap.set("n", "<leader><space>i", function()
+				require("fzf-lua").lsp_implementations({ jump1 = false })
+			end, { desc = "Show implementation" })
 			vim.keymap.set("n", "<leader><space>S", vim.lsp.buf.signature_help, { desc = "Show signature help" })
 			vim.keymap.set("n", "<leader><space>R", vim.lsp.buf.rename, { desc = "Rename" })
 			vim.keymap.set("n", "<leader><space>r", function()
-				require("telescope.builtin").lsp_references()
+				require("fzf-lua").lsp_references()
 			end, { desc = "Show references" })
 			vim.keymap.set("n", "<leader><space>d", vim.diagnostic.open_float, { desc = "Show diagnostics" })
-			vim.keymap.set("n", "<leader><space>i", vim.lsp.buf.code_action, { desc = "Show code actions" })
+			vim.keymap.set("n", "<leader><space>a", function()
+				require("fzf-lua").lsp_code_actions()
+			end, { desc = "Show code actions" })
+			vim.keymap.set("n", "<leader><space>H", function()
+				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+			end, { desc = "Toggle inlay hints" })
 
 			-- Set some keybinds conditional on server capabilities
 			if client.server_capabilities.document_formatting then
@@ -142,16 +151,6 @@ return {
 					},
 					diagnostics = {
 						globals = { "vim" },
-					},
-					workspace = {
-						-- Make the server aware of Neovim runtime files
-						checkThirdParty = false,
-						library = {
-							vim.env.VIMRUNTIME,
-							-- Depending on the usage, you might want to add additional paths here.
-							"${3rd}/luv/library",
-							-- "${3rd}/busted/library",
-						},
 					},
 					telemetry = {
 						enable = false,
