@@ -50,9 +50,10 @@ wait_for_parallel() {
         local pid=${PARALLEL_PIDS["$operation"]}
         local log_file=${PARALLEL_LOGS["$operation"]}
         
-        if wait $pid; then
+        if wait "$pid"; then
             # Extract timing from log file
-            local duration=$(grep "completed in" "$log_file" | grep -o '[0-9]\+s' | head -1 | sed 's/s//')
+            local duration
+            duration=$(grep "completed in" "$log_file" | grep -o '[0-9]\+s' | head -1 | sed 's/s//')
             if [[ -n "$duration" ]]; then
                 TIMING_DATA["$operation"]=$duration
                 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $operation completed (${duration}s)" >> $LOG_FILE
@@ -61,27 +62,31 @@ wait_for_parallel() {
             fi
             
             # Append operation log to main log
-            echo "" >> $LOG_FILE
-            echo "--- $operation output ---" >> $LOG_FILE
-            cat "$log_file" >> $LOG_FILE
-            echo "--- end $operation output ---" >> $LOG_FILE
-            echo "" >> $LOG_FILE
+            {
+                echo ""
+                echo "--- $operation output ---"
+                cat "$log_file"
+                echo "--- end $operation output ---"
+                echo ""
+            } >> "$LOG_FILE"
         else
             failed_operations+=("$operation")
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ $operation FAILED" >> $LOG_FILE
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ $operation FAILED" >> "$LOG_FILE"
             
             # Still append log for debugging
-            echo "" >> $LOG_FILE
-            echo "--- $operation FAILED output ---" >> $LOG_FILE
-            cat "$log_file" >> $LOG_FILE
-            echo "--- end $operation FAILED output ---" >> $LOG_FILE
-            echo "" >> $LOG_FILE
+            {
+                echo ""
+                echo "--- $operation FAILED output ---"
+                cat "$log_file"
+                echo "--- end $operation FAILED output ---"
+                echo ""
+            } >> "$LOG_FILE"
         fi
         
         # Clean up log file
         rm -f "$log_file"
-        unset PARALLEL_PIDS["$operation"]
-        unset PARALLEL_LOGS["$operation"]
+        unset 'PARALLEL_PIDS[$operation]'
+        unset 'PARALLEL_LOGS[$operation]'
     done
     
     if [[ ${#failed_operations[@]} -gt 0 ]]; then
@@ -137,10 +142,10 @@ install_cargo_packages_parallel() {
     )
     
     if wait_for_parallel "${remaining_operations[@]}"; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> "$LOG_FILE"
         return 0
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> $LOG_FILE
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> "$LOG_FILE"
         return 1
     fi
 }
@@ -162,12 +167,11 @@ install_cargo_packages_background() {
         
         # Immediately setup atuin if credentials are available (don't wait for other tools)
         if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ]; then
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up Atuin immediately after installation..." >> $LOG_FILE
-            ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY >> $LOG_FILE 2>&1
-            if [ $? -eq 0 ]; then
-                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin login completed immediately" >> $LOG_FILE
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up Atuin immediately after installation..." >> "$LOG_FILE"
+            if ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY" >> "$LOG_FILE" 2>&1; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin login completed immediately" >> "$LOG_FILE"
             else
-                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  Atuin login failed - check credentials" >> $LOG_FILE
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  Atuin login failed - check credentials" >> "$LOG_FILE"
             fi
         fi
     else
@@ -202,15 +206,17 @@ install_cargo_packages_background() {
     )
     
     if wait_for_parallel "${remaining_operations[@]}"; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully" >> $LOG_FILE
-        
-        # Build bat cache after successful installation
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Building bat cache..." >> $LOG_FILE
-        ~/.cargo/bin/bat cache --build >> $LOG_FILE 2>&1
+        {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All cargo installations completed successfully"
+            
+            # Build bat cache after successful installation
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Building bat cache..."
+            ~/.cargo/bin/bat cache --build
+        } >> "$LOG_FILE" 2>&1
         
         return 0
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> $LOG_FILE
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some cargo installations failed" >> "$LOG_FILE"
         return 1
     fi
 }
@@ -247,15 +253,17 @@ install_cargo_packages_background_remaining() {
     )
     
     if wait_for_parallel "${remaining_operations[@]}"; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All remaining cargo installations completed successfully" >> $LOG_FILE
-        
-        # Build bat cache after successful installation
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Building bat cache..." >> $LOG_FILE
-        ~/.cargo/bin/bat cache --build >> $LOG_FILE 2>&1
+        {
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ All remaining cargo installations completed successfully"
+            
+            # Build bat cache after successful installation
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Building bat cache..."
+            ~/.cargo/bin/bat cache --build
+        } >> "$LOG_FILE" 2>&1
         
         return 0
     else
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some remaining cargo installations failed" >> $LOG_FILE
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ❌ Some remaining cargo installations failed" >> "$LOG_FILE"
         return 1
     fi
 }
@@ -354,49 +362,52 @@ setup_git_tools_parallel() {
 log_with_timing() {
     local operation="$1"
     local start_time="$2"
-    local end_time=$(date +%s)
+    local end_time
+    end_time=$(date +%s)
     local duration=$((end_time - start_time))
     
     TIMING_DATA["$operation"]=$duration
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $operation (${duration}s)" >> $LOG_FILE
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $operation (${duration}s)" >> "$LOG_FILE"
 }
 
 # Helper function to start timing an operation (from original script)
 start_operation() {
     local operation="$1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔄 Starting: $operation" >> $LOG_FILE
-    echo $(date +%s)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔄 Starting: $operation" >> "$LOG_FILE"
+    date +%s
 }
 
 # Generate timing summary with parallel operation insights
 generate_timing_summary() {
-    local total_time=$(($(date +%s) - INSTALL_START_TIME))
+    local total_time
+    total_time=$(($(date +%s) - INSTALL_START_TIME))
     
-    echo "" >> $LOG_FILE
-    echo "=== PARALLEL INSTALLATION TIMING SUMMARY ===" >> $LOG_FILE
-    echo "Total installation time: ${total_time}s ($(($total_time / 60))m $(($total_time % 60))s)" >> $LOG_FILE
-    echo "" >> $LOG_FILE
-    echo "Operations by duration (longest first):" >> $LOG_FILE
-    
-    # Sort timing data by duration (longest first)
-    for operation in "${!TIMING_DATA[@]}"; do
-        echo "${TIMING_DATA[$operation]} $operation"
-    done | sort -nr | while read duration op; do
-        if [ $duration -ge 60 ]; then
-            echo "  $op: ${duration}s ($(($duration / 60))m $(($duration % 60))s)" >> $LOG_FILE
-        else
-            echo "  $op: ${duration}s" >> $LOG_FILE
-        fi
-    done
-    
-    echo "" >> $LOG_FILE
-    echo "=== PARALLEL EXECUTION BENEFITS ===" >> $LOG_FILE
-    echo "🚀 Operations executed in parallel groups instead of sequentially" >> $LOG_FILE
-    echo "⚡ Estimated time savings: Significant reduction from sequential cargo builds" >> $LOG_FILE
-    echo "📊 Individual operation times above show actual parallel execution duration" >> $LOG_FILE
-    
-    echo "" >> $LOG_FILE
-    echo "Completed: $(date)" >> $LOG_FILE
+    {
+        echo ""
+        echo "=== PARALLEL INSTALLATION TIMING SUMMARY ==="
+        echo "Total installation time: ${total_time}s ($((total_time / 60))m $((total_time % 60))s)"
+        echo ""
+        echo "Operations by duration (longest first):"
+        
+        # Sort timing data by duration (longest first)
+        for operation in "${!TIMING_DATA[@]}"; do
+            echo "${TIMING_DATA[$operation]} $operation"
+        done | sort -nr | while read -r duration op; do
+            if [ "$duration" -ge 60 ]; then
+                echo "  $op: ${duration}s ($((duration / 60))m $((duration % 60))s)"
+            else
+                echo "  $op: ${duration}s"
+            fi
+        done
+        
+        echo ""
+        echo "=== PARALLEL EXECUTION BENEFITS ==="
+        echo "🚀 Operations executed in parallel groups instead of sequentially"
+        echo "⚡ Estimated time savings: Significant reduction from sequential cargo builds"
+        echo "📊 Individual operation times above show actual parallel execution duration"
+        echo ""
+        echo "Completed: $(date)"
+    } >> "$LOG_FILE"
 }
 
 # Export functions for use in main install script
