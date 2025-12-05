@@ -18,9 +18,11 @@ if status is-interactive
 
     # Atuin (login once on Codespaces; then init every interactive shell)
     if test -d /workspaces
-        if not test -e ~/.atuin_logged_in
-            command -q atuin; and ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-            touch ~/.atuin_logged_in
+        if command -q atuin
+            # Check if already logged in by looking for Username in status
+            if not ~/.cargo/bin/atuin status | grep -q "Username:"
+                ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+            end
         end
     end
     atuin init fish | source

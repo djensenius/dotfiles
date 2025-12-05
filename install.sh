@@ -287,7 +287,11 @@ function install_software() {
         if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ] && [ $atuin_exit -eq 0 ]; then
             start_time=$(start_operation "Atuin login setup")
             echo "🔐 Setting up Atuin login..."
-            ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+            if ! ~/.cargo/bin/atuin status | grep -q "Username:"; then
+                 ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+            else
+                 echo "✅ Atuin already logged in"
+            fi
             log_with_timing "Atuin login setup" "$start_time"
         fi
         
@@ -459,9 +463,17 @@ function install_software() {
         start_time=$(start_operation "Logging into Atuin")
         echo "Log in to atuin"
         if [ -d /workspaces/github ]; then
-          ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+          if ! ~/.cargo/bin/atuin status | grep -q "Username:"; then
+            ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+          else
+            echo "✅ Atuin already logged in"
+          fi
         else
-          /usr/local/cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+          if ! /usr/local/cargo/bin/atuin status | grep -q "Username:"; then
+            /usr/local/cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+          else
+            echo "✅ Atuin already logged in"
+          fi
         fi
         log_with_timing "Logging into Atuin" "$start_time"
         
