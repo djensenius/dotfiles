@@ -168,10 +168,14 @@ install_cargo_packages_background() {
         # Immediately setup atuin if credentials are available (don't wait for other tools)
         if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ]; then
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔧 Setting up Atuin immediately after installation..." >> "$LOG_FILE"
-            if ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY" >> "$LOG_FILE" 2>&1; then
-                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin login completed immediately" >> "$LOG_FILE"
+            if ! ~/.cargo/bin/atuin status | grep -q "Username:"; then
+                if ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY" >> "$LOG_FILE" 2>&1; then
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin login completed immediately" >> "$LOG_FILE"
+                else
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  Atuin login failed - check credentials" >> "$LOG_FILE"
+                fi
             else
-                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️  Atuin login failed - check credentials" >> "$LOG_FILE"
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ Atuin already logged in" >> "$LOG_FILE"
             fi
         fi
     else
