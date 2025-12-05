@@ -21,6 +21,7 @@ zig = 'latest'
 "npm:eslint_d" = "latest"
 "npm:neovim" = "latest"
 "npm:npm-check-updates" = "latest"
+"npm:shellcheck" = "latest"
 "npm:svgo" = "latest"
 "npm:trakt-to-letterboxd" = "latest"
 "npm:typescript-language-server" = "latest"

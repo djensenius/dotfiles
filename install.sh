@@ -67,128 +67,137 @@ fi
 log_with_timing() {
     local operation="$1"
     local start_time="$2"
-    local end_time=$(date +%s)
+    local end_time
+    end_time=$(date +%s)
     local duration=$((end_time - start_time))
     
     TIMING_DATA["$operation"]=$duration
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $operation (${duration}s)" >> $LOG_FILE
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ $operation (${duration}s)" >> "$LOG_FILE"
 }
 
 # Helper function to start timing an operation
 start_operation() {
     local operation="$1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔄 Starting: $operation" >> $LOG_FILE
-    echo $(date +%s)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🔄 Starting: $operation" >> "$LOG_FILE"
+    date +%s
 }
 
 # Helper function to generate timing summary
 generate_timing_summary() {
-    local total_time=$(($(date +%s) - INSTALL_START_TIME))
+    local total_time
+    total_time=$(($(date +%s) - INSTALL_START_TIME))
     
-    echo "" >> $LOG_FILE
-    echo "=== TIMING SUMMARY ===" >> $LOG_FILE
-    echo "Total installation time: ${total_time}s ($(($total_time / 60))m $(($total_time % 60))s)" >> $LOG_FILE
-    echo "" >> $LOG_FILE
-    echo "Operations by duration (longest first):" >> $LOG_FILE
+    {
+        echo ""
+        echo "=== TIMING SUMMARY ==="
+        echo "Total installation time: ${total_time}s ($((total_time / 60))m $((total_time % 60))s)"
+        echo ""
+        echo "Operations by duration (longest first):"
+    } >> "$LOG_FILE"
     
     # Sort timing data by duration (longest first)
     for operation in "${!TIMING_DATA[@]}"; do
         echo "${TIMING_DATA[$operation]} $operation"
-    done | sort -nr | while read duration op; do
-        if [ $duration -ge 60 ]; then
-            echo "  $op: ${duration}s ($(($duration / 60))m $(($duration % 60))s)" >> $LOG_FILE
+    done | sort -nr | while read -r duration op; do
+        if [ "$duration" -ge 60 ]; then
+            echo "  $op: ${duration}s ($((duration / 60))m $((duration % 60))s)" >> "$LOG_FILE"
         else
-            echo "  $op: ${duration}s" >> $LOG_FILE
+            echo "  $op: ${duration}s" >> "$LOG_FILE"
         fi
     done
     
-    echo "" >> $LOG_FILE
-    echo "=== PERFORMANCE INSIGHTS ===" >> $LOG_FILE
+    echo "" >> "$LOG_FILE"
+    echo "=== PERFORMANCE INSIGHTS ===" >> "$LOG_FILE"
     
     # Categorize slow operations
     local slow_ops=()
     local medium_ops=()
     for operation in "${!TIMING_DATA[@]}"; do
         local duration=${TIMING_DATA[$operation]}
-        if [ $duration -ge 60 ]; then
+        if [ "$duration" -ge 60 ]; then
             slow_ops+=("$operation (${duration}s)")
-        elif [ $duration -ge 10 ]; then
+        elif [ "$duration" -ge 10 ]; then
             medium_ops+=("$operation (${duration}s)")
         fi
     done
     
     if [ ${#slow_ops[@]} -gt 0 ]; then
-        echo "🐌 Operations taking >60s:" >> $LOG_FILE
-        printf '  %s\n' "${slow_ops[@]}" >> $LOG_FILE
-        echo "" >> $LOG_FILE
+        {
+            echo "🐌 Operations taking >60s:"
+            printf '  %s\n' "${slow_ops[@]}"
+            echo ""
+        } >> "$LOG_FILE"
     fi
     
     if [ ${#medium_ops[@]} -gt 0 ]; then
-        echo "⚠️  Operations taking 10-60s:" >> $LOG_FILE
-        printf '  %s\n' "${medium_ops[@]}" >> $LOG_FILE
-        echo "" >> $LOG_FILE
+        {
+            echo "⚠️  Operations taking 10-60s:"
+            printf '  %s\n' "${medium_ops[@]}"
+            echo ""
+        } >> "$LOG_FILE"
     fi
     
     echo "Completed: $(date)" >> $LOG_FILE
 }
 
 function link_files() {
-    local start_time=$(start_operation "Creating config directories")
+    local start_time
+    start_time=$(start_operation "Creating config directories")
     mkdir -p ~/.config
-    log_with_timing "Creating config directories" $start_time
+    log_with_timing "Creating config directories" "$start_time"
     
     # Link core config files
     start_time=$(start_operation "Linking gitconfig")
     if [ -e ~/.gitconfig ]; then
       rm ~/.gitconfig
     fi
-    ln -s $(pwd)/gitconfig-github ~/.gitconfig
-    log_with_timing "Linking gitconfig" $start_time
+    ln -s "$(pwd)/gitconfig-github" ~/.gitconfig
+    log_with_timing "Linking gitconfig" "$start_time"
     
     start_time=$(start_operation "Linking gitignore_local")
-    ln -sf $(pwd)/gitignore_local ~/.gitignore_local
-    log_with_timing "Linking gitignore_local" $start_time
+    ln -sf "$(pwd)/gitignore_local" ~/.gitignore_local
+    log_with_timing "Linking gitignore_local" "$start_time"
     
     # Link fish config (may take time due to removal)
     start_time=$(start_operation "Linking fish configuration")
     if [ -e ~/.config/fish ]; then
       rm -rf ~/.config/fish
     fi
-    ln -sf $(pwd)/fish ~/.config/
-    log_with_timing "Linking fish configuration" $start_time
+    ln -sf "$(pwd)/fish" ~/.config/
+    log_with_timing "Linking fish configuration" "$start_time"
     
     # Link application configs in batches for better timing granularity
     start_time=$(start_operation "Linking shell and editor configs")
-    ln -sf $(pwd)/starship.toml ~/.config/
-    ln -sf $(pwd)/nvim ~/.config/
-    ln -sf $(pwd)/bat ~/.config/
-    log_with_timing "Linking shell and editor configs" $start_time
+    ln -sf "$(pwd)/starship.toml" ~/.config/
+    ln -sf "$(pwd)/nvim" ~/.config/
+    ln -sf "$(pwd)/bat" ~/.config/
+    log_with_timing "Linking shell and editor configs" "$start_time"
     
     start_time=$(start_operation "Linking utility configs")
-    ln -sf $(pwd)/vale.ini ~/.vale.ini
-    ln -sf $(pwd)/prettierrc.json ~/.config/prettierrc.json
-    ln -sf $(pwd)/gitmux.conf ~/.config/gitmux.conf
-    ln -sf $(pwd)/tmuxinator ~/.config/tmuxinator
-    ln -sf $(pwd)/neofetch ~/.config/neofetch
-    log_with_timing "Linking utility configs" $start_time
+    ln -sf "$(pwd)/vale.ini" ~/.vale.ini
+    ln -sf "$(pwd)/prettierrc.json" ~/.config/prettierrc.json
+    ln -sf "$(pwd)/gitmux.conf" ~/.config/gitmux.conf
+    ln -sf "$(pwd)/tmuxinator" ~/.config/tmuxinator
+    ln -sf "$(pwd)/neofetch" ~/.config/neofetch
+    log_with_timing "Linking utility configs" "$start_time"
     
     start_time=$(start_operation "Linking terminal tool configs")
-    ln -sf $(pwd)/atuin ~/.config/atuin
-    ln -sf $(pwd)/yazi ~/.config/yazi
-    ln -sf $(pwd)/bottom ~/.config/bottom
-    ln -sf $(pwd)/tmux ~/.config/tmux
-    ln -sf $(pwd)/zellij ~/.config/zellij
+    ln -sf "$(pwd)/atuin" ~/.config/atuin
+    ln -sf "$(pwd)/yazi" ~/.config/yazi
+    ln -sf "$(pwd)/bottom" ~/.config/bottom
+    ln -sf "$(pwd)/tmux" ~/.config/tmux
+    ln -sf "$(pwd)/zellij" ~/.config/zellij
     
-    ln -sf $(pwd)/delta ~/.config/delta
-    ln -sf $(pwd)/eza ~/.config/eza
-    ln -sf $(pwd)/k9s ~/.config/k9s
+    ln -sf "$(pwd)/delta" ~/.config/delta
+    ln -sf "$(pwd)/eza" ~/.config/eza
+    ln -sf "$(pwd)/k9s" ~/.config/k9s
     
     # Make tmux indicator script available in PATH for tmux config
     if [ -d /workspaces/github ]; then
-        sudo ln -sf $(pwd)/scripts/tmux-background-install-indicator.sh /usr/local/bin/
+        sudo ln -sf "$(pwd)/scripts/tmux-background-install-indicator.sh" /usr/local/bin/
     fi
     
-    log_with_timing "Linking terminal tool configs" $start_time
+    log_with_timing "Linking terminal tool configs" "$start_time"
     
     # Codespaces-specific configuration - background non-critical operations
     if [ -d /workspaces/github ]; then
@@ -198,13 +207,13 @@ function link_files() {
       sudo ln -sf /workspaces/github/bin/bundle /usr/local/bin/bundle
       sudo ln -sf /workspaces/github/bin/solargraph /usr/local/bin/solargraph
       sudo ln -sf /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
-      log_with_timing "Linking GitHub Codespaces Ruby tools" $start_time
+      log_with_timing "Linking GitHub Codespaces Ruby tools" "$start_time"
       
       # Background locale update as it's not immediately critical
       start_time=$(start_operation "Updating locale settings")
       (sudo update-locale LANG=en_US.UTF-8 LC_TYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8) &
       locale_update_pid=$!
-      log_with_timing "Updating locale settings" $start_time
+      log_with_timing "Updating locale settings" "$start_time"
       
       # Store locale update PID for later synchronization
       echo $locale_update_pid > ~/.dotfiles_locale_update.pid
@@ -216,12 +225,12 @@ function install_software() {
       # Reduce initial delay for faster startup
       start_time=$(start_operation "Initial system wait (5s)")
       sleep 5
-      log_with_timing "Initial system wait (5s)" $start_time
+      log_with_timing "Initial system wait (5s)" "$start_time"
       
       # APT package installation - split into essential and non-essential
       start_time=$(start_operation "Installing essential APT packages")
       sudo apt -o DPkg::Lock::Timeout=600 install tmux jq ruby-dev -y
-      log_with_timing "Installing essential APT packages" $start_time
+      log_with_timing "Installing essential APT packages" "$start_time"
       
       # Install remaining APT packages and luarocks in background
       start_time=$(start_operation "Installing additional packages in background")
@@ -230,16 +239,16 @@ function install_software() {
         sudo luarocks install luacheck
       ) &
       additional_packages_pid=$!
-      log_with_timing "Installing additional packages in background" $start_time
+      log_with_timing "Installing additional packages in background" "$start_time"
       
       # Wait for apt remove to complete before continuing
-      wait $apt_remove_pid
+      wait "$apt_remove_pid"
 
       # Remove conflicting APT packages in background to avoid blocking
       start_time=$(start_operation "Removing conflicting APT packages")
       (sudo apt remove bat ripgrep -y) &
       apt_remove_pid=$!
-      log_with_timing "Removing conflicting APT packages" $start_time
+      log_with_timing "Removing conflicting APT packages" "$start_time"
       
       if [[ "$PARALLEL_MODE" == "true" ]]; then
         # Parallel installation mode with fast track for essential tools
@@ -271,14 +280,14 @@ function install_software() {
             echo "⚠️ Some priority tools failed to install"
         fi
         
-        log_with_timing "Foreground priority: atuin, zoxide, tree-sitter" $start_time
+        log_with_timing "Foreground priority: atuin, zoxide, tree-sitter" "$start_time"
         
         # Setup atuin immediately if credentials are available
         if [ -n "$ATUIN_USERNAME" ] && [ -n "$ATUIN_PASSWORD" ] && [ -n "$ATUIN_KEY" ] && [ $atuin_exit -eq 0 ]; then
             start_time=$(start_operation "Atuin login setup")
             echo "🔐 Setting up Atuin login..."
-            ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
-            log_with_timing "Atuin login setup" $start_time
+            ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
+            log_with_timing "Atuin login setup" "$start_time"
         fi
         
         # FAST TRACK: Setup essential tools immediately (tmux, nvim ready)
@@ -302,9 +311,8 @@ function install_software() {
         
         # 5. Start additional Ruby gems in background (neovim-ruby-host not immediately needed)
         (sudo gem install neovim-ruby-host > /dev/null 2>&1) &
-        ruby_background_pid=$!
         
-        log_with_timing "Fast track: Essential tool setup" $start_time
+        log_with_timing "Fast track: Essential tool setup" "$start_time"
         
         echo "✅ Essential tools ready! (atuin + zoxide + tree-sitter + tmux + plugins + tmuxinator + nvim configs)"
         echo "🚀 Starting background installations for remaining tools..."
@@ -336,9 +344,8 @@ function install_software() {
         echo $git_status_background_pid > ~/.dotfiles_git_status.pid
         
         # Wait for external tools to complete (now lower priority)
-        wait $parallel_externals_pid
-        if [ $? -ne 0 ]; then
-          echo "❌ External tools installation failed" >> $LOG_FILE
+        if ! wait "$parallel_externals_pid"; then
+          echo "❌ External tools installation failed" >> "$LOG_FILE"
         fi
         
         # Wait for additional packages to complete before showing status
@@ -365,83 +372,83 @@ function install_software() {
         echo ""
         
         # Refresh tmux status to show new indicators immediately
-        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        "$(dirname "$0")/scripts/refresh-tmux-status.sh"
         
       else
         # Original sequential mode
         # External tool installations
         start_time=$(start_operation "Installing Starship prompt")
         curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
-        log_with_timing "Installing Starship prompt" $start_time
+        log_with_timing "Installing Starship prompt" "$start_time"
         
         start_time=$(start_operation "Installing Git Delta")
         curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
         sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
-        log_with_timing "Installing Git Delta" $start_time
+        log_with_timing "Installing Git Delta" "$start_time"
         
         start_time=$(start_operation "Downloading Delta themes")
         wget --output-document ~/.config/delta-themes.gitconfig https://raw.githubusercontent.com/dandavison/delta/master/themes.gitconfig
-        log_with_timing "Downloading Delta themes" $start_time
+        log_with_timing "Downloading Delta themes" "$start_time"
         
         start_time=$(start_operation "Installing yq")
         sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
         sudo chmod +x /usr/bin/yq
-        log_with_timing "Installing yq" $start_time
+        log_with_timing "Installing yq" "$start_time"
         
         start_time=$(start_operation "Installing Protocol Buffers")
         PB_REL="https://github.com/protocolbuffers/protobuf/releases"
         curl -L $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip > ~/protoc.zip
-        unzip ~/protoc.zip -d $HOME/.local
+        unzip ~/protoc.zip -d "$HOME"/.local
         export PATH="$PATH:$HOME/.local/bin"
-        log_with_timing "Installing Protocol Buffers" $start_time
+        log_with_timing "Installing Protocol Buffers" "$start_time"
         
         # Cargo installations (these tend to be slow)
         start_time=$(start_operation "Installing eza via cargo")
         CC=clang cargo install eza
-        log_with_timing "Installing eza via cargo" $start_time
+        log_with_timing "Installing eza via cargo" "$start_time"
         
         start_time=$(start_operation "Installing zoxide via cargo")
         CC=clangcargo install --locked zoxide
-        log_with_timing "Installing zoxide via cargo" $start_time
+        log_with_timing "Installing zoxide via cargo" "$start_time"
         
         start_time=$(start_operation "Installing ripgrep via cargo")
         CC=clang cargo install ripgrep
-        log_with_timing "Installing ripgrep via cargo" $start_time
+        log_with_timing "Installing ripgrep via cargo" "$start_time"
         
         start_time=$(start_operation "Installing fd-find via cargo")
         CC=clang cargo install fd-find
-        log_with_timing "Installing fd-find via cargo" $start_time
+        log_with_timing "Installing fd-find via cargo" "$start_time"
         
         start_time=$(start_operation "Installing bat via cargo")
         CC=clang cargo install --locked bat
-        log_with_timing "Installing bat via cargo" $start_time
+        log_with_timing "Installing bat via cargo" "$start_time"
         
         start_time=$(start_operation "Installing atuin via cargo")
         CC=clang cargo install --locked atuin
-        log_with_timing "Installing atuin via cargo" $start_time
+        log_with_timing "Installing atuin via cargo" "$start_time"
         
         start_time=$(start_operation "Installing tree-sitter-cli via cargo")
         CC=clang cargo install --locked tree-sitter-cli
-        log_with_timing "Installing tree-sitter-cli via cargo" $start_time
+        log_with_timing "Installing tree-sitter-cli via cargo" "$start_time"
         
         start_time=$(start_operation "Installing pay-respects tools via cargo")
         CC=clang cargo install --locked pay-respects
         CC=clang cargo install --locked pay-respects-module-runtime-rules
         CC=clang cargo install --locked pay-respects-module-request-ai
-        log_with_timing "Installing pay-respects tools via cargo" $start_time
+        log_with_timing "Installing pay-respects tools via cargo" "$start_time"
         
         start_time=$(start_operation "Installing zellij via cargo")
         CC=clang cargo install --locked zellij
-        log_with_timing "Installing zellij via cargo" $start_time
+        log_with_timing "Installing zellij via cargo" "$start_time"
         
         start_time=$(start_operation "Installing bottom tools via cargo")
         CC=clang cargo install --locked bottom
-        log_with_timing "Installing bottom tools via cargo" $start_time
+        log_with_timing "Installing bottom tools via cargo" "$start_time"
 
         # Bat cache build
         start_time=$(start_operation "Building bat cache")
         ~/.cargo/bin/bat cache --build
-        log_with_timing "Building bat cache" $start_time
+        log_with_timing "Building bat cache" "$start_time"
         
         # Setup software immediately after installation to avoid race conditions
         echo "🔧 Setting up installed software..."
@@ -450,27 +457,27 @@ function install_software() {
         start_time=$(start_operation "Logging into Atuin")
         echo "Log in to atuin"
         if [ -d /workspaces/github ]; then
-          ~/.cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+          ~/.cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
         else
-          /usr/local/cargo/bin/atuin login -u $ATUIN_USERNAME -p $ATUIN_PASSWORD -k $ATUIN_KEY
+          /usr/local/cargo/bin/atuin login -u "$ATUIN_USERNAME" -p "$ATUIN_PASSWORD" -k "$ATUIN_KEY"
         fi
-        log_with_timing "Logging into Atuin" $start_time
+        log_with_timing "Logging into Atuin" "$start_time"
         
         # Setup git tools immediately after installation
         start_time=$(start_operation "Cloning TPM (tmux plugin manager)")
         git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-        log_with_timing "Cloning TPM (tmux plugin manager)" $start_time
+        log_with_timing "Cloning TPM (tmux plugin manager)" "$start_time"
         
         # Install tmux plugins immediately after TPM is available
         start_time=$(start_operation "Installing tmux plugins")
         ~/.tmux/plugins/tpm/scripts/install_plugins.sh
-        log_with_timing "Installing tmux plugins" $start_time
+        log_with_timing "Installing tmux plugins" "$start_time"
         
         # FZF installation
         start_time=$(start_operation "Installing FZF")
         git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
         ~/.fzf/install --all
-        log_with_timing "Installing FZF" $start_time
+        log_with_timing "Installing FZF" "$start_time"
         
         # LazyGit installation
         start_time=$(start_operation "Installing LazyGit")
@@ -478,12 +485,12 @@ function install_software() {
         curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
         tar xf lazygit.tar.gz lazygit
         sudo install lazygit -D -t /usr/local/bin/
-        log_with_timing "Installing LazyGit" $start_time
+        log_with_timing "Installing LazyGit" "$start_time"
         
         # Install Ruby gems in parallel
         start_time=$(start_operation "Installing Ruby gems in parallel")
         install_ruby_gems_parallel
-        log_with_timing "Installing Ruby gems in parallel" $start_time
+        log_with_timing "Installing Ruby gems in parallel" "$start_time"
       fi
       
       # Sequential installations removed - now handled in background or parallel
@@ -500,14 +507,14 @@ function setup_software() {
       # Change shell is the only critical operation that must complete
       start_time=$(start_operation "Changing default shell to fish")
       sudo chsh -s /usr/bin/fish vscode
-      log_with_timing "Changing default shell to fish" $start_time
+      log_with_timing "Changing default shell to fish" "$start_time"
       
       # Wait for locale update from linking phase if it's still running
       if [ -f ~/.dotfiles_locale_update.pid ]; then
         locale_pid=$(cat ~/.dotfiles_locale_update.pid)
-        if kill -0 $locale_pid 2>/dev/null; then
+        if kill -0 "$locale_pid" 2>/dev/null; then
           echo "⏳ Waiting for locale update to complete..."
-          wait $locale_pid
+          wait "$locale_pid"
         fi
         rm -f ~/.dotfiles_locale_update.pid
       fi
@@ -519,37 +526,42 @@ function start_rust_background_installation() {
     local rust_pid_file=~/.dotfiles_rust_install.pid
     
     # Log the start of Rust installation
-    echo "🦀 Starting Rust tools installation in background at $(date)" > $rust_log
-    echo "PID: $$" >> $rust_log
-    echo "" >> $rust_log
+    {
+        echo "🦀 Starting Rust tools installation in background at $(date)"
+        echo "PID: $$"
+        echo ""
+    } > "$rust_log"
     
     # Install Rust/Cargo packages in background
     {
         # Set LOG_FILE for the parallel installation functions
+        # shellcheck disable=SC2030,SC2031
         export LOG_FILE=$rust_log
         
-        echo "Installing Rust/Cargo packages..." >> $rust_log
+        echo "Installing Rust/Cargo packages..." >> "$rust_log"
         install_cargo_packages_background
         cargo_exit_code=$?
         
         if [ $cargo_exit_code -eq 0 ]; then
-            echo "✅ Cargo installations completed successfully" >> $rust_log
-            
-            # Build bat cache after successful installation
-            echo "Building bat cache..." >> $rust_log
-            ~/.cargo/bin/bat cache --build >> $rust_log 2>&1
-            
-            # Note: Atuin setup is now handled immediately in the priority batch
-            # within install_cargo_packages_background function
-            
-            echo "🎉 All Rust tools installation completed successfully at $(date)" >> $rust_log
+            {
+                echo "✅ Cargo installations completed successfully"
+                
+                # Build bat cache after successful installation
+                echo "Building bat cache..."
+                ~/.cargo/bin/bat cache --build
+                
+                # Note: Atuin setup is now handled immediately in the priority batch
+                # within install_cargo_packages_background function
+                
+                echo "🎉 All Rust tools installation completed successfully at $(date)"
+            } >> "$rust_log"
         else
-            echo "❌ Cargo installations failed with exit code $cargo_exit_code" >> $rust_log
+            echo "❌ Cargo installations failed with exit code $cargo_exit_code" >> "$rust_log"
         fi
         
         # Remove PID file when done and refresh tmux status
         rm -f $rust_pid_file
-        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        "$(dirname "$0")/scripts/refresh-tmux-status.sh"
         
     } &
     
@@ -562,35 +574,40 @@ function start_rust_background_installation_remaining() {
     local rust_pid_file=~/.dotfiles_rust_install.pid
     
     # Log the start of Rust installation (remaining tools)
-    echo "🦀 Starting remaining Rust tools installation in background at $(date)" > $rust_log
-    echo "PID: $$" >> $rust_log
-    echo "Note: atuin, zoxide, tree-sitter already installed in foreground" >> $rust_log
-    echo "" >> $rust_log
+    {
+        echo "🦀 Starting remaining Rust tools installation in background at $(date)"
+        echo "PID: $$"
+        echo "Note: atuin, zoxide, tree-sitter already installed in foreground"
+        echo ""
+    } > "$rust_log"
     
     # Install remaining Rust/Cargo packages in background
     {
         # Set LOG_FILE for the parallel installation functions
+        # shellcheck disable=SC2030,SC2031
         export LOG_FILE=$rust_log
         
-        echo "Installing remaining Rust/Cargo packages..." >> $rust_log
+        echo "Installing remaining Rust/Cargo packages..." >> "$rust_log"
         install_cargo_packages_background_remaining
         cargo_exit_code=$?
         
         if [ $cargo_exit_code -eq 0 ]; then
-            echo "✅ Remaining cargo installations completed successfully" >> $rust_log
-            
-            # Build bat cache after successful installation
-            echo "Building bat cache..." >> $rust_log
-            ~/.cargo/bin/bat cache --build >> $rust_log 2>&1
-            
-            echo "🎉 All remaining Rust tools installation completed successfully at $(date)" >> $rust_log
+            {
+                echo "✅ Remaining cargo installations completed successfully"
+                
+                # Build bat cache after successful installation
+                echo "Building bat cache..."
+                ~/.cargo/bin/bat cache --build
+                
+                echo "🎉 All remaining Rust tools installation completed successfully at $(date)"
+            } >> "$rust_log"
         else
-            echo "❌ Remaining cargo installations failed with exit code $cargo_exit_code" >> $rust_log
+            echo "❌ Remaining cargo installations failed with exit code $cargo_exit_code" >> "$rust_log"
         fi
         
         # Remove PID file when done and refresh tmux status
         rm -f $rust_pid_file
-        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        "$(dirname "$0")/scripts/refresh-tmux-status.sh"
         
     } &
     
@@ -627,7 +644,7 @@ function start_npm_background_installation() {
         
         # Remove PID file when done and refresh tmux status
         rm -f $npm_pid_file
-        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        "$(dirname "$0")/scripts/refresh-tmux-status.sh"
         
     } &
     
@@ -710,7 +727,7 @@ function start_neovim_background_setup() {
         
         # Remove PID file when done and refresh tmux status
         rm -f $neovim_pid_file
-        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        "$(dirname "$0")/scripts/refresh-tmux-status.sh"
         
     } &
     
@@ -730,25 +747,25 @@ function start_git_status_background() {
     # Run git status in background
     {
         if [ -d /workspaces/github ]; then
-            echo "Checking git status in /workspaces/github..." >> $git_log
-            cd /workspaces/github
-            git --no-pager status >> $git_log 2>&1
+            echo "Checking git status in /workspaces/github..." >> "$git_log"
+            cd /workspaces/github || exit
+            git --no-pager status >> "$git_log" 2>&1
             git_exit_code=$?
             
             if [ $git_exit_code -eq 0 ]; then
-                echo "✅ Git status check completed successfully" >> $git_log
+                echo "✅ Git status check completed successfully" >> "$git_log"
             else
-                echo "⚠️  Git status check failed with exit code $git_exit_code" >> $git_log
+                echo "⚠️  Git status check failed with exit code $git_exit_code" >> "$git_log"
             fi
             
-            echo "🎉 Git status check completed at $(date)" >> $git_log
+            echo "🎉 Git status check completed at $(date)" >> "$git_log"
         else
-            echo "⚠️  Not in Codespaces environment - skipping git status check" >> $git_log
+            echo "⚠️  Not in Codespaces environment - skipping git status check" >> "$git_log"
         fi
         
         # Remove PID file when done and refresh tmux status
         rm -f $git_pid_file
-        $(dirname "$0")/scripts/refresh-tmux-status.sh
+        "$(dirname "$0")/scripts/refresh-tmux-status.sh"
         
     } &
     
@@ -756,21 +773,25 @@ function start_git_status_background() {
     echo $! > $git_pid_file
 }
 
+# shellcheck disable=SC2031
 echo '🔗 Starting file linking phase' >> $LOG_FILE
 link_files_start=$(date +%s)
 link_files
-log_with_timing "🔗 File linking phase" $link_files_start
+log_with_timing "🔗 File linking phase" "$link_files_start"
 
+# shellcheck disable=SC2031
 echo '💽 Starting software installation phase' >> $LOG_FILE
 install_software_start=$(date +%s)
 install_software
-log_with_timing "💽 Software installation phase" $install_software_start
+log_with_timing "💽 Software installation phase" "$install_software_start"
 
+# shellcheck disable=SC2031
 echo '👩‍🔧 Starting software configuration phase' >> $LOG_FILE
 setup_software_start=$(date +%s)
 setup_software
-log_with_timing "👩‍🔧 Software configuration phase" $setup_software_start
+log_with_timing "👩‍🔧 Software configuration phase" "$setup_software_start"
 
+# shellcheck disable=SC2031
 echo '✅ Installation completed successfully!' >> $LOG_FILE
 generate_timing_summary
 
