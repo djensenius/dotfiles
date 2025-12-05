@@ -3,16 +3,5 @@ config:
   show-name: true
   icon-position: "left"
 icons:
-  bat: "󰭟"
-  btm: ""
-  console: "󰞷"
-  gitui: ""
-  gh: ""
-  gping: ""
-  jj: ""
-  lazygit: ""
-  lazyjj: ""
-  nvim: ""
+  copilot: ""
   mise: "󱌣"
-  tickrs: ""
-  unicorn: "󱗃"
