@@ -1,0 +1,13 @@
+---
+name: 'Lint Shell Scripts'
+on:  # yamllint disable-line rule:truthy
+  - pull_request
+jobs:
+  shellcheck:
+    name: 'Shellcheck'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+      - name: 'Shellcheck'
+        uses: ludeeus/action-shellcheck@master

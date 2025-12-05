@@ -49,6 +49,7 @@ done
 
 if [[ "$PARALLEL_MODE" == "true" ]]; then
     # Source parallel installation framework
+    # shellcheck disable=SC1091
     source "$(dirname "$0")/scripts/parallel-install.sh"
     echo "🚀 Parallel installation mode enabled"
 else
@@ -137,7 +138,7 @@ generate_timing_summary() {
         } >> "$LOG_FILE"
     fi
     
-    echo "Completed: $(date)" >> $LOG_FILE
+    echo "Completed: $(date)" >> "$LOG_FILE"
 }
 
 function link_files() {
@@ -774,24 +775,24 @@ function start_git_status_background() {
 }
 
 # shellcheck disable=SC2031
-echo '🔗 Starting file linking phase' >> $LOG_FILE
+echo '🔗 Starting file linking phase' >> "$LOG_FILE"
 link_files_start=$(date +%s)
 link_files
 log_with_timing "🔗 File linking phase" "$link_files_start"
 
 # shellcheck disable=SC2031
-echo '💽 Starting software installation phase' >> $LOG_FILE
+echo '💽 Starting software installation phase' >> "$LOG_FILE"
 install_software_start=$(date +%s)
 install_software
 log_with_timing "💽 Software installation phase" "$install_software_start"
 
 # shellcheck disable=SC2031
-echo '👩‍🔧 Starting software configuration phase' >> $LOG_FILE
+echo '👩‍🔧 Starting software configuration phase' >> "$LOG_FILE"
 setup_software_start=$(date +%s)
 setup_software
 log_with_timing "👩‍🔧 Software configuration phase" "$setup_software_start"
 
 # shellcheck disable=SC2031
-echo '✅ Installation completed successfully!' >> $LOG_FILE
+echo '✅ Installation completed successfully!' >> "$LOG_FILE"
 generate_timing_summary
 

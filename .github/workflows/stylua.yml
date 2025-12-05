@@ -1,6 +1,6 @@
 ---
 name: StyLua files
-on: [push, pull_request]  # yamllint disable-line rule:truthy
+on: pull_request  # yamllint disable-line rule:truthy
 jobs:
   run:
     runs-on: ubuntu-latest

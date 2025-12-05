@@ -10,6 +10,7 @@ echo "cargo package installations with shorter delays."
 echo ""
 
 # Source the parallel installation framework
+# shellcheck disable=SC1091
 source "$(dirname "$0")/parallel-install.sh"
 
 # Demo cargo installation with simulated delays
