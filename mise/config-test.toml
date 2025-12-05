@@ -14,7 +14,6 @@ zig = 'latest'
 
 ## NPM packages
 "npm:@anthropic-ai/claude-code" = "latest"
-"npm:@github/copilot" = "latest"
 "npm:@githubnext/github-copilot-cli" = "latest"
 "npm:@mermaid-js/mermaid-cli" = "latest"
 "npm:corepack" = "latest"
