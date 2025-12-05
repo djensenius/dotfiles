@@ -1,9 +1,6 @@
 ---
 name: Lint TOML Files
 on:  # yamllint disable-line rule:truthy
-  push:
-    paths:
-      - "**/*.toml"
   pull_request:
     paths:
       - "**/*.toml"

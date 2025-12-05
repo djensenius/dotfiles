@@ -1,7 +1,6 @@
 ---
 name: 'Lint Fish Files'
 on:  # yamllint disable-line rule:truthy
-  - push
   - pull_request
 jobs:
   fishlint:
