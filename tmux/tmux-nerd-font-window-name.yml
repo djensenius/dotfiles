@@ -4,4 +4,5 @@ config:
   icon-position: "left"
 icons:
   copilot: ""
+  "git:": ""
   mise: "󱌣"

@@ -2,3 +2,4 @@
 // Minimal config that disables the welcome message
 
 welcome_screen false
+theme "catppuccin-mocha"
