@@ -28,6 +28,42 @@ return {
 				return ""
 			end
 		end
+
+		local function get_outdated_parsers()
+			local outdated = {}
+			local parsers = require("nvim-treesitter.info").installed_parsers()
+			local lockfile_path = vim.fn.stdpath("data") .. "/lazy/nvim-treesitter/lockfile.json"
+			local lockfile = {}
+
+			if vim.fn.filereadable(lockfile_path) == 1 then
+				local content = vim.fn.readfile(lockfile_path)
+				local json = vim.fn.json_decode(table.concat(content, "\n"))
+				lockfile = json
+			end
+
+			for _, lang in pairs(parsers) do
+				local revision_file = vim.fn.stdpath("data") .. "/site/parser/" .. lang .. ".revision"
+				if vim.fn.filereadable(revision_file) == 1 then
+					local installed_rev = vim.fn.readfile(revision_file)[1]
+					local expected_rev = lockfile[lang] and lockfile[lang].revision
+
+					if expected_rev and installed_rev ~= expected_rev then
+						table.insert(outdated, lang)
+					end
+				end
+			end
+			return outdated
+		end
+
+		local function lualine_ts_updates()
+			local outdated = get_outdated_parsers()
+			if #outdated > 0 then
+				return #outdated
+			else
+				return ""
+			end
+		end
+
 		return {
 			options = {
 				theme = "catppuccin",
@@ -104,6 +140,23 @@ return {
 						icon = "󱌢",
 						on_click = function()
 							vim.cmd("Mason")
+						end,
+						color = utils.get_hlgroup("String"),
+					},
+					{
+						lualine_ts_updates,
+						icon = "",
+						on_click = function()
+							local outdated = get_outdated_parsers()
+							if #outdated > 0 then
+								vim.notify(
+									"Outdated Parsers:\n" .. table.concat(outdated, "\n"),
+									vim.log.levels.INFO,
+									{ title = "Tree-sitter Updates" }
+								)
+							else
+								vim.notify("All parsers up to date!", vim.log.levels.INFO, { title = "Tree-sitter" })
+							end
 						end,
 						color = utils.get_hlgroup("String"),
 					},
