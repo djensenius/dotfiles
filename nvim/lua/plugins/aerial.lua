@@ -8,8 +8,13 @@ return {
 		"nvim-tree/nvim-web-devicons",
 	},
 	keys = {
-		{ "<leader>af", "<cmd>call aerial#fzf()<cr>", desc = "Arial (fzf)" },
-		{ "<leader>at", "<cmd>Telescope arial<cr>", desc = "Arial (Telescope)" },
+		{
+			"<leader>af",
+			function()
+				require("aerial").fzf_lua_picker()
+			end,
+			desc = "Arial (fzf)",
+		},
 		{ "<leader>aa", "<cmd>AerialToggle!<cr>", desc = "Arial" },
 		{ "<leader>an", "<cmd>AerialNavToggle<cr>", desc = "Arial Navigation" },
 	},
