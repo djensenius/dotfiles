@@ -108,6 +108,9 @@ return {
 						cond = function()
 							return package.loaded["nvim-navic"] and require("nvim-navic").is_available()
 						end,
+						on_click = function()
+							require("aerial").fzf_lua_picker()
+						end,
 						color = utils.get_hlgroup("Comment", nil),
 					},
 				},
