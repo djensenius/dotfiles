@@ -1,0 +1,12 @@
+[theme]
+name = "catppuccin-mocha-maroon"
+
+[colors]
+AlertInfo = "#a6e3a1"
+AlertWarn = "#fab387"
+AlertError = "#f38ba8"
+Annotation = "#eba0ac"
+Base = "#cdd6f4"
+Guidance = "#9399b2"
+Important = "#f38ba8"
+Title = "#eba0ac"

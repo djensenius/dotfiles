@@ -231,21 +231,5 @@ records = true
 ## The port that should be used for TCP on non unix systems
 # tcp_port = 8889
 
-
 [theme]
-name = "catppuccin_mocha"
-
-[theme.colors]
-text = "#cdd6f4"
-background = "#1e1e2e"
-background_selected = "#585b70"
-border = "#585b70"
-border_selected = "#cba6f7"
-info = "#cba6f7"
-info_selected = "#cba6f7"
-success = "#a6e3a1"
-success_selected = "#a6e3a1"
-warning = "#f9e2af"
-warning_selected = "#f9e2af"
-error = "#f38ba8"
-error_selected = "#f38ba8"
+name = "catppuccin-mocha-mauve"
