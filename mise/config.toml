@@ -39,6 +39,7 @@ zig = 'latest'
 
 ## Ruby gems
 "gem:rubocop" = "latest"
+"gem:tmuxinator" = "latest"
 
 [settings]
 # tools can read the versions files used by other version managers
