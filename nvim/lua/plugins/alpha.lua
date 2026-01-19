@@ -1,9 +1,11 @@
 return {
 	"goolord/alpha-nvim",
 	event = "VimEnter",
+	keys = {
+		{ "<leader>aA", ":Alpha<CR>", desc = "Alpha Dashboard" },
+	},
 	config = function()
 		local opts = { noremap = true, silent = true }
-		vim.keymap.set("n", "<leader>aA", ":Alpha<CR>", opts)
 		local dashboard = require("alpha.themes.dashboard")
 		local logo = [[
     (q\_/p)

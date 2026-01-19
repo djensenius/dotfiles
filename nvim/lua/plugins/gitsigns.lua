@@ -3,19 +3,21 @@ return {
 	"lewis6991/gitsigns.nvim",
 	event = { "BufReadPre", "BufNewFile" },
 	opts = {},
+	keys = {
+		{ "<leader>gb", ":Gitsigns toggle_current_line_blame<CR>", desc = "Toggle Line Blame" },
+		{ "<leader>gs", ":Gitsigns stage_hunk<CR>", desc = "Stage Hunk" },
+		{ "<leader>gu", ":Gitsigns undo_stage_hunk<CR>", desc = "Undo Stage Hunk" },
+		{ "<leader>gr", ":Gitsigns reset_hunk<CR>", desc = "Reset Hunk" },
+		{ "<leader>gR", ":Gitsigns reset_buffer<CR>", desc = "Reset Buffer" },
+		{ "<leader>gp", ":Gitsigns preview_hunk<CR>", desc = "Preview Hunk" },
+		{ "<leader>gj", ":Gitsigns next_hunk<CR>", desc = "Next Hunk" },
+		{ "<leader>gk", ":Gitsigns prev_hunk<CR>", desc = "Previous Hunk" },
+		{ "<leader>gl", ":Gitsigns toggle_numhl<CR>", desc = "Toggle Num HL" },
+		{ "<leader>gh", ":Gitsigns toggle_linehl<CR>", desc = "Toggle Line HL" },
+		{ "<leader>gS", ":Gitsigns stage_buffer<CR>", desc = "Stage Buffer" },
+		{ "<leader>gU", ":Gitsigns reset_buffer_index<CR>", desc = "Reset Buffer Index" },
+	},
 	config = function()
 		require("gitsigns").setup()
-		vim.keymap.set("n", "<Leader>gb", ":Gitsigns toggle_current_line_blame<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gs", ":Gitsigns stage_hunk<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gu", ":Gitsigns undo_stage_hunk<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gr", ":Gitsigns reset_hunk<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gR", ":Gitsigns reset_buffer<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gp", ":Gitsigns preview_hunk<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gj", ":Gitsigns next_hunk<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gk", ":Gitsigns prev_hunk<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gl", ":Gitsigns toggle_numhl<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gh", ":Gitsigns toggle_linehl<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gS", ":Gitsigns stage_buffer<CR>", { noremap = true, silent = true })
-		vim.keymap.set("n", "<Leader>gU", ":Gitsigns reset_buffer_index<CR>", { noremap = true, silent = true })
 	end,
 }

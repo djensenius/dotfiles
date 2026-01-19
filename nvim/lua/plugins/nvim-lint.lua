@@ -32,9 +32,14 @@ return {
 				lint.try_lint()
 			end,
 		})
-
-		vim.keymap.set("n", "<leader><space>l", function()
-			lint.try_lint()
-		end, { desc = "Trigger linting for current file" })
 	end,
+	keys = {
+		{
+			"<leader><space>l",
+			function()
+				require("lint").try_lint()
+			end,
+			desc = "Trigger linting for current file",
+		},
+	},
 }
