@@ -48,6 +48,21 @@ vim.keymap.set("n", "<leader>q", ":q<CR>", { silent = true })
 vim.keymap.set("", "<leader>sp", ":split<cr>")
 vim.keymap.set("", "<leader>sh", ":split<cr>")
 vim.keymap.set("", "<leader>sv", ":vsplit<cr>")
+vim.keymap.set("", "<leader>sH", "<C-w>H")
+vim.keymap.set("", "<leader>sJ", "<C-w>J")
+vim.keymap.set("", "<leader>sK", "<C-w>K")
+vim.keymap.set("", "<leader>sL", "<C-w>L")
+vim.keymap.set("", "<leader>se", "<C-w>=")
+vim.keymap.set("", "<leader>sx", ":close<CR>")
+vim.keymap.set("", "<leader>sw", "<C-w>x")
+vim.keymap.set("", "<leader>sr", "<C-w>r")
+vim.keymap.set("", "<leader>sR", "<C-w>R")
+
+-- Split Resize
+vim.keymap.set("n", "<M-k>", ":resize +2<CR>")
+vim.keymap.set("n", "<M-j>", ":resize -2<CR>")
+vim.keymap.set("n", "<M-h>", ":vertical resize -2<CR>")
+vim.keymap.set("n", "<M-l>", ":vertical resize +2<CR>")
 
 -- File operations
 vim.api.nvim_create_user_command("CopyFullPath", function()
