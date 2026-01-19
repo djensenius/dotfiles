@@ -9,40 +9,22 @@ return {
 		local VENDOR_BINS = {} -- set-like: vendor ruby bin dirs already added
 		local sep = package.config:sub(1, 1)
 
-		-- Try lspconfig root utility if present
-		local util_ok, util = pcall(require, "lspconfig.util")
-
 		---------------------------------------------------------------------------
 		-- Root detection (unchanged logic with fallback)
 		---------------------------------------------------------------------------
-		local function upward_find(start_dir, targets)
-			local dir = start_dir
-			while dir and dir ~= "" do
-				for _, t in ipairs(targets) do
-					local candidate = dir .. sep .. t
-					if vim.loop.fs_stat(candidate) then
-						return dir
-					end
-				end
-				local parent = dir:match("(.*)" .. sep)
-				if not parent or parent == dir then
-					break
-				end
-				dir = parent
-			end
-			return start_dir
-		end
-
 		local function detect_root(bufnr)
 			local fname = vim.api.nvim_buf_get_name(bufnr)
 			if fname == "" then
 				return vim.loop.cwd()
 			end
-			local dir = vim.fn.fnamemodify(fname, ":p:h")
-			if util_ok then
-				return util.root_pattern("sorbet/config", "Gemfile", ".git")(dir) or dir
+			local markers = { "sorbet" .. sep .. "config", "Gemfile", ".git" }
+			-- Use vim.fs.root (Neovim 0.10+)
+			local root = vim.fs.root(bufnr, markers)
+			if root then
+				return root
 			end
-			return upward_find(dir, { "sorbet" .. sep .. "config", "Gemfile", ".git" })
+			-- Fallback to file directory if no root marker found
+			return vim.fn.fnamemodify(fname, ":p:h")
 		end
 
 		---------------------------------------------------------------------------

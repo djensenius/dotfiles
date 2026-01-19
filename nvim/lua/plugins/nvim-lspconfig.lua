@@ -179,5 +179,17 @@ return {
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("jsonls")
+
+		vim.lsp.config("tailwindcss", {
+			on_attach = on_attach,
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("tailwindcss")
+
+		vim.lsp.config("stylelint_lsp", {
+			on_attach = on_attach,
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("stylelint_lsp")
 	end,
 }
