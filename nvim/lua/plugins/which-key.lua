@@ -42,6 +42,7 @@ return {
 			{ "<leader>fg", desc = "Search (grep)" },
 			{ "<leader>fh", desc = "Help", icon = "󰋖" },
 			{ "<leader>fm", group = "Format" },
+			{ "<leader>ft", desc = "Todo Comments" },
 			{ "<Leader>fz", group = "fzf" },
 			{ "<Leader>fzl", group = "LSP" },
 			{ "<leader>fmt", desc = "Format [LSP]" },
