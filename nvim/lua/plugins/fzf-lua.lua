@@ -138,6 +138,13 @@ return {
 			desc = "Live grep",
 		},
 		{
+			"<leader>fG",
+			function()
+				require("fzf-lua").git_status()
+			end,
+			desc = "Git Status",
+		},
+		{
 			"<leader>fb",
 			function()
 				require("fzf-lua").buffers()

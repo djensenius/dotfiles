@@ -26,3 +26,4 @@ adjust-cell-height = 20%
 window-colorspace = display-p3
 clipboard-read = allow
 window-save-state = always
+macos-option-as-alt = true
