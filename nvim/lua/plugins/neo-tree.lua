@@ -6,6 +6,11 @@ return {
 		"MunifTanjim/nui.nvim",
 	},
 	event = "VeryLazy",
+	keys = {
+		{ "<leader>tg", ":Neotree toggle<CR>", desc = "Toggle Neo-tree" },
+		{ "<leader>tF", ":Neotree filesystem reveal left<CR>", desc = "Reveal File in Neo-tree" },
+		{ "<leader>tb", ":Neotree buffers reveal float<CR>", desc = "Neo-tree Buffers" },
+	},
 	config = function()
 		require("neo-tree").setup({
 			default_component_configs = {
@@ -63,8 +68,5 @@ return {
 				"document_symbols",
 			},
 		})
-		vim.keymap.set("n", "<leader>tg", ":Neotree toggle<CR>", {})
-		vim.keymap.set("n", "<leader>tF", ":Neotree filesystem reveal left<CR>", {})
-		vim.keymap.set("n", "<leader>tb", ":Neotree buffers reveal float<CR>", {})
 	end,
 }
