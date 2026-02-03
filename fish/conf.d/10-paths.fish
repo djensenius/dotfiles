@@ -17,3 +17,8 @@ end
 if test -d /home/linuxbrew/.linuxbrew/bin
     fish_add_path -g /home/linuxbrew/.linuxbrew/bin
 end
+
+# LM Studio
+if test -d $HOME/.lmstudio/bin
+    fish_add_path -g $HOME/.lmstudio/bin
+end
