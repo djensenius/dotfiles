@@ -242,14 +242,14 @@ function install_software() {
       additional_packages_pid=$!
       log_with_timing "Installing additional packages in background" "$start_time"
       
-      # Wait for apt remove to complete before continuing
-      wait "$apt_remove_pid"
-
       # Remove conflicting APT packages in background to avoid blocking
       start_time=$(start_operation "Removing conflicting APT packages")
       (sudo apt remove bat ripgrep -y) &
       apt_remove_pid=$!
       log_with_timing "Removing conflicting APT packages" "$start_time"
+
+      # Wait for apt remove to complete before continuing
+      wait "$apt_remove_pid"
       
       if [[ "$PARALLEL_MODE" == "true" ]]; then
         # Parallel installation mode with fast track for essential tools
@@ -453,6 +453,10 @@ function install_software() {
         start_time=$(start_operation "Installing bottom tools via cargo")
         CC=clang cargo install --locked bottom
         log_with_timing "Installing bottom tools via cargo" "$start_time"
+
+        start_time=$(start_operation "Installing cloudflare-speed-cli via cargo")
+        CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui
+        log_with_timing "Installing cloudflare-speed-cli via cargo" "$start_time"
 
         # Bat cache build
         start_time=$(start_operation "Building bat cache")
