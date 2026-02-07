@@ -255,6 +255,9 @@ function install_software() {
         # Parallel installation mode with fast track for essential tools
         echo "🚀 Using parallel installation with fast track for essential tools..."
         
+        # Wait for clang to be available before using CC=clang
+        wait $additional_packages_pid
+        
         # FOREGROUND PRIORITY: Install atuin, zoxide, and tree-sitter in parallel before login
         start_time=$(start_operation "Foreground priority: atuin, zoxide, tree-sitter")
         echo "🎯 Installing atuin, zoxide, and tree-sitter in foreground (parallel)..."
@@ -354,9 +357,6 @@ function install_software() {
           echo "❌ External tools installation failed" >> "$LOG_FILE"
         fi
         
-        # Wait for additional packages to complete before showing status
-        wait $additional_packages_pid
-        
         # Let user know about background installations
         echo ""
         echo "🦀 Rust tools are installing in the background (PID: $rust_background_pid)"
@@ -407,6 +407,9 @@ function install_software() {
         unzip ~/protoc.zip -d "$HOME"/.local
         export PATH="$PATH:$HOME/.local/bin"
         log_with_timing "Installing Protocol Buffers" "$start_time"
+        
+        # Wait for clang to be available before using CC=clang
+        wait $additional_packages_pid
         
         # Cargo installations (these tend to be slow)
         start_time=$(start_operation "Installing eza via cargo")
