@@ -230,13 +230,13 @@ function install_software() {
       
       # APT package installation - split into essential and non-essential
       start_time=$(start_operation "Installing essential APT packages")
-      sudo apt -o DPkg::Lock::Timeout=600 install tmux jq ruby-dev -y
+      sudo apt -o DPkg::Lock::Timeout=600 install tmux jq ruby-dev clang -y
       log_with_timing "Installing essential APT packages" "$start_time"
       
       # Install remaining APT packages and luarocks in background
       start_time=$(start_operation "Installing additional packages in background")
       (
-        sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat libfuse2 fuse software-properties-common most luarocks clang -y
+        sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat libfuse2 fuse software-properties-common most luarocks -y
         sudo luarocks install luacheck
       ) &
       additional_packages_pid=$!
