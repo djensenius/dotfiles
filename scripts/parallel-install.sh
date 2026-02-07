@@ -126,6 +126,7 @@ install_cargo_packages_parallel() {
     run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
     run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
     run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
@@ -138,7 +139,7 @@ install_cargo_packages_parallel() {
     # Wait for all remaining installations to complete
     local remaining_operations=(
         "cargo_eza" "cargo_ripgrep" "cargo_fd_find" "cargo_bat"
-        "cargo_tree_sitter" "cargo_bottom" "cargo_zellij" "cargo_pay_respects"
+        "cargo_tree_sitter" "cargo_bottom" "cargo_zellij" "cargo_cfspeed" "cargo_pay_respects"
     )
     
     if wait_for_parallel "${remaining_operations[@]}"; then
@@ -194,6 +195,7 @@ install_cargo_packages_background() {
     run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
     run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
     run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
@@ -206,7 +208,7 @@ install_cargo_packages_background() {
     # Wait for all remaining installations to complete
     local remaining_operations=(
         "cargo_eza" "cargo_ripgrep" "cargo_fd_find" "cargo_bat"
-        "cargo_tree_sitter" "cargo_bottom" "cargo_zellij" "cargo_pay_respects"
+        "cargo_tree_sitter" "cargo_bottom" "cargo_zellij" "cargo_cfspeed" "cargo_pay_respects"
     )
     
     if wait_for_parallel "${remaining_operations[@]}"; then
@@ -241,6 +243,7 @@ install_cargo_packages_background_remaining() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting development tools" >> $LOG_FILE
     run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
     run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting optional tools" >> $LOG_FILE
@@ -253,7 +256,7 @@ install_cargo_packages_background_remaining() {
     # Wait for all remaining installations to complete
     local remaining_operations=(
         "cargo_eza" "cargo_ripgrep" "cargo_fd_find" "cargo_bat"
-        "cargo_bottom" "cargo_zellij" "cargo_pay_respects"
+        "cargo_bottom" "cargo_zellij" "cargo_cfspeed" "cargo_pay_respects"
     )
     
     if wait_for_parallel "${remaining_operations[@]}"; then
