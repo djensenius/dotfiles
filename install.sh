@@ -263,7 +263,7 @@ function install_software() {
         echo "🎯 Installing atuin, zoxide, and tree-sitter in foreground (parallel)..."
         
         # Install the three critical tools in parallel in foreground
-        CC=gcc cargo install --locked atuin &
+        AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked atuin &
         atuin_pid=$!
         CC=gcc cargo install --locked zoxide &
         zoxide_pid=$!
@@ -433,7 +433,7 @@ function install_software() {
         log_with_timing "Installing bat via cargo" "$start_time"
         
         start_time=$(start_operation "Installing atuin via cargo")
-        CC=gcc cargo install --locked atuin
+        AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked atuin
         log_with_timing "Installing atuin via cargo" "$start_time"
         
         start_time=$(start_operation "Installing tree-sitter-cli via cargo")
@@ -447,7 +447,7 @@ function install_software() {
         log_with_timing "Installing pay-respects tools via cargo" "$start_time"
         
         start_time=$(start_operation "Installing zellij via cargo")
-        CC=gcc cargo install --locked zellij
+        AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked zellij
         log_with_timing "Installing zellij via cargo" "$start_time"
         
         start_time=$(start_operation "Installing bottom tools via cargo")
@@ -455,7 +455,7 @@ function install_software() {
         log_with_timing "Installing bottom tools via cargo" "$start_time"
 
         start_time=$(start_operation "Installing cloudflare-speed-cli via cargo")
-        CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui
+        AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui
         log_with_timing "Installing cloudflare-speed-cli via cargo" "$start_time"
 
         # Bat cache build
