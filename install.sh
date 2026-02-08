@@ -230,13 +230,13 @@ function install_software() {
       
       # APT package installation - split into essential and non-essential
       start_time=$(start_operation "Installing essential APT packages")
-      sudo apt -o DPkg::Lock::Timeout=600 install tmux jq ruby-dev clang -y
+      sudo apt -o DPkg::Lock::Timeout=600 install tmux jq ruby-dev build-essential -y
       log_with_timing "Installing essential APT packages" "$start_time"
       
       # Install remaining APT packages and luarocks in background
       start_time=$(start_operation "Installing additional packages in background")
       (
-        sudo apt -o DPkg::Lock::Timeout=600 install build-essential python3-venv socat ncat libfuse2 fuse software-properties-common most luarocks -y
+        sudo apt -o DPkg::Lock::Timeout=600 install python3-venv socat ncat libfuse2 fuse software-properties-common most luarocks -y
         sudo luarocks install luacheck
       ) &
       additional_packages_pid=$!
@@ -255,7 +255,7 @@ function install_software() {
         # Parallel installation mode with fast track for essential tools
         echo "🚀 Using parallel installation with fast track for essential tools..."
         
-        # Wait for clang to be available before using CC=clang
+        # Wait for gcc to be available before using CC=gcc
         wait $additional_packages_pid
         
         # FOREGROUND PRIORITY: Install atuin, zoxide, and tree-sitter in parallel before login
@@ -263,11 +263,11 @@ function install_software() {
         echo "🎯 Installing atuin, zoxide, and tree-sitter in foreground (parallel)..."
         
         # Install the three critical tools in parallel in foreground
-        CC=clang cargo install --locked atuin &
+        CC=gcc cargo install --locked atuin &
         atuin_pid=$!
-        CC=clang cargo install --locked zoxide &
+        CC=gcc cargo install --locked zoxide &
         zoxide_pid=$!
-        CC=clang cargo install --locked tree-sitter-cli &
+        CC=gcc cargo install --locked tree-sitter-cli &
         tree_sitter_pid=$!
         
         # Wait for all three to complete
@@ -408,54 +408,54 @@ function install_software() {
         export PATH="$PATH:$HOME/.local/bin"
         log_with_timing "Installing Protocol Buffers" "$start_time"
         
-        # Wait for clang to be available before using CC=clang
+        # Wait for gcc to be available before using CC=gcc
         wait $additional_packages_pid
         
         # Cargo installations (these tend to be slow)
         start_time=$(start_operation "Installing eza via cargo")
-        CC=clang cargo install eza
+        CC=gcc cargo install eza
         log_with_timing "Installing eza via cargo" "$start_time"
         
         start_time=$(start_operation "Installing zoxide via cargo")
-        CC=clangcargo install --locked zoxide
+        CC=gcc cargo install --locked zoxide
         log_with_timing "Installing zoxide via cargo" "$start_time"
         
         start_time=$(start_operation "Installing ripgrep via cargo")
-        CC=clang cargo install ripgrep
+        CC=gcc cargo install ripgrep
         log_with_timing "Installing ripgrep via cargo" "$start_time"
         
         start_time=$(start_operation "Installing fd-find via cargo")
-        CC=clang cargo install fd-find
+        CC=gcc cargo install fd-find
         log_with_timing "Installing fd-find via cargo" "$start_time"
         
         start_time=$(start_operation "Installing bat via cargo")
-        CC=clang cargo install --locked bat
+        CC=gcc cargo install --locked bat
         log_with_timing "Installing bat via cargo" "$start_time"
         
         start_time=$(start_operation "Installing atuin via cargo")
-        CC=clang cargo install --locked atuin
+        CC=gcc cargo install --locked atuin
         log_with_timing "Installing atuin via cargo" "$start_time"
         
         start_time=$(start_operation "Installing tree-sitter-cli via cargo")
-        CC=clang cargo install --locked tree-sitter-cli
+        CC=gcc cargo install --locked tree-sitter-cli
         log_with_timing "Installing tree-sitter-cli via cargo" "$start_time"
         
         start_time=$(start_operation "Installing pay-respects tools via cargo")
-        CC=clang cargo install --locked pay-respects
-        CC=clang cargo install --locked pay-respects-module-runtime-rules
-        CC=clang cargo install --locked pay-respects-module-request-ai
+        CC=gcc cargo install --locked pay-respects
+        CC=gcc cargo install --locked pay-respects-module-runtime-rules
+        CC=gcc cargo install --locked pay-respects-module-request-ai
         log_with_timing "Installing pay-respects tools via cargo" "$start_time"
         
         start_time=$(start_operation "Installing zellij via cargo")
-        CC=clang cargo install --locked zellij
+        CC=gcc cargo install --locked zellij
         log_with_timing "Installing zellij via cargo" "$start_time"
         
         start_time=$(start_operation "Installing bottom tools via cargo")
-        CC=clang cargo install --locked bottom
+        CC=gcc cargo install --locked bottom
         log_with_timing "Installing bottom tools via cargo" "$start_time"
 
         start_time=$(start_operation "Installing cloudflare-speed-cli via cargo")
-        CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui
+        CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui
         log_with_timing "Installing cloudflare-speed-cli via cargo" "$start_time"
 
         # Bat cache build
