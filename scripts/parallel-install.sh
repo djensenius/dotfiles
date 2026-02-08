@@ -103,8 +103,8 @@ install_cargo_packages_parallel() {
     
     # PRIORITY BATCH 1: Essential tools needed soonest (atuin, zoxide)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 1: Essential shell tools" >> $LOG_FILE
-    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
-    run_parallel "cargo_zoxide" "CC=clang cargo install --locked zoxide"
+    run_parallel "cargo_atuin" "CC=gcc cargo install --locked atuin"
+    run_parallel "cargo_zoxide" "CC=gcc cargo install --locked zoxide"
     
     # Wait for priority tools first
     local priority_operations=("cargo_atuin" "cargo_zoxide")
@@ -116,24 +116,24 @@ install_cargo_packages_parallel() {
     
     # PRIORITY BATCH 2: Common file tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 2: File management tools" >> $LOG_FILE
-    run_parallel "cargo_eza" "CC=clang cargo install eza"
-    run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
-    run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
-    run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
+    run_parallel "cargo_eza" "CC=gcc cargo install eza"
+    run_parallel "cargo_ripgrep" "CC=gcc cargo install ripgrep"
+    run_parallel "cargo_fd_find" "CC=gcc cargo install fd-find"
+    run_parallel "cargo_bat" "CC=gcc cargo install --locked bat"
     
     # PRIORITY BATCH 3: Development tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 3: Development tools" >> $LOG_FILE
-    run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
-    run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
-    run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
-    run_parallel "cargo_cfspeed" "CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
+    run_parallel "cargo_tree_sitter" "CC=gcc cargo install --locked tree-sitter-cli"
+    run_parallel "cargo_bottom" "CC=gcc cargo install --locked bottom"
+    run_parallel "cargo_zellij" "CC=gcc cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
     run_parallel "cargo_pay_respects" "
-        CC=clang cargo install --locked pay-respects &&
-        CC=clang cargo install --locked pay-respects-module-runtime-rules &&
-        CC=clang cargo install --locked pay-respects-module-request-ai
+        CC=gcc cargo install --locked pay-respects &&
+        CC=gcc cargo install --locked pay-respects-module-runtime-rules &&
+        CC=gcc cargo install --locked pay-respects-module-request-ai
     "
     
     # Wait for all remaining installations to complete
@@ -158,8 +158,8 @@ install_cargo_packages_background() {
     
     # PRIORITY BATCH 1: Essential tools needed soonest (atuin, zoxide)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 1: Essential shell tools" >> $LOG_FILE
-    run_parallel "cargo_atuin" "CC=clang cargo install --locked atuin"
-    run_parallel "cargo_zoxide" "CC=clang cargo install --locked zoxide"
+    run_parallel "cargo_atuin" "CC=gcc cargo install --locked atuin"
+    run_parallel "cargo_zoxide" "CC=gcc cargo install --locked zoxide"
     
     # Wait for priority tools first and make them available immediately
     local priority_operations=("cargo_atuin" "cargo_zoxide")
@@ -185,24 +185,24 @@ install_cargo_packages_background() {
     
     # PRIORITY BATCH 2: Common file tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 2: File management tools" >> $LOG_FILE
-    run_parallel "cargo_eza" "CC=clang cargo install eza"
-    run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
-    run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
-    run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
+    run_parallel "cargo_eza" "CC=gcc cargo install eza"
+    run_parallel "cargo_ripgrep" "CC=gcc cargo install ripgrep"
+    run_parallel "cargo_fd_find" "CC=gcc cargo install fd-find"
+    run_parallel "cargo_bat" "CC=gcc cargo install --locked bat"
     
     # PRIORITY BATCH 3: Development tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 3: Development tools" >> $LOG_FILE
-    run_parallel "cargo_tree_sitter" "CC=clang cargo install --locked tree-sitter-cli"
-    run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
-    run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
-    run_parallel "cargo_cfspeed" "CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
+    run_parallel "cargo_tree_sitter" "CC=gcc cargo install --locked tree-sitter-cli"
+    run_parallel "cargo_bottom" "CC=gcc cargo install --locked bottom"
+    run_parallel "cargo_zellij" "CC=gcc cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
     run_parallel "cargo_pay_respects" "
-        CC=clang cargo install --locked pay-respects &&
-        CC=clang cargo install --locked pay-respects-module-runtime-rules &&
-        CC=clang cargo install --locked pay-respects-module-request-ai
+        CC=gcc cargo install --locked pay-respects &&
+        CC=gcc cargo install --locked pay-respects-module-runtime-rules &&
+        CC=gcc cargo install --locked pay-respects-module-request-ai
     "
     
     # Wait for all remaining installations to complete
@@ -234,23 +234,23 @@ install_cargo_packages_background_remaining() {
     
     # PRIORITY BATCH 2: Common file tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting file management tools" >> $LOG_FILE
-    run_parallel "cargo_eza" "CC=clang cargo install eza"
-    run_parallel "cargo_ripgrep" "CC=clang cargo install ripgrep"
-    run_parallel "cargo_fd_find" "CC=clang cargo install fd-find"
-    run_parallel "cargo_bat" "CC=clang cargo install --locked bat"
+    run_parallel "cargo_eza" "CC=gcc cargo install eza"
+    run_parallel "cargo_ripgrep" "CC=gcc cargo install ripgrep"
+    run_parallel "cargo_fd_find" "CC=gcc cargo install fd-find"
+    run_parallel "cargo_bat" "CC=gcc cargo install --locked bat"
     
     # PRIORITY BATCH 3: Development tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting development tools" >> $LOG_FILE
-    run_parallel "cargo_bottom" "CC=clang cargo install --locked bottom"
-    run_parallel "cargo_zellij" "CC=clang cargo install --locked zellij"
-    run_parallel "cargo_cfspeed" "CC=clang cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
+    run_parallel "cargo_bottom" "CC=gcc cargo install --locked bottom"
+    run_parallel "cargo_zellij" "CC=gcc cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting optional tools" >> $LOG_FILE
     run_parallel "cargo_pay_respects" "
-        CC=clang cargo install --locked pay-respects &&
-        CC=clang cargo install --locked pay-respects-module-runtime-rules &&
-        CC=clang cargo install --locked pay-respects-module-request-ai
+        CC=gcc cargo install --locked pay-respects &&
+        CC=gcc cargo install --locked pay-respects-module-runtime-rules &&
+        CC=gcc cargo install --locked pay-respects-module-request-ai
     "
     
     # Wait for all remaining installations to complete
