@@ -103,7 +103,7 @@ install_cargo_packages_parallel() {
     
     # PRIORITY BATCH 1: Essential tools needed soonest (atuin, zoxide)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 1: Essential shell tools" >> $LOG_FILE
-    run_parallel "cargo_atuin" "CC=gcc cargo install --locked atuin"
+    run_parallel "cargo_atuin" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked atuin"
     run_parallel "cargo_zoxide" "CC=gcc cargo install --locked zoxide"
     
     # Wait for priority tools first
@@ -125,8 +125,8 @@ install_cargo_packages_parallel() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 3: Development tools" >> $LOG_FILE
     run_parallel "cargo_tree_sitter" "CC=gcc cargo install --locked tree-sitter-cli"
     run_parallel "cargo_bottom" "CC=gcc cargo install --locked bottom"
-    run_parallel "cargo_zellij" "CC=gcc cargo install --locked zellij"
-    run_parallel "cargo_cfspeed" "CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
+    run_parallel "cargo_zellij" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
@@ -158,7 +158,7 @@ install_cargo_packages_background() {
     
     # PRIORITY BATCH 1: Essential tools needed soonest (atuin, zoxide)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 1: Essential shell tools" >> $LOG_FILE
-    run_parallel "cargo_atuin" "CC=gcc cargo install --locked atuin"
+    run_parallel "cargo_atuin" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked atuin"
     run_parallel "cargo_zoxide" "CC=gcc cargo install --locked zoxide"
     
     # Wait for priority tools first and make them available immediately
@@ -194,8 +194,8 @@ install_cargo_packages_background() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 3: Development tools" >> $LOG_FILE
     run_parallel "cargo_tree_sitter" "CC=gcc cargo install --locked tree-sitter-cli"
     run_parallel "cargo_bottom" "CC=gcc cargo install --locked bottom"
-    run_parallel "cargo_zellij" "CC=gcc cargo install --locked zellij"
-    run_parallel "cargo_cfspeed" "CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
+    run_parallel "cargo_zellij" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting priority batch 4: Optional tools" >> $LOG_FILE
@@ -242,8 +242,8 @@ install_cargo_packages_background_remaining() {
     # PRIORITY BATCH 3: Development tools
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting development tools" >> $LOG_FILE
     run_parallel "cargo_bottom" "CC=gcc cargo install --locked bottom"
-    run_parallel "cargo_zellij" "CC=gcc cargo install --locked zellij"
-    run_parallel "cargo_cfspeed" "CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
+    run_parallel "cargo_zellij" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --locked zellij"
+    run_parallel "cargo_cfspeed" "AWS_LC_SYS_CMAKE_BUILDER=1 CC=gcc cargo install --git https://github.com/kavehtehrani/cloudflare-speed-cli --features tui"
     
     # PRIORITY BATCH 4: Optional tools (lowest priority)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🎯 Starting optional tools" >> $LOG_FILE
