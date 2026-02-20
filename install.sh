@@ -540,6 +540,16 @@ function setup_software() {
         rm -f ~/.dotfiles_locale_update.pid
       fi
     fi
+
+    # Install Ghostty terminfo if not already present
+    start_time=$(start_operation "Installing Ghostty terminfo")
+    if ! infocmp xterm-ghostty > /dev/null 2>&1; then
+      echo "Installing Ghostty terminfo..."
+      sudo tic -x "$(pwd)/ghostty/xterm-ghostty.terminfo"
+    else
+      echo "✅ Ghostty terminfo already installed"
+    fi
+    log_with_timing "Installing Ghostty terminfo" "$start_time"
 }
 
 function start_rust_background_installation() {
