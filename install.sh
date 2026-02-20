@@ -545,7 +545,7 @@ function setup_software() {
     start_time=$(start_operation "Installing Ghostty terminfo")
     if ! infocmp xterm-ghostty > /dev/null 2>&1; then
       echo "Installing Ghostty terminfo..."
-      curl -sL https://raw.githubusercontent.com/zcobol/xterm-ghostty/main/xterm-ghostty | sudo tic -x -
+      sudo tic -x "$(pwd)/ghostty/xterm-ghostty.terminfo"
     else
       echo "✅ Ghostty terminfo already installed"
     fi
