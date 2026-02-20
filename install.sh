@@ -64,6 +64,11 @@ else
     echo "" >> $LOG_FILE
 fi
 
+# Helper function to detect Codespaces environment
+is_codespaces() {
+    [ -d /workspaces/github ] || [ "$USER" = "vscode" ] || [ "$USER" = "codespace" ]
+}
+
 # Helper function to log with timing
 log_with_timing() {
     local operation="$1"
@@ -194,7 +199,7 @@ function link_files() {
     ln -sf "$(pwd)/k9s" ~/.config/k9s
     
     # Make tmux indicator script available in PATH for tmux config
-    if [ -d /workspaces/github ]; then
+    if is_codespaces; then
         sudo ln -sf "$(pwd)/scripts/tmux-background-install-indicator.sh" /usr/local/bin/
     fi
     
@@ -209,7 +214,9 @@ function link_files() {
       sudo ln -sf /workspaces/github/bin/solargraph /usr/local/bin/solargraph
       sudo ln -sf /workspaces/github/bin/safe-ruby /usr/local/bin/safe-ruby
       log_with_timing "Linking GitHub Codespaces Ruby tools" "$start_time"
-      
+    fi
+
+    if is_codespaces; then
       # Background locale update as it's not immediately critical
       start_time=$(start_operation "Updating locale settings")
       (sudo update-locale LANG=en_US.UTF-8 LC_TYPE=en_US.UTF-8 LC_ALL=en_US.UTF-8) &
@@ -222,7 +229,7 @@ function link_files() {
 }
 
 function install_software() {
-    if [ -d /workspaces/github ]; then
+    if is_codespaces; then
       # Reduce initial delay for faster startup
       start_time=$(start_operation "Initial system wait (5s)")
       sleep 5
@@ -524,7 +531,7 @@ function install_software() {
 
 function setup_software() {
     # Final environment and shell setup (must run at the very end)
-    if [ -d /workspaces/github ]; then
+    if is_codespaces; then
       # Change shell is the only critical operation that must complete
       start_time=$(start_operation "Changing default shell to fish")
       sudo chsh -s /usr/bin/fish vscode
@@ -649,7 +656,7 @@ function start_npm_background_installation() {
     {
         echo "Installing NPM global packages..." >> $npm_log
         
-        if [ -d /workspaces/github ]; then
+        if is_codespaces; then
             npm install -g @fsouza/prettierd yaml-language-server vscode-langservers-extracted eslint_d prettier tree-sitter neovim >> $npm_log 2>&1
             npm_exit_code=$?
             
@@ -674,7 +681,7 @@ function start_npm_background_installation() {
 }
 
 function install_ruby_gems_parallel() {
-    if [ -d /workspaces/github ]; then
+    if is_codespaces; then
         echo "Installing Ruby gems in parallel..."
         
         # Install gems in parallel using background processes
