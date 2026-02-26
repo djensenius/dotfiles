@@ -5,3 +5,9 @@ tmux/plugins
 actionlint
 stylua
 stylua.zip
+
+# Theme-switched symlinks (dark/light variant files are tracked instead)
+bottom/bottom.toml
+eza/theme.yml
+yazi/theme.toml
+gh-dash/config.yml

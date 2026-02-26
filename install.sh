@@ -219,6 +219,28 @@ function link_files() {
         "$(pwd)/scripts/detect-theme-mode" > ~/.config/theme-mode
     fi
     
+    # Create default theme symlinks (these files are gitignored)
+    start_time=$(start_operation "Setting up theme symlinks")
+    local mode
+    mode=$(cat ~/.config/theme-mode)
+    if [ "$mode" = "light" ]; then
+        ln -sf bottom-light.toml "$(pwd)/bottom/bottom.toml"
+        ln -sf theme-light.yml "$(pwd)/eza/theme.yml"
+        ln -sf theme-light.toml "$(pwd)/yazi/theme.toml"
+        ln -sf config-light.yml "$(pwd)/gh-dash/config.yml"
+    else
+        ln -sf bottom-dark.toml "$(pwd)/bottom/bottom.toml"
+        ln -sf theme-dark.yml "$(pwd)/eza/theme.yml"
+        ln -sf theme-dark.toml "$(pwd)/yazi/theme.toml"
+        ln -sf config-dark.yml "$(pwd)/gh-dash/config.yml"
+    fi
+    
+    # Prevent theme-switching sed changes from dirtying git status
+    git -C "$(pwd)" update-index --skip-worktree \
+        starship.toml gitconfig atuin/config.toml \
+        zellij/config.kdl btop/btop.conf k9s/config.yaml 2>/dev/null || true
+    log_with_timing "Setting up theme symlinks" "$start_time"
+    
     log_with_timing "Linking terminal tool configs" "$start_time"
     
     # Codespaces-specific configuration - background non-critical operations
