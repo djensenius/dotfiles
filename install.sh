@@ -203,6 +203,22 @@ function link_files() {
         sudo ln -sf "$(pwd)/scripts/tmux-background-install-indicator.sh" /usr/local/bin/
     fi
     
+    # macOS theme watcher setup
+    if [ "$(uname)" = "Darwin" ] && command -v swiftc >/dev/null 2>&1; then
+        start_time=$(start_operation "Setting up theme watcher")
+        mkdir -p ~/.local/bin
+        swiftc -O "$(pwd)/scripts/theme-watcher.swift" -o ~/.local/bin/theme-watcher
+        cp "$(pwd)/scripts/com.dotfiles.theme-watcher.plist" ~/Library/LaunchAgents/
+        launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist 2>/dev/null || true
+        launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist
+        log_with_timing "Setting up theme watcher" "$start_time"
+    fi
+    
+    # Initialize theme mode
+    if [ ! -f ~/.config/theme-mode ]; then
+        "$(pwd)/scripts/detect-theme-mode" > ~/.config/theme-mode
+    fi
+    
     log_with_timing "Linking terminal tool configs" "$start_time"
     
     # Codespaces-specific configuration - background non-critical operations
