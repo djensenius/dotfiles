@@ -48,19 +48,6 @@ end
 
 # --- Sed-based config updates ---
 
-# Ghostty: toggle black background for dark mode
-if test -f "$dotfiles/ghostty/config"
-    if test "$mode" = light
-        _sed_i '/^background = 000000$/d' "$dotfiles/ghostty/config"
-    else
-        # Add background = 000000 after the theme line if not present
-        if not grep -q "^background = 000000" "$dotfiles/ghostty/config" 2>/dev/null
-            _sed_i '/^theme = /a\
-background = 000000' "$dotfiles/ghostty/config"
-        end
-    end
-end
-
 # Starship: switch palette
 if test "$mode" = light
     _sed_i 's/palette = "catppuccin_mocha"/palette = "catppuccin_latte"/' "$dotfiles/starship.toml"
