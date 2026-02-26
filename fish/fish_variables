@@ -1,3 +1,4 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR THEME_MODE:light
 SETUVAR __fish_initialized:4300
