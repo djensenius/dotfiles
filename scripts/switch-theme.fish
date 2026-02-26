@@ -141,13 +141,17 @@ if type -q tmux; and tmux list-sessions >/dev/null 2>&1
         tmux set -gu $var 2>/dev/null
     end
     
-    # Set flavor and re-source the catppuccin plugin + config
-    tmux set -g @catppuccin_flavor "$flavor"
+    # Source tmux.conf FIRST so user options (@catppuccin_window_status_style etc.)
+    # are set before the plugin reads them via -ogq
+    tmux source-file "$dotfiles/tmux/tmux.conf" 2>/dev/null
+    
+    # Then re-source the catppuccin plugin to apply the new flavor
     set -l ctp_dir "$dotfiles/tmux/plugins/tmux"
     if test -d "$ctp_dir"
         tmux source-file "$ctp_dir/catppuccin_options_tmux.conf" 2>/dev/null
         tmux source-file "$ctp_dir/catppuccin_tmux.conf" 2>/dev/null
     end
+    # Source tmux.conf again so post-catppuccin overrides apply
     tmux source-file "$dotfiles/tmux/tmux.conf" 2>/dev/null
 end
 
