@@ -9,7 +9,6 @@ return {
 
 		lint.linters_by_ft = {
 			fish = { "fish" },
-			go = { "golangcilint" },
 			python = { "pylint" },
 			javascript = { "eslint_d" },
 			javascriptreact = { "eslint_d" },
