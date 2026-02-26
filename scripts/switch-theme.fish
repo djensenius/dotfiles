@@ -130,14 +130,22 @@ end
 
 # --- Runtime reloads ---
 
-# Tmux: set flavor and reload
+# Tmux: update flavor in config and reload
 if type -q tmux; and tmux list-sessions >/dev/null 2>&1
     if test "$mode" = light
-        tmux set -g @catppuccin_flavor "latte"
+        _sed_i 's/@catppuccin_flavor "mocha"/@catppuccin_flavor "latte"/' "$dotfiles/tmux/tmux.conf"
     else
-        tmux set -g @catppuccin_flavor "mocha"
+        _sed_i 's/@catppuccin_flavor "latte"/@catppuccin_flavor "mocha"/' "$dotfiles/tmux/tmux.conf"
     end
     tmux source-file "$dotfiles/tmux/tmux.conf" 2>/dev/null
+end
+
+# Neovim: update background on all running instances
+if type -q nvim
+    set -l bg (test "$mode" = light && echo light || echo dark)
+    for sock in (find /var/folders /tmp -path "*/nvim.*/nvim.*" -type s 2>/dev/null)
+        nvim --server "$sock" --remote-send "<Cmd>set background=$bg<CR>" 2>/dev/null
+    end
 end
 
 # Fish: update universal variable (propagates to all running shells)
