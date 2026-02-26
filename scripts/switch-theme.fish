@@ -31,12 +31,18 @@ echo "$mode" > "$state_file"
 # Dotfiles config location (symlinked from repo)
 set -l dotfiles "$HOME/.config"
 
-# Helper: portable sed in-place
+# Helper: portable sed in-place (follows symlinks)
 function _sed_i
+    set -l file $argv[-1]
+    set -l sed_args $argv[1..-2]
+    # Resolve symlinks so sed -i works on macOS
+    if test -L "$file"
+        set file (realpath "$file")
+    end
     if test (uname) = Darwin
-        sed -i '' $argv
+        sed -i '' $sed_args "$file"
     else
-        sed -i $argv
+        sed -i $sed_args "$file"
     end
 end
 

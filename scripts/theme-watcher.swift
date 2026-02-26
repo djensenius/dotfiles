@@ -31,8 +31,8 @@ class ThemeWatcher {
 
     func switchTheme(to mode: String) {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        process.arguments = ["fish", scriptPath, mode]
+        process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/fish")
+        process.arguments = [scriptPath, mode]
         process.environment = ProcessInfo.processInfo.environment
         try? process.run()
         process.waitUntilExit()

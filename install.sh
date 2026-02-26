@@ -208,6 +208,7 @@ function link_files() {
         start_time=$(start_operation "Setting up theme watcher")
         mkdir -p ~/.local/bin
         swiftc -O "$(pwd)/scripts/theme-watcher.swift" -o ~/.local/bin/theme-watcher
+        ln -sf "$(pwd)/scripts/switch-theme.fish" ~/.local/bin/switch-theme.fish
         cp "$(pwd)/scripts/com.dotfiles.theme-watcher.plist" ~/Library/LaunchAgents/
         launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist 2>/dev/null || true
         launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist
