@@ -130,12 +130,23 @@ end
 
 # --- Runtime reloads ---
 
-# Tmux: update flavor in config and reload
+# Tmux: update flavor in config and reload catppuccin plugin
 if type -q tmux; and tmux list-sessions >/dev/null 2>&1
-    if test "$mode" = light
-        _sed_i 's/@catppuccin_flavor "mocha"/@catppuccin_flavor "latte"/' "$dotfiles/tmux/tmux.conf"
-    else
-        _sed_i 's/@catppuccin_flavor "latte"/@catppuccin_flavor "mocha"/' "$dotfiles/tmux/tmux.conf"
+    set -l flavor (test "$mode" = light && echo latte || echo mocha)
+    set -l old_flavor (test "$mode" = light && echo mocha || echo latte)
+    _sed_i "s/@catppuccin_flavor \"$old_flavor\"/@catppuccin_flavor \"$flavor\"/" "$dotfiles/tmux/tmux.conf"
+    
+    # Clear all catppuccin theme variables (they use -ogq so won't update otherwise)
+    for var in (tmux show -g 2>/dev/null | grep -oE '^@(thm_|catppuccin_|_ctp_)[^ ]+')
+        tmux set -gu $var 2>/dev/null
+    end
+    
+    # Set flavor and re-source the catppuccin plugin + config
+    tmux set -g @catppuccin_flavor "$flavor"
+    set -l ctp_dir "$dotfiles/tmux/plugins/tmux"
+    if test -d "$ctp_dir"
+        tmux source-file "$ctp_dir/catppuccin_options_tmux.conf" 2>/dev/null
+        tmux source-file "$ctp_dir/catppuccin_tmux.conf" 2>/dev/null
     end
     tmux source-file "$dotfiles/tmux/tmux.conf" 2>/dev/null
 end
