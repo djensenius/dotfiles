@@ -240,7 +240,8 @@ function link_files() {
     git -C "$(pwd)" update-index --skip-worktree \
         starship.toml gitconfig atuin/config.toml \
         zellij/config.kdl btop/btop.conf k9s/config.yaml \
-        tmux/tmux.conf ghostty/config 2>/dev/null || true
+        tmux/tmux.conf ghostty/config \
+        fish/fish_variables 2>/dev/null || true
     log_with_timing "Setting up theme symlinks" "$start_time"
     
     log_with_timing "Linking terminal tool configs" "$start_time"
