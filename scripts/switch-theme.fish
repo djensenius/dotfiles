@@ -47,84 +47,34 @@ function _sed_i
 end
 
 # --- Sed-based config updates ---
+# Each entry: file|dark-pattern|light-pattern
+set -l sed_swaps \
+    "starship.toml|catppuccin_mocha|catppuccin_latte" \
+    "$HOME/.gitconfig|Catppuccin-mocha|Catppuccin-latte" \
+    "atuin/config.toml|catppuccin-mocha-mauve|catppuccin-latte-mauve" \
+    "zellij/config.kdl|catppuccin-mocha|catppuccin-latte" \
+    "btop/btop.conf|catppuccin_mocha|catppuccin_latte" \
+    "k9s/config.yaml|catppuccin-mocha|catppuccin-latte"
 
-# Starship: switch palette
-if test "$mode" = light
-    _sed_i 's/palette = "catppuccin_mocha"/palette = "catppuccin_latte"/' "$dotfiles/starship.toml"
-else
-    _sed_i 's/palette = "catppuccin_latte"/palette = "catppuccin_mocha"/' "$dotfiles/starship.toml"
-end
-
-# Gitconfig: switch delta theme
-if test "$mode" = light
-    _sed_i 's/Catppuccin-mocha/Catppuccin-latte/g' "$HOME/.gitconfig"
-else
-    _sed_i 's/Catppuccin-latte/Catppuccin-mocha/g' "$HOME/.gitconfig"
-end
-
-# Atuin: switch theme
-if test "$mode" = light
-    _sed_i 's/catppuccin-mocha-mauve/catppuccin-latte-mauve/' "$dotfiles/atuin/config.toml"
-else
-    _sed_i 's/catppuccin-latte-mauve/catppuccin-mocha-mauve/' "$dotfiles/atuin/config.toml"
-end
-
-# Zellij: switch theme
-if test "$mode" = light
-    _sed_i 's/theme "catppuccin-mocha"/theme "catppuccin-latte"/' "$dotfiles/zellij/config.kdl"
-else
-    _sed_i 's/theme "catppuccin-latte"/theme "catppuccin-mocha"/' "$dotfiles/zellij/config.kdl"
-end
-
-# Btop: switch theme
-if test "$mode" = light
-    _sed_i 's/catppuccin_mocha/catppuccin_latte/g' "$dotfiles/btop/btop.conf"
-else
-    _sed_i 's/catppuccin_latte/catppuccin_mocha/g' "$dotfiles/btop/btop.conf"
-end
-
-# K9s: switch skin
-if test "$mode" = light
-    _sed_i 's/skin: catppuccin-mocha/skin: catppuccin-latte/' "$dotfiles/k9s/config.yaml"
-else
-    _sed_i 's/skin: catppuccin-latte/skin: catppuccin-mocha/' "$dotfiles/k9s/config.yaml"
+for swap in $sed_swaps
+    set -l p (string split '|' $swap)
+    set -l file (string match -rq '^/' -- $p[1] && echo $p[1] || echo "$dotfiles/$p[1]")
+    if test "$mode" = light
+        _sed_i "s/$p[2]/$p[3]/g" "$file"
+    else
+        _sed_i "s/$p[3]/$p[2]/g" "$file"
+    end
 end
 
 # --- Symlink-based config updates ---
-
-# Bottom
-if test -d "$dotfiles/bottom"
-    if test "$mode" = light
-        ln -sf bottom-light.toml "$dotfiles/bottom/bottom.toml"
-    else
-        ln -sf bottom-dark.toml "$dotfiles/bottom/bottom.toml"
-    end
-end
-
-# Eza
-if test -d "$dotfiles/eza"
-    if test "$mode" = light
-        ln -sf theme-light.yml "$dotfiles/eza/theme.yml"
-    else
-        ln -sf theme-dark.yml "$dotfiles/eza/theme.yml"
-    end
-end
-
-# Yazi
-if test -d "$dotfiles/yazi"
-    if test "$mode" = light
-        ln -sf theme-light.toml "$dotfiles/yazi/theme.toml"
-    else
-        ln -sf theme-dark.toml "$dotfiles/yazi/theme.toml"
-    end
-end
-
-# gh-dash
-if test -d "$dotfiles/gh-dash"
-    if test "$mode" = light
-        ln -sf config-light.yml "$dotfiles/gh-dash/config.yml"
-    else
-        ln -sf config-dark.yml "$dotfiles/gh-dash/config.yml"
+# Each entry: directory|filename (dark/light variants use -dark/-light suffix)
+for pair in "bottom|bottom.toml" "eza|theme.yml" "yazi|theme.toml" "gh-dash|config.yml"
+    set -l p (string split '|' $pair)
+    set -l dir "$dotfiles/$p[1]"
+    if test -d "$dir"
+        set -l base (string replace -r '\.[^.]+$' '' $p[2])
+        set -l ext (string replace -r '^[^.]*' '' $p[2])
+        ln -sf "$base-$mode$ext" "$dir/$p[2]"
     end
 end
 

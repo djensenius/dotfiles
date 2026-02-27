@@ -236,12 +236,11 @@ function link_files() {
         ln -sf config-dark.yml "$(pwd)/gh-dash/config.yml"
     fi
     
-    # Prevent theme-switching sed changes from dirtying git status
-    git -C "$(pwd)" update-index --skip-worktree \
-        starship.toml gitconfig atuin/config.toml \
-        zellij/config.kdl btop/btop.conf k9s/config.yaml \
-        tmux/tmux.conf ghostty/config \
-        fish/fish_variables 2>/dev/null || true
+    # Set up git clean filter to normalize theme strings (hides latte↔mocha
+    # changes from git status/diff so config files stay "clean" in the index)
+    git -C "$(pwd)" config filter.catppuccin-normalize.clean \
+        "sed '/[=:@]/{s/catppuccin_latte/catppuccin_mocha/g;s/catppuccin-latte/catppuccin-mocha/g;s/Catppuccin-latte/Catppuccin-mocha/g;s/\"latte\"/\"mocha\"/g;}'"
+    git -C "$(pwd)" config filter.catppuccin-normalize.smudge cat
     log_with_timing "Setting up theme symlinks" "$start_time"
     
     log_with_timing "Linking terminal tool configs" "$start_time"

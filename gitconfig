@@ -1,5 +1,3 @@
-# NOTE: This file is git skip-worktree'd (theme switcher modifies it at runtime).
-# To commit changes: git update-index --no-skip-worktree gitconfig
 [core]
   pager = delta
   excludesfile = ~/.gitignore_local
