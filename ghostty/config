@@ -1,3 +1,5 @@
+# NOTE: This file is git skip-worktree'd (theme switcher modifies it at runtime).
+# To commit changes: git update-index --no-skip-worktree ghostty/config
 theme = light:Catppuccin Latte,dark:Catppuccin Mocha
 macos-titlebar-style = tabs
 font-family = Monaspace Neon Var
