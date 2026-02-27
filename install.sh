@@ -210,8 +210,8 @@ function link_files() {
         swiftc -O "$(pwd)/scripts/theme-watcher.swift" -o ~/.local/bin/theme-watcher
         ln -sf "$(pwd)/scripts/switch-theme.fish" ~/.local/bin/switch-theme.fish
         cp "$(pwd)/scripts/com.dotfiles.theme-watcher.plist" ~/Library/LaunchAgents/
-        launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist 2>/dev/null || true
-        launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist
+        launchctl bootout "gui/$(id -u)" ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist 2>/dev/null || true
+        launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist
         log_with_timing "Setting up theme watcher" "$start_time"
     fi
     
