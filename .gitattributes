@@ -5,3 +5,4 @@ zellij/config.kdl filter=catppuccin-normalize
 btop/btop.conf filter=catppuccin-normalize
 k9s/config.yaml filter=catppuccin-normalize
 tmux/tmux.conf filter=catppuccin-normalize
+fish/fish_variables filter=theme-mode-normalize
