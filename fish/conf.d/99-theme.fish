@@ -23,6 +23,7 @@ function _theme_apply --on-variable THEME_MODE
     if test "$THEME_MODE" = light
         set -gx BAT_THEME Catppuccin-latte
         set -gx DARK_MODE false
+        set -gx COLORFGBG '0;15'
         set -gx FZF_DEFAULT_OPTS '--color=bg+:#ccd0da,bg:#eff1f5,spinner:#dc8a78,hl:#d20f39 --color=fg:#4c4f69,header:#d20f39,info:#8839ef,pointer:#dc8a78 --color=marker:#7287fd,fg+:#4c4f69,prompt:#8839ef,hl+:#d20f39 --color=selected-bg:#bcc0cc --multi'
 
         # Fish syntax highlighting — Catppuccin Latte
@@ -55,6 +56,7 @@ function _theme_apply --on-variable THEME_MODE
     else
         set -gx BAT_THEME Catppuccin-mocha
         set -gx DARK_MODE true
+        set -gx COLORFGBG '15;0'
         set -gx FZF_DEFAULT_OPTS '--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 --color=selected-bg:#45475a --multi'
 
         # Fish syntax highlighting — Catppuccin Mocha
