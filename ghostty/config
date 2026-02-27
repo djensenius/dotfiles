@@ -1,4 +1,4 @@
-theme = light:Catppuccin Latte,dark:Catppuccin Mocha
+theme = light:Catppuccin Latte,dark:catppuccin-mocha-black
 macos-titlebar-style = tabs
 font-family = Monaspace Neon Var
 font-family-bold = Monaspace Xenon Var
