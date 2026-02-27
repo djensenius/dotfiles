@@ -49,12 +49,18 @@ end
 # --- Sed-based config updates ---
 # Each entry: file|dark-pattern|light-pattern
 set -l sed_swaps \
-    "starship.toml|catppuccin_mocha|catppuccin_latte" \
     "$HOME/.gitconfig|Catppuccin-mocha|Catppuccin-latte" \
     "atuin/config.toml|catppuccin-mocha-mauve|catppuccin-latte-mauve" \
     "zellij/config.kdl|catppuccin-mocha|catppuccin-latte" \
     "btop/btop.conf|catppuccin_mocha|catppuccin_latte" \
     "k9s/config.yaml|catppuccin-mocha|catppuccin-latte"
+
+# Starship: only replace on the "palette = " line to avoid renaming palette definitions
+if test "$mode" = light
+    _sed_i '/^palette = /s/catppuccin_mocha/catppuccin_latte/' "$dotfiles/starship.toml"
+else
+    _sed_i '/^palette = /s/catppuccin_latte/catppuccin_mocha/' "$dotfiles/starship.toml"
+end
 
 for swap in $sed_swaps
     set -l p (string split '|' $swap)
