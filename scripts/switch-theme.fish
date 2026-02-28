@@ -74,7 +74,7 @@ end
 
 # --- Symlink-based config updates ---
 # Each entry: directory|filename (dark/light variants use -dark/-light suffix)
-for pair in "bottom|bottom.toml" "eza|theme.yml" "yazi|theme.toml" "gh-dash|config.yml"
+for pair in "bottom|bottom.toml" "eza|theme.yml" "gh-dash|config.yml"
     set -l p (string split '|' $pair)
     set -l dir "$dotfiles/$p[1]"
     if test -d "$dir"
@@ -86,30 +86,7 @@ end
 
 # --- Runtime reloads ---
 
-# Tmux: update flavor in config and reload catppuccin plugin
-if type -q tmux; and tmux list-sessions >/dev/null 2>&1
-    set -l flavor (test "$mode" = light && echo latte || echo mocha)
-    set -l old_flavor (test "$mode" = light && echo mocha || echo latte)
-    _sed_i "s/@catppuccin_flavor \"$old_flavor\"/@catppuccin_flavor \"$flavor\"/" "$dotfiles/tmux/tmux.conf"
-    
-    # Clear all catppuccin theme variables (they use -ogq so won't update otherwise)
-    for var in (tmux show -g 2>/dev/null | grep -oE '^@(thm_|catppuccin_|_ctp_)[^ ]+')
-        tmux set -gu $var 2>/dev/null
-    end
-    
-    # Source tmux.conf FIRST so user options (@catppuccin_window_status_style etc.)
-    # are set before the plugin reads them via -ogq
-    tmux source-file "$dotfiles/tmux/tmux.conf" 2>/dev/null
-    
-    # Then re-source the catppuccin plugin to apply the new flavor
-    set -l ctp_dir "$dotfiles/tmux/plugins/tmux"
-    if test -d "$ctp_dir"
-        tmux source-file "$ctp_dir/catppuccin_options_tmux.conf" 2>/dev/null
-        tmux source-file "$ctp_dir/catppuccin_tmux.conf" 2>/dev/null
-    end
-    # Source tmux.conf again so post-catppuccin overrides apply
-    tmux source-file "$dotfiles/tmux/tmux.conf" 2>/dev/null
-end
+# Tmux: handled natively by client-dark-theme/client-light-theme hooks in tmux.conf
 
 # Neovim: update background on all running instances
 if type -q nvim
@@ -119,7 +96,6 @@ if type -q nvim
     end
 end
 
-# Fish: update universal variable (propagates to all running shells)
-set -U THEME_MODE "$mode"
+# Fish: theme detection handled natively by fish 4.x via $fish_terminal_color_theme
 
 echo "Theme switched to $mode"

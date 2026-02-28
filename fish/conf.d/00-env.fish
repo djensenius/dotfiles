@@ -9,8 +9,12 @@ set -gx EZA_ICONS_AUTO true
 
 # fzf theme/options (colors are set dynamically by 01-theme.fish)
 
-# From your previous fish_variables (portable defaults)
-# BAT_THEME, DARK_MODE, and FZF_DEFAULT_OPTS are now managed by 01-theme.fish
+# bat: auto-detect terminal dark/light mode (no manual switching needed)
+set -gx BAT_THEME "auto:system"
+set -gx BAT_THEME_DARK "Catppuccin Mocha"
+set -gx BAT_THEME_LIGHT "Catppuccin Latte"
+
+# DARK_MODE and FZF_DEFAULT_OPTS are managed by 99-theme.fish
 
 # Go module env (host-specific GOPROXY is handled in 30-host-conditional.fish)
 set -gx GONOPROXY ""
