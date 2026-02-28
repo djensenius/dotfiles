@@ -1,6 +1,4 @@
 ---
-# NOTE: skip-worktree'd (theme switcher modifies at runtime).
-# To commit: git update-index --no-skip-worktree k9s/config.yaml
 # k9s configuration
 # https://k9scli.io/
 
