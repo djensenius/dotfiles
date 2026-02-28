@@ -227,12 +227,10 @@ function link_files() {
     if [ "$mode" = "light" ]; then
         ln -sf bottom-light.toml "$(pwd)/bottom/bottom.toml"
         ln -sf theme-light.yml "$(pwd)/eza/theme.yml"
-        ln -sf theme-light.toml "$(pwd)/yazi/theme.toml"
         ln -sf config-light.yml "$(pwd)/gh-dash/config.yml"
     else
         ln -sf bottom-dark.toml "$(pwd)/bottom/bottom.toml"
         ln -sf theme-dark.yml "$(pwd)/eza/theme.yml"
-        ln -sf theme-dark.toml "$(pwd)/yazi/theme.toml"
         ln -sf config-dark.yml "$(pwd)/gh-dash/config.yml"
     fi
     
