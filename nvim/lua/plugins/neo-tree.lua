@@ -7,9 +7,11 @@ return {
 	},
 	event = "VeryLazy",
 	keys = {
-		{ "<leader>tg", ":Neotree toggle<CR>", desc = "Toggle Neo-tree" },
+		{ "<leader>tT", ":Neotree toggle<CR>", desc = "Toggle Neo-tree" },
 		{ "<leader>tF", ":Neotree filesystem reveal left<CR>", desc = "Reveal File in Neo-tree" },
-		{ "<leader>tb", ":Neotree buffers reveal float<CR>", desc = "Neo-tree Buffers" },
+		{ "<leader>tB", ":Neotree buffers reveal float<CR>", desc = "Neo-tree Buffers" },
+		{ "<leader>tG", ":Neotree git_status reveal float<CR>", desc = "Neo-tree Git Status" },
+		{ "<leader>tS", ":Neotree document_symbols reveal float<CR>", desc = "Neo-tree Symbols" },
 	},
 	config = function()
 		require("neo-tree").setup({
