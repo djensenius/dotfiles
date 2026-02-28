@@ -1,6 +1,6 @@
 if vim.fn.isdirectory(vim.fn.expand("~/Vaults")) == 1 then
 	return {
-		"epwalsh/obsidian.nvim",
+		"obsidian-nvim/obsidian.nvim",
 		version = "*", -- recommended, use latest release instead of latest commit
 		lazy = true,
 		ft = "markdown",
