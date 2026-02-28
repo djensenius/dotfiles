@@ -128,6 +128,8 @@ return {
 			{ "<Leader><space>pr", desc = "Open REPL", icon = "" },
 			{ "<Leader><space>pl", desc = "Run last", icon = "󰘁" },
 			{ "<Leader><space>p", desc = "More DAP" },
+			{ "<Leader><space>pv", desc = "Toggle DAP View", icon = "󱏿" },
+			{ "<Leader><space>pw", desc = "Watch Expression", icon = "󰂥" },
 		})
 	end,
 }

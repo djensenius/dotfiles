@@ -26,6 +26,24 @@ return {
 				"leoluz/nvim-dap-go",
 				"suketa/nvim-dap-ruby",
 				{ "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" } },
+				{
+					"igorlfs/nvim-dap-view",
+					dependencies = { "mfussenegger/nvim-dap" },
+					cmd = { "DapViewOpen", "DapViewClose", "DapViewToggle", "DapViewWatch" },
+					opts = {
+						winbar = {
+							sections = { "watches", "scopes", "exceptions", "breakpoints", "threads", "repl" },
+							default_section = "scopes",
+							controls = {
+								enabled = true,
+								position = "right",
+							},
+						},
+						windows = {
+							position = "right",
+						},
+					},
+				},
 			},
 			keys = {
 				{
@@ -143,6 +161,17 @@ return {
 						widgets.centered_float(widgets.scopes)
 					end,
 					desc = "Debug: Center Scopes",
+				},
+				{
+					"<Leader><space>pv",
+					"<cmd>DapViewToggle<cr>",
+					desc = "Debug: Toggle DAP View",
+				},
+				{
+					"<Leader><space>pw",
+					"<cmd>DapViewWatch<cr>",
+					mode = { "n", "v" },
+					desc = "Debug: Watch Expression",
 				},
 			},
 			config = function()
