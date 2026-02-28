@@ -93,6 +93,13 @@ return {
 	},
 	keys = {
 		{
+			"<leader>gL",
+			function()
+				Snacks.lazygit()
+			end,
+			desc = "LazyGit",
+		},
+		{
 			"<leader>aA",
 			function()
 				require("snacks").dashboard()
