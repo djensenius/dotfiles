@@ -24,7 +24,8 @@ if vim.fn.isdirectory(vim.fn.expand("~/Vaults")) == 1 then
 			ui = {
 				enable = false,
 			},
-			-- see below for full list of options 👇
+			-- Use new-style commands (e.g. "Obsidian backlinks" instead of "ObsidianBacklinks")
+			legacy_commands = false,
 		},
 	}
 else

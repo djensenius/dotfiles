@@ -203,6 +203,9 @@ return {
 	config = function()
 		require("mason-lspconfig").setup({
 			automatic_installation = false,
+			automatic_enable = {
+				exclude = { "vale_ls" },
+			},
 			ensure_installed = {
 				-- Language servers
 				"ts_ls",
