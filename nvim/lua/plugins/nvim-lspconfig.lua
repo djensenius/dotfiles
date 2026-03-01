@@ -134,7 +134,10 @@ return {
 			on_attach = on_attach,
 			capabilities = capabilities,
 		})
-		vim.lsp.enable("vale_ls")
+		-- Manual-only: start with :LspValeStart
+		vim.api.nvim_create_user_command("LspValeStart", function()
+			vim.lsp.enable("vale_ls")
+		end, { desc = "Start Vale LSP" })
 
 		vim.lsp.config("eslint", {
 			on_attach = on_attach,
