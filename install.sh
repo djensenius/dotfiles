@@ -203,6 +203,44 @@ function link_files() {
         sudo ln -sf "$(pwd)/scripts/tmux-background-install-indicator.sh" /usr/local/bin/
     fi
     
+    # macOS theme watcher setup
+    if [ "$(uname)" = "Darwin" ] && command -v swiftc >/dev/null 2>&1; then
+        start_time=$(start_operation "Setting up theme watcher")
+        mkdir -p ~/.local/bin
+        swiftc -O "$(pwd)/scripts/theme-watcher.swift" -o ~/.local/bin/theme-watcher
+        ln -sf "$(pwd)/scripts/switch-theme.fish" ~/.local/bin/switch-theme.fish
+        cp "$(pwd)/scripts/com.dotfiles.theme-watcher.plist" ~/Library/LaunchAgents/
+        launchctl bootout "gui/$(id -u)" ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist 2>/dev/null || true
+        launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist
+        log_with_timing "Setting up theme watcher" "$start_time"
+    fi
+    
+    # Initialize theme mode
+    if [ ! -f ~/.config/theme-mode ]; then
+        "$(pwd)/scripts/detect-theme-mode" > ~/.config/theme-mode
+    fi
+    
+    # Create default theme symlinks (these files are gitignored)
+    start_time=$(start_operation "Setting up theme symlinks")
+    local mode
+    mode=$(cat ~/.config/theme-mode)
+    if [ "$mode" = "light" ]; then
+        ln -sf bottom-light.toml "$(pwd)/bottom/bottom.toml"
+        ln -sf theme-light.yml "$(pwd)/eza/theme.yml"
+        ln -sf config-light.yml "$(pwd)/gh-dash/config.yml"
+    else
+        ln -sf bottom-dark.toml "$(pwd)/bottom/bottom.toml"
+        ln -sf theme-dark.yml "$(pwd)/eza/theme.yml"
+        ln -sf config-dark.yml "$(pwd)/gh-dash/config.yml"
+    fi
+    
+    # Set up git clean filter to normalize theme strings (hides latte↔mocha
+    # changes from git status/diff so config files stay "clean" in the index)
+    git -C "$(pwd)" config filter.catppuccin-normalize.clean \
+        "sed '/[=:@]/{s/catppuccin_latte/catppuccin_mocha/g;s/catppuccin-latte/catppuccin-mocha/g;s/Catppuccin-latte/Catppuccin-mocha/g;s/\"latte\"/\"mocha\"/g;}'"
+    git -C "$(pwd)" config filter.catppuccin-normalize.smudge cat
+    log_with_timing "Setting up theme symlinks" "$start_time"
+    
     log_with_timing "Linking terminal tool configs" "$start_time"
     
     # Codespaces-specific configuration - background non-critical operations

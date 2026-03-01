@@ -1,0 +1,60 @@
+#!/bin/sh
+# Detect the current theme mode (light or dark).
+#
+# Priority:
+#   1. macOS: System appearance setting (always wins)
+#   2. tz.conf: Sunrise/sunset calculation from lat/long
+#   3. Fallback: System local time, 7:00-19:00 = light
+#
+# Output: prints "light" or "dark" to stdout
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TZ_CONF="$HOME/.config/tz.conf"
+
+# --- macOS: use system appearance ---
+if [ "$(uname)" = "Darwin" ]; then
+    if defaults read -g AppleInterfaceStyle >/dev/null 2>&1; then
+        echo "dark"
+    else
+        echo "light"
+    fi
+    exit 0
+fi
+
+# --- tz.conf: sunrise/sunset calculation ---
+if [ -f "$TZ_CONF" ]; then
+    # Parse tz.conf (key = value format, # comments)
+    tz_timezone=""
+    tz_latitude=""
+    tz_longitude=""
+
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        case "$line" in
+            \#*|"") continue ;;
+        esac
+        key="$(echo "$line" | cut -d= -f1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+        val="$(echo "$line" | cut -d= -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+        case "$key" in
+            timezone)  tz_timezone="$val" ;;
+            latitude)  tz_latitude="$val" ;;
+            longitude) tz_longitude="$val" ;;
+        esac
+    done < "$TZ_CONF"
+
+    if [ -n "$tz_timezone" ] && [ -n "$tz_latitude" ] && [ -n "$tz_longitude" ]; then
+        result="$(python3 "$SCRIPT_DIR/sunrise-sunset.py" "$tz_latitude" "$tz_longitude" "$tz_timezone" 2>/dev/null)"
+        if [ -n "$result" ]; then
+            echo "$result"
+            exit 0
+        fi
+    fi
+fi
+
+# --- Fallback: system local time ---
+hour="$(date +%H)"
+if [ "$hour" -ge 7 ] && [ "$hour" -lt 19 ]; then
+    echo "light"
+else
+    echo "dark"
+fi
