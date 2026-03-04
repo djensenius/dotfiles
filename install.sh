@@ -737,6 +737,17 @@ function start_neovim_background_setup() {
             echo "⚠️  Lazy sync failed with exit code $lazy_exit_code" >> $neovim_log
         fi
         
+        # Compile TreeSitter parsers (poll until all are loadable, then exit)
+        echo "Compiling TreeSitter parsers..." >> $neovim_log
+        timeout 180 nvim --headless +"lua local p=require('config.treesitter-parsers'); vim.wait(170000, function() for _,l in ipairs(p) do if not pcall(vim.treesitter.language.inspect,l) then return false end end; return true end, 2000); vim.cmd('qa!')" >> $neovim_log 2>&1
+        ts_exit_code=$?
+        
+        if [ $ts_exit_code -eq 0 ]; then
+            echo "✅ TreeSitter parsers compiled successfully" >> $neovim_log
+        else
+            echo "⚠️  TreeSitter parser compilation may not have completed (exit code $ts_exit_code)" >> $neovim_log
+        fi
+        
         echo "Installing Mason tools in Neovim..." >> $neovim_log
         nvim --headless "+MasonToolsInstallSync" +qa >> $neovim_log 2>&1
         mason_exit_code=$?
