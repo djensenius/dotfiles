@@ -221,28 +221,30 @@ return {
 			},
 		})
 
-		-- Auto-install formatters/linters via Mason registry on first load
-		local registry = require("mason-registry")
-		local tools = {
-			"delve",
-			"eslint_d",
-			"goimports",
-			"golangci-lint",
-			"isort",
-			"jsonlint",
-			"luacheck",
-			"prettierd",
-			"prettier",
-			"shellcheck",
-			"stylua",
-			"vale",
-		}
+		-- Auto-install formatters/linters via Mason registry after UI is ready
+		vim.defer_fn(function()
+			local registry = require("mason-registry")
+			local tools = {
+				"delve",
+				"eslint_d",
+				"goimports",
+				"golangci-lint",
+				"isort",
+				"jsonlint",
+				"luacheck",
+				"prettierd",
+				"prettier",
+				"shellcheck",
+				"stylua",
+				"vale",
+			}
 
-		for _, tool in ipairs(tools) do
-			local p = registry.get_package(tool)
-			if not p:is_installed() then
-				p:install()
+			for _, tool in ipairs(tools) do
+				local ok, p = pcall(registry.get_package, tool)
+				if ok and not p:is_installed() then
+					p:install()
+				end
 			end
-		end
+		end, 0)
 	end,
 }
