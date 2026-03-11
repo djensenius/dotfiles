@@ -125,6 +125,22 @@ vim.g.loaded_netrwPlugin = 1 -- Disable netrw plugin
 vim.opt.clipboard:append("unnamedplus")
 ---@diagnostic enable: undefined-field
 
+-- Use OSC52 clipboard when SSH'd without a display server (e.g. bare SSH, no tmux-yank)
+if os.getenv("SSH_TTY") and not os.getenv("DISPLAY") and not os.getenv("WAYLAND_DISPLAY") then
+	local osc52 = require("vim.ui.clipboard.osc52")
+	vim.g.clipboard = {
+		name = "OSC 52",
+		copy = {
+			["+"] = osc52.copy("+"),
+			["*"] = osc52.copy("*"),
+		},
+		paste = {
+			["+"] = osc52.paste("+"),
+			["*"] = osc52.paste("*"),
+		},
+	}
+end
+
 -- Status line configuration (if not using lualine)
 vim.opt.statusline = [[%f %y%=%l,%c %P]]
 
