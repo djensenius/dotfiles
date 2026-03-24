@@ -395,8 +395,8 @@ function install_software() {
         log_with_timing "Installing Starship prompt" "$start_time"
         
         start_time=$(start_operation "Installing Git Delta")
-        curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
-        sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
+        curl -L https://github.com/dandavison/delta/releases/download/0.19.1/git-delta-musl_0.19.1_amd64.deb > ~/git-delta-musl_0.19.1_amd64.deb
+        sudo dpkg -i ~/git-delta-musl_0.19.1_amd64.deb
         log_with_timing "Installing Git Delta" "$start_time"
         
         start_time=$(start_operation "Downloading Delta themes")
