@@ -24,6 +24,7 @@ local options = {
 	cursorline = true,
 	signcolumn = "yes", -- Always show sign column
 	termguicolors = true, -- Enable 24-bit RGB color
+	modelines = 0, -- Disable modelines for security
 
 	-- File handling
 	writebackup = false,
