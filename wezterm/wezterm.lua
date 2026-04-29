@@ -236,8 +236,8 @@ wezterm.on("update-status", function(window)
 	window:set_left_status("")
 end)
 
--- ~5 fps spinner animation without burning CPU
-config.status_update_interval = 200
+-- ~15 fps spinner animation without burning CPU
+config.status_update_interval = 67
 
 -- Use the macOS-native fancy tab bar with integrated traffic lights
 config.use_fancy_tab_bar = true
