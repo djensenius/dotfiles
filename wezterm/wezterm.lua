@@ -1,12 +1,10 @@
--- I use a custom icon from: git@github.com:mikker/wezterm-icon.git
 -- Pull in the wezterm API
 local wezterm = require("wezterm")
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
 
--- Colour scheme
-config.color_scheme = "Catppuccin Mocha"
+-- Colour scheme - Catppuccin Mocha with OLED-friendly customizations
 local custom = wezterm.color.get_builtin_schemes()["Catppuccin Mocha"]
 custom.background = "#000000"
 custom.tab_bar.background = "#040404"
@@ -17,29 +15,57 @@ config.color_schemes = {
 }
 config.color_scheme = "OLEDppuccin"
 
--- Fonts
--- config.experimental_svg_fonts = true
+-- Fonts - Monaspace variable fonts with NF (Nerd Font) fallback for icons
 config.font = wezterm.font_with_fallback({
-	"Monaspace Neon Var",
+	{
+		family = "Monaspace Neon Var",
+		weight = "Light",
+	},
+	{
+		family = "Monaspace Neon NF",
+		scale = 1.2,
+	},
 	"JetBrains Mono",
 	"Fira Code",
-	"Hack Nerd Font",
 	{
 		family = "Apple Color Emoji",
 		assume_emoji_presentation = true,
 		scale = 2,
 	},
 })
-config.line_height = 1.2
 
+-- Use cap-height scaling for fallback fonts (helps nerd font icons match)
+config.use_cap_height_to_scale_fallback_fonts = true
+
+config.font_size = 15.0
+config.line_height = 1.2
 config.allow_square_glyphs_to_overflow_width = "Always"
 
+-- Fix for Monaspace ligature rendering issues (per Wezterm maintainer)
+-- See: https://github.com/wez/wezterm/issues/4874
+config.freetype_load_flags = "NO_HINTING"
+
+-- OpenType features - enable ligatures and Monaspace texture healing
+config.harfbuzz_features = {
+	"calt=1",
+	"liga=1",
+	"dlig=1",
+	"ss01=1",
+	"ss02=1",
+	"ss03=1",
+	"ss04=1",
+	"ss05=1",
+	"ss06=1",
+	"ss09=1",
+}
+
+-- Font rules for different styles using Monaspace variants
 config.font_rules = {
 	{
 		intensity = "Bold",
 		italic = true,
 		font = wezterm.font({
-			family = "Monaspace Xenon Var",
+			family = "Monaspace Krypton Var",
 			weight = "Bold",
 			style = "Italic",
 		}),
@@ -67,13 +93,9 @@ config.font_rules = {
 		font = wezterm.font({
 			family = "Monaspace Xenon Var",
 			weight = "Bold",
-			style = "Italic",
 		}),
 	},
 }
-
-config.font_size = 14.0
-config.harfbuzz_features = { "ss01=1", "ss02=1", "ss03=1", "ss04=1", "ss05=1", "ss06=1", "ss07=1", "dlig=1", "calt=1" }
 
 -- Tabs
 local function tab_title(tab_info)
@@ -82,19 +104,18 @@ local function tab_title(tab_info)
 	if title and #title > 0 then
 		return title
 	end
-	-- Otherwise, use the title from the active pane
-	-- in that tab
+	-- Otherwise, use the title from the active pane in that tab
 	if tab_info.active_pane.title and tab_info.active_pane.title:find("codespaces") ~= nil then
-		return ""
+		return ""
 	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("^pt") ~= nil then
-		return ""
+		return ""
 	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("server") ~= nil then
-		return "  " .. tab_info.active_pane.title
+		return "  " .. tab_info.active_pane.title
 	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("pi") ~= nil then
-		return "  " .. tab_info.active_pane.title
+		return "  " .. tab_info.active_pane.title
 	end
 
-	return "  " .. tab_info.active_pane.title
+	return "  " .. tab_info.active_pane.title
 end
 
 wezterm.on("format-tab-title", function(tab)
@@ -106,11 +127,11 @@ wezterm.on("format-tab-title", function(tab)
 	end
 	return title
 end)
-config.hide_tab_bar_if_only_one_tab = true
 
+config.hide_tab_bar_if_only_one_tab = true
 config.window_decorations = "RESIZE"
 
--- Other stuff
+-- Window configuration
 config.quit_when_all_windows_are_closed = false
 config.window_close_confirmation = "NeverPrompt"
 config.initial_rows = 40
