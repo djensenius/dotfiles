@@ -196,7 +196,8 @@ config.use_fancy_tab_bar = true
 config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 config.integrated_title_button_style = "MacOsNative"
 config.show_new_tab_button_in_tab_bar = true
-config.hide_tab_bar_if_only_one_tab = true
+-- Always show the tab bar so the integrated traffic lights have a place to live
+config.hide_tab_bar_if_only_one_tab = false
 
 -- Title-bar / fancy tab bar styling (matches OLED Catppuccin theme)
 config.window_frame = {
