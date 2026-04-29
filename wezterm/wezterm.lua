@@ -98,6 +98,35 @@ config.font_rules = {
 }
 
 -- Tabs
+local process_icons = {
+	["nvim"] = wezterm.nerdfonts.custom_vim,
+	["vim"] = wezterm.nerdfonts.custom_vim,
+	["node"] = wezterm.nerdfonts.dev_nodejs_small,
+	["npm"] = wezterm.nerdfonts.dev_npm,
+	["yarn"] = wezterm.nerdfonts.seti_yarn,
+	["python"] = wezterm.nerdfonts.dev_python,
+	["python3"] = wezterm.nerdfonts.dev_python,
+	["ruby"] = wezterm.nerdfonts.dev_ruby,
+	["go"] = wezterm.nerdfonts.dev_go,
+	["cargo"] = wezterm.nerdfonts.dev_rust,
+	["fish"] = wezterm.nerdfonts.dev_terminal,
+	["bash"] = wezterm.nerdfonts.dev_terminal,
+	["zsh"] = wezterm.nerdfonts.dev_terminal,
+	["ssh"] = wezterm.nerdfonts.md_console_network,
+	["git"] = wezterm.nerdfonts.dev_git,
+	["lazygit"] = wezterm.nerdfonts.dev_git,
+	["yazi"] = wezterm.nerdfonts.md_folder_open,
+	["btm"] = wezterm.nerdfonts.md_chart_areaspline,
+	["docker"] = wezterm.nerdfonts.linux_docker,
+	["make"] = wezterm.nerdfonts.seti_makefile,
+}
+
+local function process_icon(pane_info)
+	local proc = pane_info.foreground_process_name or ""
+	proc = proc:match("([^/\\]+)$") or proc
+	return process_icons[proc] or wezterm.nerdfonts.cod_terminal
+end
+
 local function tab_title(tab_info)
 	local title = tab_info.tab_title
 	-- if the tab title is explicitly set, take that
@@ -105,31 +134,77 @@ local function tab_title(tab_info)
 		return title
 	end
 	-- Otherwise, use the title from the active pane in that tab
-	if tab_info.active_pane.title and tab_info.active_pane.title:find("codespaces") ~= nil then
+	local pane_title = tab_info.active_pane.title or ""
+	if pane_title:find("codespaces") ~= nil then
 		return ""
-	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("^pt") ~= nil then
+	elseif pane_title:find("^pt") ~= nil then
 		return ""
-	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("server") ~= nil then
-		return "  " .. tab_info.active_pane.title
-	elseif tab_info.active_pane.title and tab_info.active_pane.title:find("pi") ~= nil then
-		return "  " .. tab_info.active_pane.title
+	elseif pane_title:find("server") ~= nil then
+		return "  " .. pane_title
+	elseif pane_title:find("pi") ~= nil then
+		return "  " .. pane_title
 	end
 
-	return "  " .. tab_info.active_pane.title
+	return process_icon(tab_info.active_pane) .. "  " .. pane_title
+end
+
+-- Progress glyphs (filled circle slices) for OSC 9;4 progress
+local PCT_GLYPHS = {
+	wezterm.nerdfonts.md_circle_slice_1,
+	wezterm.nerdfonts.md_circle_slice_2,
+	wezterm.nerdfonts.md_circle_slice_3,
+	wezterm.nerdfonts.md_circle_slice_4,
+	wezterm.nerdfonts.md_circle_slice_5,
+	wezterm.nerdfonts.md_circle_slice_6,
+	wezterm.nerdfonts.md_circle_slice_7,
+	wezterm.nerdfonts.md_circle_slice_8,
+}
+
+local function progress_suffix(pane_info)
+	if not pane_info.pane_id then
+		return ""
+	end
+	local mux_pane = wezterm.mux.get_pane(pane_info.pane_id)
+	if not mux_pane or not mux_pane.get_progress then
+		return ""
+	end
+	local p = mux_pane:get_progress()
+	if type(p) == "table" then
+		if p.Percentage then
+			local idx = math.min(8, math.max(1, math.ceil(p.Percentage / 12.5)))
+			return " " .. PCT_GLYPHS[idx] .. " " .. p.Percentage .. "%"
+		elseif p.Error then
+			return " " .. wezterm.nerdfonts.md_alert_circle
+		end
+	elseif p == "Indeterminate" then
+		return " " .. wezterm.nerdfonts.md_loading
+	end
+	return ""
 end
 
 wezterm.on("format-tab-title", function(tab)
 	local title = tab_title(tab)
-	if tab.is_active then
-		return {
-			{ Text = " " .. title .. " " },
-		}
-	end
-	return title
+	local progress = progress_suffix(tab.active_pane)
+	local bell = tab.active_pane.has_unseen_output and (" " .. wezterm.nerdfonts.cod_bell) or ""
+	return {
+		{ Text = " " .. title .. progress .. bell .. " " },
+	}
 end)
 
+-- Use the macOS-native fancy tab bar with integrated traffic lights
+config.use_fancy_tab_bar = true
+config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+config.integrated_title_button_style = "MacOsNative"
+config.show_new_tab_button_in_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = true
-config.window_decorations = "RESIZE"
+
+-- Title-bar / fancy tab bar styling (matches OLED Catppuccin theme)
+config.window_frame = {
+	font = wezterm.font({ family = "Monaspace Neon Var", weight = "Medium" }),
+	font_size = 13.0,
+	active_titlebar_bg = "#040404",
+	inactive_titlebar_bg = "#040404",
+}
 
 -- Make URLs, commit SHAs, issue refs, etc. clickable
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
