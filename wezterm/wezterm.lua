@@ -228,16 +228,34 @@ wezterm.on("format-tab-title", function(tab)
 	return out
 end)
 
+-- Returns true if any pane in this window currently has indeterminate progress
+local function any_indeterminate(window)
+	local mux_win = window:mux_window()
+	if not mux_win then
+		return false
+	end
+	for _, tab in ipairs(mux_win:tabs()) do
+		for _, pane in ipairs(tab:panes()) do
+			if pane.get_progress and pane:get_progress() == "Indeterminate" then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 -- Drive the spinner animation by advancing the frame on each status tick.
--- Setting the (empty) left status forces a tab-bar redraw so format-tab-title
--- re-runs and picks up the new spinner frame.
+-- Only force a redraw when an animation is actually needed; when nothing is
+-- spinning, update-status is a near-no-op and idle CPU cost stays at ~0.
 wezterm.on("update-status", function(window)
-	spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
-	window:set_left_status("")
+	if any_indeterminate(window) then
+		spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
+		window:set_left_status("")
+	end
 end)
 
--- ~15 fps spinner animation without burning CPU
-config.status_update_interval = 67
+-- 60 fps spinner animation (only redraws when something is actually animating)
+config.status_update_interval = 16
 
 -- Use the macOS-native fancy tab bar with integrated traffic lights
 config.use_fancy_tab_bar = true
