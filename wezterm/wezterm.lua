@@ -242,21 +242,23 @@ local function any_indeterminate(window)
 	return false
 end
 
--- Animated spinner in the left status bar.
--- set_left_status with a new value forces the status to re-render, which is
--- what gives us reliable animation. When nothing is spinning we clear the
--- status once and skip further work, so idle CPU cost stays at ~0.
+-- Animated spinner in the right status bar.
+-- set_right_status with a new value forces the status to re-render, which is
+-- what gives us reliable animation. Right-side has fewer UI elements to
+-- overlap with than the left (which sits next to the traffic lights). When
+-- nothing is spinning we clear the status once and skip further work, so
+-- idle CPU cost stays at ~0.
 wezterm.on("update-status", function(window)
 	if any_indeterminate(window) then
 		spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
-		window:set_left_status(wezterm.format({
+		window:set_right_status(wezterm.format({
 			{ Foreground = { Color = PROGRESS_COLORS.indeterminate } },
 			{ Text = " " .. SPINNER[spinner_state.idx] .. " " },
 			"ResetAttributes",
 		}))
 	elseif spinner_state.idx ~= 0 then
 		spinner_state.idx = 0
-		window:set_left_status("")
+		window:set_right_status("")
 	end
 end)
 
