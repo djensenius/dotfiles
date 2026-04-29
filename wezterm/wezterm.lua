@@ -131,6 +131,16 @@ end)
 config.hide_tab_bar_if_only_one_tab = true
 config.window_decorations = "RESIZE"
 
+-- Make URLs, commit SHAs, issue refs, etc. clickable
+config.hyperlink_rules = wezterm.default_hyperlink_rules()
+
+-- Better key reporting (CSI u) so nvim/tmux see modifiers like Ctrl+Shift+...
+config.enable_kitty_keyboard = true
+
+-- Quality-of-life
+config.scrollback_lines = 10000
+config.audible_bell = "Disabled"
+
 -- Window configuration
 config.quit_when_all_windows_are_closed = false
 config.window_close_confirmation = "NeverPrompt"
