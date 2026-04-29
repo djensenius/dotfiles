@@ -167,6 +167,10 @@ local function progress_bar(pct, width)
 	return s
 end
 
+-- Animated braille spinner driven by the update-status event
+local SPINNER = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+local spinner_state = { idx = 1 }
+
 -- Catppuccin-mocha accent colors for progress states
 local PROGRESS_COLORS = {
 	normal = "#89b4fa", -- blue
@@ -175,9 +179,9 @@ local PROGRESS_COLORS = {
 }
 
 -- Returns a wezterm format-list (or nil) for the progress portion of a tab title.
--- WezTerm doesn't reliably re-fire format-tab-title on a timer, so we use a
--- static glyph for the indeterminate state (matches what other wezterm dotfiles
--- do, e.g. noidilin/wezterm and OSDDQD/wezterm-config).
+-- The indeterminate spinner uses a static glyph here (format-tab-title doesn't
+-- reliably re-fire on a timer); the *animated* spinner lives in the window's
+-- left status bar, driven by update-status below.
 local function progress_format(pane_info)
 	local p = pane_info.progress
 	if not p or p == "None" then
@@ -221,6 +225,43 @@ wezterm.on("format-tab-title", function(tab)
 	table.insert(out, { Text = bell .. " " })
 	return out
 end)
+
+-- Returns true if any pane in this window currently has indeterminate progress
+local function any_indeterminate(window)
+	local mux_win = window:mux_window()
+	if not mux_win then
+		return false
+	end
+	for _, tab in ipairs(mux_win:tabs()) do
+		for _, pane in ipairs(tab:panes()) do
+			if pane.get_progress and pane:get_progress() == "Indeterminate" then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- Animated spinner in the left status bar.
+-- set_left_status with a new value forces the status to re-render, which is
+-- what gives us reliable animation. When nothing is spinning we clear the
+-- status once and skip further work, so idle CPU cost stays at ~0.
+wezterm.on("update-status", function(window)
+	if any_indeterminate(window) then
+		spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
+		window:set_left_status(wezterm.format({
+			{ Foreground = { Color = PROGRESS_COLORS.indeterminate } },
+			{ Text = " " .. SPINNER[spinner_state.idx] .. " " },
+			"ResetAttributes",
+		}))
+	elseif spinner_state.idx ~= 0 then
+		spinner_state.idx = 0
+		window:set_left_status("")
+	end
+end)
+
+-- 60 fps spinner animation (only redraws when something is actually animating)
+config.status_update_interval = 16
 
 -- Use the macOS-native fancy tab bar with integrated traffic lights
 config.use_fancy_tab_bar = true
