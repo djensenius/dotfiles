@@ -167,33 +167,24 @@ local function progress_bar(pct, width)
 	return s
 end
 
--- Animated braille spinner driven by the update-status event
-local SPINNER = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
-local spinner_state = { idx = 1 }
-
 -- Catppuccin-mocha accent colors for progress states
 local PROGRESS_COLORS = {
 	normal = "#89b4fa", -- blue
 	error = "#f38ba8", -- red
 	indeterminate = "#f9e2af", -- yellow
-	dim = "#6c7086", -- overlay (for empty bar slots)
 }
 
 -- Returns a wezterm format-list (or nil) for the progress portion of a tab title.
--- The animated braille spinner is rendered here for the Indeterminate state;
--- update-status pokes a user_var on each indeterminate pane on every tick,
--- which forces format-tab-title to re-fire and pick up the new spinner frame.
+-- WezTerm doesn't reliably re-fire format-tab-title on a timer, so we use a
+-- static glyph for the indeterminate state (matches what other wezterm dotfiles
+-- do, e.g. noidilin/wezterm and OSDDQD/wezterm-config).
 local function progress_format(pane_info)
-	if not pane_info.pane_id then
+	local p = pane_info.progress
+	if not p or p == "None" then
 		return nil
 	end
-	local mux_pane = wezterm.mux.get_pane(pane_info.pane_id)
-	if not mux_pane or not mux_pane.get_progress then
-		return nil
-	end
-	local p = mux_pane:get_progress()
 	if type(p) == "table" then
-		if p.Percentage then
+		if p.Percentage ~= nil then
 			return {
 				{ Foreground = { Color = PROGRESS_COLORS.normal } },
 				{ Text = "  " .. progress_bar(p.Percentage) .. " " .. p.Percentage .. "%" },
@@ -209,7 +200,7 @@ local function progress_format(pane_info)
 	elseif p == "Indeterminate" then
 		return {
 			{ Foreground = { Color = PROGRESS_COLORS.indeterminate } },
-			{ Text = "  " .. SPINNER[spinner_state.idx] },
+			{ Text = "  " .. wezterm.nerdfonts.md_dots_horizontal },
 			"ResetAttributes",
 		}
 	end
@@ -230,33 +221,6 @@ wezterm.on("format-tab-title", function(tab)
 	table.insert(out, { Text = bell .. " " })
 	return out
 end)
-
--- Drive the spinner animation by advancing the frame on each status tick.
--- Setting a user_var on each pane that has indeterminate progress is what
--- forces format-tab-title to re-fire so the tab itself shows the new
--- spinner frame. When nothing is animating we do almost no work and idle
--- CPU cost stays at ~0 even at 60fps.
-wezterm.on("update-status", function(window)
-	local mux_win = window:mux_window()
-	if not mux_win then
-		return
-	end
-	local found = false
-	for _, tab in ipairs(mux_win:tabs()) do
-		for _, pane in ipairs(tab:panes()) do
-			if pane:get_progress() == "Indeterminate" then
-				pane:set_user_var("spinner_frame", tostring(spinner_state.idx))
-				found = true
-			end
-		end
-	end
-	if found then
-		spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
-	end
-end)
-
--- 60 fps spinner animation (only redraws when something is actually animating)
-config.status_update_interval = 16
 
 -- Use the macOS-native fancy tab bar with integrated traffic lights
 config.use_fancy_tab_bar = true
