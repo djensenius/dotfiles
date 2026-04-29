@@ -148,48 +148,96 @@ local function tab_title(tab_info)
 	return process_icon(tab_info.active_pane) .. "  " .. pane_title
 end
 
--- Progress glyphs (filled circle slices) for OSC 9;4 progress
-local PCT_GLYPHS = {
-	wezterm.nerdfonts.md_circle_slice_1,
-	wezterm.nerdfonts.md_circle_slice_2,
-	wezterm.nerdfonts.md_circle_slice_3,
-	wezterm.nerdfonts.md_circle_slice_4,
-	wezterm.nerdfonts.md_circle_slice_5,
-	wezterm.nerdfonts.md_circle_slice_6,
-	wezterm.nerdfonts.md_circle_slice_7,
-	wezterm.nerdfonts.md_circle_slice_8,
+-- Smooth horizontal progress bar using Unicode eighth-blocks
+-- (matches the look of NSProgressIndicator / starship / cargo / uv)
+local PARTIAL_BLOCKS = { "▏", "▎", "▍", "▌", "▋", "▊", "▉" }
+local function progress_bar(pct, width)
+	width = width or 5
+	pct = math.max(0, math.min(100, pct))
+	local eighths = math.floor((pct * width * 8 / 100) + 0.5)
+	local full = math.floor(eighths / 8)
+	local rem = eighths % 8
+	local s = string.rep("█", full)
+	if rem > 0 and full < width then
+		s = s .. PARTIAL_BLOCKS[rem]
+		s = s .. string.rep(" ", width - full - 1)
+	else
+		s = s .. string.rep(" ", width - full)
+	end
+	return s
+end
+
+-- Animated braille spinner driven by the update-status event
+local SPINNER = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+local spinner_state = { idx = 1 }
+
+-- Catppuccin-mocha accent colors for progress states
+local PROGRESS_COLORS = {
+	normal = "#89b4fa", -- blue
+	error = "#f38ba8", -- red
+	indeterminate = "#f9e2af", -- yellow
+	dim = "#6c7086", -- overlay (for empty bar slots)
 }
 
-local function progress_suffix(pane_info)
+-- Returns a wezterm format-list (or nil) for the progress portion of a tab title
+local function progress_format(pane_info)
 	if not pane_info.pane_id then
-		return ""
+		return nil
 	end
 	local mux_pane = wezterm.mux.get_pane(pane_info.pane_id)
 	if not mux_pane or not mux_pane.get_progress then
-		return ""
+		return nil
 	end
 	local p = mux_pane:get_progress()
 	if type(p) == "table" then
 		if p.Percentage then
-			local idx = math.min(8, math.max(1, math.ceil(p.Percentage / 12.5)))
-			return " " .. PCT_GLYPHS[idx] .. " " .. p.Percentage .. "%"
-		elseif p.Error then
-			return " " .. wezterm.nerdfonts.md_alert_circle
+			return {
+				{ Foreground = { Color = PROGRESS_COLORS.normal } },
+				{ Text = "  " .. progress_bar(p.Percentage) .. " " .. p.Percentage .. "%" },
+				"ResetAttributes",
+			}
+		elseif p.Error ~= nil then
+			return {
+				{ Foreground = { Color = PROGRESS_COLORS.error } },
+				{ Text = "  " .. wezterm.nerdfonts.md_alert_circle .. " " .. (p.Error or 0) .. "%" },
+				"ResetAttributes",
+			}
 		end
 	elseif p == "Indeterminate" then
-		return " " .. wezterm.nerdfonts.md_loading
+		return {
+			{ Foreground = { Color = PROGRESS_COLORS.indeterminate } },
+			{ Text = "  " .. SPINNER[spinner_state.idx] },
+			"ResetAttributes",
+		}
 	end
-	return ""
+	return nil
 end
 
 wezterm.on("format-tab-title", function(tab)
 	local title = tab_title(tab)
-	local progress = progress_suffix(tab.active_pane)
+	local progress = progress_format(tab.active_pane)
 	local bell = tab.active_pane.has_unseen_output and (" " .. wezterm.nerdfonts.cod_bell) or ""
-	return {
-		{ Text = " " .. title .. progress .. bell .. " " },
-	}
+
+	local out = { { Text = " " .. title } }
+	if progress then
+		for _, item in ipairs(progress) do
+			table.insert(out, item)
+		end
+	end
+	table.insert(out, { Text = bell .. " " })
+	return out
 end)
+
+-- Drive the spinner animation by advancing the frame on each status tick.
+-- Setting the (empty) left status forces a tab-bar redraw so format-tab-title
+-- re-runs and picks up the new spinner frame.
+wezterm.on("update-status", function(window)
+	spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
+	window:set_left_status("")
+end)
+
+-- ~5 fps spinner animation without burning CPU
+config.status_update_interval = 200
 
 -- Use the macOS-native fancy tab bar with integrated traffic lights
 config.use_fancy_tab_bar = true
