@@ -179,7 +179,9 @@ local PROGRESS_COLORS = {
 	dim = "#6c7086", -- overlay (for empty bar slots)
 }
 
--- Returns a wezterm format-list (or nil) for the progress portion of a tab title
+-- Returns a wezterm format-list (or nil) for the progress portion of a tab title.
+-- (Indeterminate state shows a static glyph here; the *animated* spinner lives
+-- in the window's left status bar so it can re-render via update-status.)
 local function progress_format(pane_info)
 	if not pane_info.pane_id then
 		return nil
@@ -206,7 +208,7 @@ local function progress_format(pane_info)
 	elseif p == "Indeterminate" then
 		return {
 			{ Foreground = { Color = PROGRESS_COLORS.indeterminate } },
-			{ Text = "  " .. SPINNER[spinner_state.idx] },
+			{ Text = "  " .. wezterm.nerdfonts.md_loading },
 			"ResetAttributes",
 		}
 	end
@@ -245,11 +247,21 @@ local function any_indeterminate(window)
 end
 
 -- Drive the spinner animation by advancing the frame on each status tick.
--- Only force a redraw when an animation is actually needed; when nothing is
--- spinning, update-status is a near-no-op and idle CPU cost stays at ~0.
+-- The animated spinner is rendered in the left status bar (set_left_status
+-- forces an immediate re-render), so this works regardless of whether
+-- format-tab-title would otherwise re-fire.
+-- When nothing is animating, we clear the status once and skip further work,
+-- so idle CPU cost is negligible even at 60fps.
 wezterm.on("update-status", function(window)
 	if any_indeterminate(window) then
 		spinner_state.idx = (spinner_state.idx % #SPINNER) + 1
+		window:set_left_status(wezterm.format({
+			{ Foreground = { Color = PROGRESS_COLORS.indeterminate } },
+			{ Text = " " .. SPINNER[spinner_state.idx] .. " " },
+			"ResetAttributes",
+		}))
+	elseif spinner_state.idx ~= 0 then
+		spinner_state.idx = 0
 		window:set_left_status("")
 	end
 end)
