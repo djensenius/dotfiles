@@ -217,7 +217,6 @@ return {
 				"jqls",
 				"vale_ls",
 				"tailwindcss",
-				"stylelint_lsp",
 			},
 		})
 
@@ -235,6 +234,7 @@ return {
 				"prettierd",
 				"prettier",
 				"shellcheck",
+				"stylelint-language-server",
 				"stylua",
 				"vale",
 			}
