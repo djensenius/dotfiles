@@ -5,6 +5,14 @@ return {
 		local ai = require("mini.ai")
 		return {
 			n_lines = 500,
+			mappings = {
+				around = "",
+				inside = "",
+				around_next = "",
+				inside_next = "",
+				around_last = "",
+				inside_last = "",
+			},
 			custom_textobjects = {
 				o = ai.gen_spec.treesitter({
 					a = { "@block.outer", "@conditional.outer", "@loop.outer" },

@@ -69,6 +69,16 @@ vim.keymap.set("n", "<leader>re", "<cmd>restart<cr>", {
 	desc = "Restart Neovim (:restart)",
 })
 
+vim.keymap.set("n", "<leader>u", function()
+	local ok = pcall(vim.cmd.packadd, "nvim.undotree")
+	if not ok or vim.fn.exists(":Undotree") ~= 2 then
+		vim.notify("Built-in nvim.undotree is unavailable; use Neovim 0.12+", vim.log.levels.ERROR)
+		return
+	end
+
+	vim.cmd.Undotree()
+end, { desc = "Undo tree" })
+
 -- File operations
 vim.api.nvim_create_user_command("CopyFullPath", function()
 	local path = vim.fn.expand("%:p")
