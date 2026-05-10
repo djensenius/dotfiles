@@ -736,6 +736,16 @@ function start_neovim_background_setup() {
         else
             echo "⚠️  Lazy sync failed with exit code $lazy_exit_code" >> $neovim_log
         fi
+
+        echo "Checking built-in nvim.undotree availability..." >> $neovim_log
+        nvim --headless "+packadd nvim.undotree" "+qa" >> $neovim_log 2>&1
+        undotree_exit_code=$?
+
+        if [ $undotree_exit_code -eq 0 ]; then
+            echo "✅ Built-in nvim.undotree is available" >> $neovim_log
+        else
+            echo "⚠️  Built-in nvim.undotree is unavailable; Neovim 0.12+ is required" >> $neovim_log
+        fi
         
         # Compile TreeSitter parsers (poll until all are loadable, then exit)
         echo "Compiling TreeSitter parsers..." >> $neovim_log
@@ -843,4 +853,3 @@ log_with_timing "👩‍🔧 Software configuration phase" "$setup_software_star
 # shellcheck disable=SC2031
 echo '✅ Installation completed successfully!' >> "$LOG_FILE"
 generate_timing_summary
-

@@ -24,7 +24,6 @@ return {
 		map_select("if", "@function.inner", "Select inner function")
 		map_select("ac", "@class.outer", "Select around class")
 		map_select("ic", "@class.inner", "Select inner class")
-		map_select("aa", "@parameter.outer", "Select around parameter")
 		map_select("ia", "@parameter.inner", "Select inner parameter")
 
 		-- Move textobjects

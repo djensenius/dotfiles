@@ -4,76 +4,92 @@ return {
 		"nvim-tree/nvim-web-devicons",
 		"folke/trouble.nvim",
 		"saghen/blink.cmp",
-		"williamboman/mason-lspconfig.nvim",
+		"mason-org/mason-lspconfig.nvim",
 	},
 	event = { "BufReadPre", "BufNewFile" },
 
 	config = function()
-		-- Prepare completion
-		local on_attach = function(client, _)
-			-- Mappings.
-			vim.keymap.set("n", "<leader><space>c", function()
-				require("fzf-lua").lsp_declarations({ jump1 = false })
-			end, { desc = "Show declaration" })
-			vim.keymap.set("n", "<leader><space>D", function()
-				require("fzf-lua").lsp_definitions({ jump1 = false })
-			end, { desc = "Show definition" })
-			vim.keymap.set("n", "<leader><space>h", vim.lsp.buf.hover, { desc = "Show hover" })
-			vim.keymap.set("n", "<leader><space>i", function()
-				require("fzf-lua").lsp_implementations({ jump1 = false })
-			end, { desc = "Show implementation" })
-			vim.keymap.set("n", "<leader><space>S", vim.lsp.buf.signature_help, { desc = "Show signature help" })
-			vim.keymap.set("n", "<leader><space>R", vim.lsp.buf.rename, { desc = "Rename" })
-			vim.keymap.set("n", "<leader><space>r", function()
-				require("fzf-lua").lsp_references()
-			end, { desc = "Show references" })
-			vim.keymap.set("n", "<leader><space>d", vim.diagnostic.open_float, { desc = "Show diagnostics" })
-			vim.keymap.set("n", "<leader><space>a", function()
-				require("fzf-lua").lsp_code_actions()
-			end, { desc = "Show code actions" })
-			vim.keymap.set("n", "<leader><space>H", function()
-				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-			end, { desc = "Toggle inlay hints" })
-
-			-- Set some keybinds conditional on server capabilities
-			if client.server_capabilities.document_formatting then
-				vim.keymap.set("n", "<space>=", vim.lsp.buf.formatting, { desc = "Format" })
-			elseif client.server_capabilities.document_range_formatting then
-				vim.keymap.set("n", "<space>=", vim.lsp.buf.formatting, { desc = "Format" })
-			end
-
-			-- Virtual line stuff
-			vim.diagnostic.config({
-				virtual_lines = { current_line = true },
-				underline = { severity = vim.diagnostic.severity.WARN }, -- underlines for warnings and errors only
-				virtual_text = {
-					prefix = function(diagnostic)
-						if diagnostic.severity == vim.diagnostic.severity.ERROR then
-							return ""
-						elseif diagnostic.severity == vim.diagnostic.severity.WARN then
-							return ""
-						elseif diagnostic.severity == vim.diagnostic.severity.INFO then
-							return ""
-						else
-							return ""
-						end
-					end,
-					source = "if_many",
-					spacing = 4,
-				},
-				signs = {
-					text = {
-						[vim.diagnostic.severity.ERROR] = "",
-						[vim.diagnostic.severity.WARN] = "",
-						[vim.diagnostic.severity.INFO] = "",
-						[vim.diagnostic.severity.HINT] = "",
-					},
-				},
-			})
-		end
-
 		local capabilities = require("blink.cmp").get_lsp_capabilities()
-		local yaml_capabilities = vim.lsp.protocol.make_client_capabilities()
+		local yaml_capabilities = vim.deepcopy(capabilities)
+
+		vim.diagnostic.config({
+			severity_sort = true,
+			update_in_insert = false,
+			virtual_lines = { current_line = true },
+			underline = { severity = vim.diagnostic.severity.WARN },
+			float = {
+				border = "rounded",
+				source = "if_many",
+			},
+			virtual_text = {
+				prefix = function(diagnostic)
+					if diagnostic.severity == vim.diagnostic.severity.ERROR then
+						return ""
+					elseif diagnostic.severity == vim.diagnostic.severity.WARN then
+						return ""
+					elseif diagnostic.severity == vim.diagnostic.severity.INFO then
+						return ""
+					end
+					return ""
+				end,
+				source = "if_many",
+				spacing = 4,
+			},
+			signs = {
+				text = {
+					[vim.diagnostic.severity.ERROR] = "",
+					[vim.diagnostic.severity.WARN] = "",
+					[vim.diagnostic.severity.INFO] = "",
+					[vim.diagnostic.severity.HINT] = "",
+				},
+			},
+		})
+
+		vim.api.nvim_create_autocmd("LspAttach", {
+			callback = function(args)
+				local bufnr = args.buf
+				local client = vim.lsp.get_client_by_id(args.data.client_id)
+				if not client then
+					return
+				end
+
+				local map = function(mode, lhs, rhs, desc)
+					vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+				end
+
+				map("n", "<leader><space>c", function()
+					require("fzf-lua").lsp_declarations({ jump1 = false })
+				end, "Show declaration")
+				map("n", "<leader><space>D", function()
+					require("fzf-lua").lsp_definitions({ jump1 = false })
+				end, "Show definition")
+				map("n", "<leader><space>h", vim.lsp.buf.hover, "Show hover")
+				map("n", "<leader><space>i", function()
+					require("fzf-lua").lsp_implementations({ jump1 = false })
+				end, "Show implementation")
+				map("n", "<leader><space>S", vim.lsp.buf.signature_help, "Show signature help")
+				map("n", "<leader><space>R", vim.lsp.buf.rename, "Rename")
+				map("n", "<leader><space>r", function()
+					require("fzf-lua").lsp_references()
+				end, "Show references")
+				map("n", "<leader><space>d", vim.diagnostic.open_float, "Show diagnostics")
+				map("n", "<leader><space>a", function()
+					require("fzf-lua").lsp_code_actions()
+				end, "Show code actions")
+				map("n", "<leader><space>H", function()
+					vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+				end, "Toggle inlay hints")
+
+				if
+					client:supports_method("textDocument/formatting", bufnr)
+					or client:supports_method("textDocument/rangeFormatting", bufnr)
+				then
+					map("n", "<space>=", function()
+						vim.lsp.buf.format({ async = true, bufnr = bufnr })
+					end, "Format")
+				end
+			end,
+		})
 
 		---@diagnostic disable: undefined-field
 		yaml_capabilities.textDocument.foldingRange = {
@@ -83,13 +99,27 @@ return {
 		---@diagnostic enable: undefined-field
 
 		vim.lsp.config("ts_ls", {
-			on_attach = on_attach,
 			capabilities = capabilities,
+			settings = {
+				typescript = {
+					inlayHints = {
+						includeInlayParameterNameHints = "all",
+						includeInlayFunctionParameterTypeHints = true,
+						includeInlayVariableTypeHints = true,
+					},
+				},
+				javascript = {
+					inlayHints = {
+						includeInlayParameterNameHints = "all",
+						includeInlayFunctionParameterTypeHints = true,
+						includeInlayVariableTypeHints = true,
+					},
+				},
+			},
 		})
 		vim.lsp.enable("ts_ls")
 
 		vim.lsp.config("gopls", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 			settings = {
 				gopls = {
@@ -116,7 +146,6 @@ return {
 
 		-- local ruby_cmd = { "ruby-lsp" }
 		-- vim.lsp.config("ruby_lsp", {
-		-- 	on_attach = on_attach,
 		-- 	cmd = ruby_cmd,
 		-- 	capabilities = capabilities,
 		-- })
@@ -125,22 +154,18 @@ return {
 		vim.env.SRB_SKIP_GEM_RBIS = 1
 		vim.lsp.config("sorbet", {
 			cmd = { "bundle", "exec", "srb", "tc", "--lsp" },
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("sorbet")
 
 		vim.lsp.config("vale_ls", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		-- Manual-only: start with :LspValeStart
 		vim.api.nvim_create_user_command("LspValeStart", function()
 			vim.lsp.enable("vale_ls")
 		end, { desc = "Start Vale LSP" })
-
 		vim.lsp.config("eslint", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("eslint")
@@ -158,39 +183,39 @@ return {
 					telemetry = {
 						enable = false,
 					},
+					workspace = {
+						checkThirdParty = false,
+						library = {
+							vim.env.VIMRUNTIME,
+						},
+					},
 				},
 			},
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("lua_ls")
 
 		vim.lsp.config("yamlls", {
-			on_attach = on_attach,
 			capabilities = yaml_capabilities,
 		})
 		vim.lsp.enable("yamlls")
 
 		vim.lsp.config("jqls", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("jqls")
 
 		vim.lsp.config("jsonls", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("jsonls")
 
 		vim.lsp.config("tailwindcss", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("tailwindcss")
 
 		vim.lsp.config("stylelint_lsp", {
-			on_attach = on_attach,
 			capabilities = capabilities,
 		})
 		vim.lsp.enable("stylelint_lsp")
