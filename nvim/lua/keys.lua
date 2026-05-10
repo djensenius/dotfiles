@@ -64,6 +64,11 @@ vim.keymap.set("n", "<M-j>", ":resize -2<CR>")
 vim.keymap.set("n", "<M-h>", ":vertical resize -2<CR>")
 vim.keymap.set("n", "<M-l>", ":vertical resize +2<CR>")
 
+-- Restart
+vim.keymap.set("n", "<leader>re", "<cmd>restart<cr>", {
+	desc = "Restart Neovim (:restart)",
+})
+
 -- File operations
 vim.api.nvim_create_user_command("CopyFullPath", function()
 	local path = vim.fn.expand("%:p")
