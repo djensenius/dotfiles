@@ -16,7 +16,7 @@
 [user]
 	email = david@jensenius.com
 	name = David Jensenius
-  signingkey = ~/.ssh/id_rsa.pub
+  signingkey = ~/.ssh/id_ed25519.pub
 
 [filter "lfs"]
 	clean = git-lfs clean -- %f
@@ -38,9 +38,6 @@
 
 [credential]
 	helper = cache
-
-[url "https://github.com/"]
-  insteadOf = git@github.com:
 
 [alias]
   m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout
