@@ -2,16 +2,13 @@
 name: Lint Lua files
 on: pull_request  # yamllint disable-line rule:truthy
 jobs:
-  Lint:
+  selene:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install selene
-        run: |
-          SELENE_URL="https://github.com/Kampfkarren/selene/releases/latest/download"
-          curl -L "${SELENE_URL}/selene-light-linux.zip" -o selene.zip
-          unzip selene.zip
-          chmod +x selene
+      - uses: actions/checkout@v4
       - name: Run selene
-        run: ./selene nvim/
+        uses: NTBBloodbath/selene-action@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: nvim/
+          version: 0.30.1
