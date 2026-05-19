@@ -1,4 +1,3 @@
--- luacheck: ignore 211 212
 return {
 	"lewis6991/gitsigns.nvim",
 	event = { "BufReadPre", "BufNewFile" },

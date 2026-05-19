@@ -7,5 +7,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Luacheck linter
-        uses: lunarmodules/luacheck@v1
+      - name: Install selene
+        run: |
+          SELENE_URL="https://github.com/Kampfkarren/selene/releases/latest/download"
+          curl -L "${SELENE_URL}/selene-light-linux.zip" -o selene.zip
+          unzip selene.zip
+          chmod +x selene
+      - name: Run selene
+        run: ./selene nvim/

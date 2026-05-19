@@ -13,6 +13,7 @@ return {
 			javascript = { "eslint_d" },
 			javascriptreact = { "eslint_d" },
 			jsonlint = { "jsonlint" },
+			lua = { "selene" },
 			ruby = { "rubocop" },
 			svelte = { "eslint_d" },
 			typescript = { "eslint_d" },

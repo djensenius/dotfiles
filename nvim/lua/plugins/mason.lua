@@ -46,6 +46,7 @@ return {
 				"golangci-lint",
 				"isort",
 				"jsonlint",
+				"selene",
 				"prettierd",
 				"prettier",
 				"shellcheck",
