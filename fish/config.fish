@@ -2,7 +2,13 @@
 
 # Initialize mise early so tools are available in all shells
 if command -q mise
-    mise activate fish | source
+    # Avoid mise's default prompt hook; update once on startup and again only after cd.
+    mise activate fish --no-hook-env | source
+    mise hook-env -s fish | source
+
+    function __mise_cd_hook --on-variable PWD --description 'Update mise environment when changing directories'
+        mise hook-env -s fish | source
+    end
 end
 
 if status is-interactive

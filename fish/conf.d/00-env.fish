@@ -2,6 +2,7 @@
 
 # Editor and tools
 set -gx EDITOR nvim
+set -gx MISE_FISH_AUTO_ACTIVATE 0
 
 # eza config
 set -gx EZA_CONFIG_DIR "$HOME/.config/eza"
