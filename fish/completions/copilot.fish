@@ -14,7 +14,7 @@ complete -c copilot -l interactive -s i -r -d 'Start interactive mode and automa
 complete -c copilot -l prompt -s p -r -d 'Execute a prompt in non-interactive mode (exits after completion)'
 complete -c copilot -l silent -s s -f -d 'Output only the agent response (no stats), useful for scripting with -p'
 complete -c copilot -l model -r -d 'Set the AI model to use'
-complete -c copilot -l effort -l reasoning-effort -r -d 'Set the reasoning effort level' -a 'low medium high xhigh'
+complete -c copilot -l effort -l reasoning-effort -r -d 'Set the reasoning effort level' -a 'none low medium high xhigh'
 complete -c copilot -l enable-reasoning-summaries -f -d 'Request reasoning summaries for OpenAI models'
 complete -c copilot -l agent -r -d 'Specify a custom agent to use'
 complete -c copilot -l resume -r -d 'Resume from a previous session (optionally specify session ID, task ID, or name; name matching is exact, case-insensitive)'
