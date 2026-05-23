@@ -197,6 +197,11 @@ function link_files() {
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza
     ln -sf "$(pwd)/k9s" ~/.config/k9s
+
+    # GitHub CLI + gh-dash + gh-enhance (companion) share the Catppuccin theme
+    mkdir -p ~/.config/gh ~/.config/gh-dash
+    ln -sf "$(pwd)/gh/config.yml" ~/.config/gh/config.yml
+    ln -sf "$(pwd)/gh-dash/config.yml" ~/.config/gh-dash/config.yml
     
     # Make tmux indicator script available in PATH for tmux config
     if is_codespaces; then
