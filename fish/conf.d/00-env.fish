@@ -15,6 +15,11 @@ set -gx FZF_DEFAULT_OPTS '--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38
 set -gx BAT_THEME Catppuccin-mocha
 set -gx DARK_MODE true
 
+# gh enhance (companion of gh-dash) — pick a bubbletint theme to match Catppuccin
+# https://bubbletint.dev — IDs include catppuccin_mocha, catppuccin_macchiato,
+# catppuccin_frappe, catppuccin_latte
+set -gx ENHANCE_THEME catppuccin_mocha
+
 # Go module env (host-specific GOPROXY is handled in 30-host-conditional.fish)
 set -gx GONOPROXY ""
 set -gx GOPRIVATE ""
