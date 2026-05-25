@@ -111,7 +111,6 @@ vim.opt.undodir = undo_dir
 -- Additional performance settings
 vim.opt.redrawtime = 1500
 vim.opt.timeoutlen = 500
-vim.opt.ttimeoutlen = 10
 vim.opt.updatetime = 100
 
 -- Enable persistent undo
