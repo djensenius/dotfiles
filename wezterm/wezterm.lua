@@ -284,7 +284,7 @@ config.window_frame = {
 -- Make URLs, commit SHAs, issue refs, etc. clickable
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
 
--- Better key reporting (CSI u) so nvim/tmux see modifiers like Ctrl+Shift+...
+-- Honor kitty keyboard protocol requests; tmux forwards them via extkeys.
 config.enable_kitty_keyboard = true
 
 -- Quality-of-life
