@@ -29,8 +29,7 @@ config.font = wezterm.font_with_fallback({
 	"Fira Code",
 	{
 		family = "Apple Color Emoji",
-		assume_emoji_presentation = true,
-		scale = 2,
+		scale = 1.0,
 	},
 })
 
