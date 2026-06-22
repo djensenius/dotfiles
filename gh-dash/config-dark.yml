@@ -1,16 +1,144 @@
 ---
+# gh-dash configuration — Catppuccin Mocha
+# https://www.gh-dash.dev/configuration/
+#
+# Companion integration:
+#   - Press `e` on a PR to open it in `gh enhance` (Actions/checks TUI)
+#   - Press `g` on a PR to drop into lazygit in the repo
+#   - Press `C` anywhere to open the Copilot CLI scoped to the repo
+#   - Press `o` on a PR/issue to open it via Octo in nvim
+
+defaults:
+  view: prs
+  prsLimit: 20
+  issuesLimit: 20
+  notificationsLimit: 30
+  refetchIntervalMinutes: 30
+  dateFormat: relative
+  preview:
+    open: true
+    width: 0.5
+    height: 0.6
+    position: auto
+  layout:
+    prs:
+      updatedAt:
+        width: 7
+      repo:
+        width: 22
+      author:
+        width: 15
+      assignees:
+        width: 20
+        hidden: true
+      base:
+        width: 15
+        hidden: true
+      lines:
+        width: 16
+    issues:
+      updatedAt:
+        width: 7
+      repo:
+        width: 22
+      creator:
+        width: 15
+      assignees:
+        width: 20
+
+# Map repo name -> local clone path so {{.RepoPath}} resolves for shortcuts.
+repoPaths:
+  djensenius/*: ~/Developer/*
+  default: ~/Developer/*
+
+prSections:
+  - title: My Pull Requests
+    filters: is:open author:@me sort:updated-desc
+  - title: Needs My Review
+    filters: is:open review-requested:@me sort:updated-desc
+    layout:
+      author:
+        hidden: false
+  - title: Involved
+    filters: >-
+      is:open involves:@me -author:@me
+      -review-requested:@me sort:updated-desc
+  - title: Recently Merged (me)
+    filters: is:merged author:@me sort:updated-desc
+
+issuesSections:
+  - title: Assigned
+    filters: is:open assignee:@me sort:updated-desc
+  - title: Authored
+    filters: is:open author:@me sort:updated-desc
+  - title: Mentioned
+    filters: >-
+      is:open mentions:@me -author:@me sort:updated-desc
+
+keybindings:
+  universal:
+    - key: C
+      name: copilot
+      command: >-
+        tmux display-popup -E -w 90% -h 90% -d '{{.RepoPath}}' 'copilot'
+  prs:
+    # Open the selected PR in `gh enhance` for a deep dive on its checks.
+    - key: e
+      name: enhance
+      command: >-
+        gh enhance --repo {{.RepoName}} {{.PrNumber}}
+    # Drop into lazygit inside the PR's repo working tree.
+    - key: g
+      name: lazygit
+      command: >-
+        cd {{.RepoPath}} && lazygit
+    # Review the PR with Octo.nvim inside a new tmux window.
+    - key: o
+      name: octo review
+      command: >-
+        tmux new-window -c {{.RepoPath}}
+        "nvim -c ':silent Octo pr edit {{.PrNumber}}'"
+  issues:
+    - key: o
+      name: octo issue
+      command: >-
+        tmux new-window -c {{.RepoPath}}
+        "nvim -c ':silent Octo issue edit {{.IssueNumber}}'"
+
 theme:
+  ui:
+    sectionsShowCount: true
+    table:
+      showSeparators: true
+      compact: false
   colors:
     text:
-      primary: "#cdd6f4"
-      secondary: "#89b4fa"
-      inverted: "#11111b"
-      faint: "#bac2de"
-      warning: "#f38ba8"
-      success: "#a6e3a1"
+      primary: "#cdd6f4"      # text
+      secondary: "#89b4fa"    # blue
+      inverted: "#11111b"     # crust
+      faint: "#7f849c"        # overlay1
+      warning: "#f38ba8"      # red
+      success: "#a6e3a1"      # green
+      actor: "#cba6f7"        # mauve
     background:
-      selected: "#313244"
+      selected: "#313244"     # surface0
     border:
-      primary: "#89b4fa"
-      secondary: "#45475a"
-      faint: "#313244"
+      primary: "#89b4fa"      # blue
+      secondary: "#45475a"    # surface1
+      faint: "#313244"        # surface0
+    inline:
+      icons:
+        newcontributor: "#a6e3a1"  # green
+        contributor: "#74c7ec"     # sapphire
+        collaborator: "#fab387"    # peach
+        member: "#f9e2af"          # yellow
+        owner: "#f5c2e7"           # pink
+        unknownrole: "#9399b2"     # overlay2
+  icons:
+    inline:
+      newcontributor: "󰎔"
+      contributor: ""
+      collaborator: ""
+      member: ""
+      owner: ""
+      unknownrole: "󰭙"

@@ -15,15 +15,19 @@ jobs:
           sudo apt-get install -y fish
       - name: 'Syntax Check Fish Files'
         run: |
-          # Find all .fish files in the fish directory
-          find ./fish -name "*.fish" -type f | while read -r file; do
+          # Find fish files, excluding generated completions.
+          find ./fish -name "*.fish" -type f \
+            ! -path "./fish/completions/copilot.fish" |
+            while read -r file; do
             echo "Checking syntax of $file"
             fish --no-execute "$file" || exit 1
           done
       - name: 'Check Fish File Formatting'
         run: |
-          # Check if fish_indent would make changes
-          find ./fish -name "*.fish" -type f | while read -r file; do
+          # Check formatting, excluding generated completions.
+          find ./fish -name "*.fish" -type f \
+            ! -path "./fish/completions/copilot.fish" |
+            while read -r file; do
             echo "Checking formatting of $file"
             if ! diff -u "$file" <(fish_indent < "$file"); then
               echo "File $file is not properly formatted."

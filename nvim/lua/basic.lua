@@ -24,6 +24,7 @@ local options = {
 	cursorline = true,
 	signcolumn = "yes", -- Always show sign column
 	termguicolors = true, -- Enable 24-bit RGB color
+	modelines = 0, -- Disable modelines for security
 
 	-- File handling
 	writebackup = false,
@@ -110,7 +111,6 @@ vim.opt.undodir = undo_dir
 -- Additional performance settings
 vim.opt.redrawtime = 1500
 vim.opt.timeoutlen = 500
-vim.opt.ttimeoutlen = 10
 vim.opt.updatetime = 100
 
 -- Enable persistent undo
@@ -124,6 +124,22 @@ vim.g.loaded_netrwPlugin = 1 -- Disable netrw plugin
 ---@diagnostic disable: undefined-field
 vim.opt.clipboard:append("unnamedplus")
 ---@diagnostic enable: undefined-field
+
+-- Use OSC52 clipboard when SSH'd without a display server (e.g. bare SSH, no tmux-yank)
+if os.getenv("SSH_TTY") and not os.getenv("DISPLAY") and not os.getenv("WAYLAND_DISPLAY") then
+	local osc52 = require("vim.ui.clipboard.osc52")
+	vim.g.clipboard = {
+		name = "OSC 52",
+		copy = {
+			["+"] = osc52.copy("+"),
+			["*"] = osc52.copy("*"),
+		},
+		paste = {
+			["+"] = osc52.paste("+"),
+			["*"] = osc52.paste("*"),
+		},
+	}
+end
 
 -- Status line configuration (if not using lualine)
 vim.opt.statusline = [[%f %y%=%l,%c %P]]

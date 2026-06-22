@@ -3,7 +3,7 @@ PLUGIN_DIR="$HOME/.config/tmux/plugins/tmux-outdated-packages"
 SHOW_STATUS_SCRIPT="$PLUGIN_DIR/scripts/show-status.sh"
 
 if [ -x "$SHOW_STATUS_SCRIPT" ]; then
-    OUTPUT=$("$SHOW_STATUS_SCRIPT")
+    OUTPUT=$("$SHOW_STATUS_SCRIPT" 2>/dev/null)
     # Trim whitespace to check if empty
     TRIMMED=$(echo "$OUTPUT" | xargs)
     

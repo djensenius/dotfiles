@@ -197,6 +197,11 @@ function link_files() {
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza
     ln -sf "$(pwd)/k9s" ~/.config/k9s
+
+    # GitHub CLI + gh-dash + gh-enhance (companion) share the Catppuccin theme
+    mkdir -p ~/.config/gh ~/.config/gh-dash
+    ln -sf "$(pwd)/gh/config.yml" ~/.config/gh/config.yml
+    ln -sf "$(pwd)/gh-dash/config.yml" ~/.config/gh-dash/config.yml
     
     # Make tmux indicator script available in PATH for tmux config
     if is_codespaces; then
@@ -433,8 +438,8 @@ function install_software() {
         log_with_timing "Installing Starship prompt" "$start_time"
         
         start_time=$(start_operation "Installing Git Delta")
-        curl -L https://github.com/dandavison/delta/releases/download/0.18.2/git-delta-musl_0.18.2_amd64.deb > ~/git-delta-musl_0.18.2_amd64.deb
-        sudo dpkg -i ~/git-delta-musl_0.18.2_amd64.deb
+        curl -L https://github.com/dandavison/delta/releases/download/0.19.1/git-delta-musl_0.19.1_amd64.deb > ~/git-delta-musl_0.19.1_amd64.deb
+        sudo dpkg -i ~/git-delta-musl_0.19.1_amd64.deb
         log_with_timing "Installing Git Delta" "$start_time"
         
         start_time=$(start_operation "Downloading Delta themes")
@@ -774,6 +779,27 @@ function start_neovim_background_setup() {
         else
             echo "⚠️  Lazy sync failed with exit code $lazy_exit_code" >> $neovim_log
         fi
+
+        echo "Checking built-in nvim.undotree availability..." >> $neovim_log
+        nvim --headless "+packadd nvim.undotree" "+qa" >> $neovim_log 2>&1
+        undotree_exit_code=$?
+
+        if [ $undotree_exit_code -eq 0 ]; then
+            echo "✅ Built-in nvim.undotree is available" >> $neovim_log
+        else
+            echo "⚠️  Built-in nvim.undotree is unavailable; Neovim 0.12+ is required" >> $neovim_log
+        fi
+        
+        # Compile TreeSitter parsers (poll until all are loadable, then exit)
+        echo "Compiling TreeSitter parsers..." >> $neovim_log
+        timeout 180 nvim --headless +"lua local p=require('config.treesitter-parsers'); vim.wait(170000, function() for _,l in ipairs(p) do if not pcall(vim.treesitter.language.inspect,l) then return false end end; return true end, 2000); vim.cmd('qa!')" >> $neovim_log 2>&1
+        ts_exit_code=$?
+        
+        if [ $ts_exit_code -eq 0 ]; then
+            echo "✅ TreeSitter parsers compiled successfully" >> $neovim_log
+        else
+            echo "⚠️  TreeSitter parser compilation may not have completed (exit code $ts_exit_code)" >> $neovim_log
+        fi
         
         echo "Installing Mason tools in Neovim..." >> $neovim_log
         nvim --headless "+MasonToolsInstallSync" +qa >> $neovim_log 2>&1
@@ -870,4 +896,3 @@ log_with_timing "👩‍🔧 Software configuration phase" "$setup_software_star
 # shellcheck disable=SC2031
 echo '✅ Installation completed successfully!' >> "$LOG_FILE"
 generate_timing_summary
-

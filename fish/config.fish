@@ -1,8 +1,21 @@
 # Interactive-only setup. Everything else lives in conf.d/*.fish
 
+# Security-sensitive mise settings must come from env because ~/.config/mise
+# is symlinked into this repo and mise treats the real path as non-global.
+set -gx MISE_TRUSTED_CONFIG_PATHS "$HOME/Developer:$HOME/Code:/workspaces"
+set -gx MISE_GITHUB_CREDENTIAL_COMMAND "gh auth token"
+set -gx MISE_PARANOID false
+set -gx MISE_YES false
+
 # Initialize mise early so tools are available in all shells
 if command -q mise
-    mise activate fish | source
+    # Avoid mise's default prompt hook; update once on startup and again only after cd.
+    mise activate fish --no-hook-env | source
+    mise hook-env -s fish | source
+
+    function __mise_cd_hook --on-variable PWD --description 'Update mise environment when changing directories'
+        mise hook-env -s fish | source
+    end
 end
 
 if status is-interactive

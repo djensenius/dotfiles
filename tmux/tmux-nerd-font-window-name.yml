@@ -1,6 +1,6 @@
 ---
 config:
-  show-name: true
+  show-name: false
   icon-position: "left"
 icons:
   copilot: ""

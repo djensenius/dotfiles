@@ -173,13 +173,6 @@ return {
 			desc = "References",
 		},
 		{
-			"gr",
-			function()
-				require("fzf-lua").lsp_references({ jump1 = true, ignore_current_line = true })
-			end,
-			desc = "LSP References",
-		},
-		{
 			"gd",
 			function()
 				require("fzf-lua").lsp_definitions({ jump1 = true })
