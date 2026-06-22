@@ -48,3 +48,5 @@
 
 [gpg]
 	format = ssh
+[safe]
+	bareRepository = all
