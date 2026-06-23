@@ -51,6 +51,18 @@
 #   @osc94_animate_fps         "20"   spinner frames per second (1-60)
 set -uo pipefail
 
+# Frame pacing uses Bash 5's $EPOCHREALTIME (a microsecond clock with no
+# subprocess). On Bash 4.2-4.4 that variable does not exist and `set -u` would
+# turn a reference into a fatal "unbound variable", so detect support once here
+# and fall back to a plain fixed-interval `sleep` per frame when it is missing.
+# (The rest of the script already requires Bash 4.2+ for associative arrays and
+# `printf '%(%s)T'`.)
+if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
+    have_epochrealtime=1
+else
+    have_epochrealtime=0
+fi
+
 opt() {
     local value
     value=$(tmux show-option -gqv "$1" 2>/dev/null || true)
@@ -160,11 +172,13 @@ load_options() {
     IFS=' ' read -r -a spinner_colors <<< "$colors_str"
 
     # Frame timing, computed with integer math (no per-frame `awk`/`date`).
-    # period_us is the target wall-clock budget per frame; the hot loop sleeps
-    # only the remainder after the frame's work (see below) so the real rate
-    # tracks fps instead of being (work + 1/fps).
+    # period_us is the target wall-clock budget per frame; on Bash 5 the hot
+    # loop sleeps only the remainder after the frame's work (see below) so the
+    # real rate tracks fps instead of being (work + 1/fps). frame_sleep is the
+    # fixed per-frame sleep used as a fallback when $EPOCHREALTIME is missing.
     period_us=$((1000000 / fps))
     local ms=$((1000 / fps)); [ "$ms" -lt 1 ] && ms=1
+    printf -v frame_sleep '%d.%03d' "$((ms / 1000))" "$((ms % 1000))"
     # Re-scan the pane store roughly every 300 ms of animation; state changes
     # far slower than the spinner, so there is no need to scan every frame.
     scan_frames=$(( (300 + ms - 1) / ms )); [ "$scan_frames" -lt 1 ] && scan_frames=1
@@ -294,7 +308,7 @@ while true; do
     if [ "$animate" = "on" ] && [ "${#win_code[@]}" -gt 0 ]; then
         # Hot path: animate. Re-scan the pane store only every scan_frames
         # frames; every frame just advances the glyph and repaints.
-        frame_start=$EPOCHREALTIME
+        [ "$have_epochrealtime" -eq 1 ] && frame_start=$EPOCHREALTIME
         if [ "$frames_since_scan" -ge "$scan_frames" ]; then
             scan_panes
             frames_since_scan=0
@@ -303,16 +317,23 @@ while true; do
         render
         frame=$((frame + 1))
         frames_since_scan=$((frames_since_scan + 1))
-        # Pace to the target period: sleep only the time left after this frame's
-        # work (set-option + refresh-client cost ~30-50 ms), so the real
-        # framerate tracks @osc94_animate_fps rather than (work + 1/fps).
-        # $EPOCHREALTIME is a bash builtin (no subprocess); stripping its dot
-        # yields integer microseconds since the epoch.
-        s_us=${frame_start/./}; e_us=${EPOCHREALTIME/./}
-        rem=$((period_us - (e_us - s_us)))
-        if [ "$rem" -gt 0 ]; then
-            printf -v dur '%d.%06d' "$((rem / 1000000))" "$((rem % 1000000))"
-            sleep "$dur"
+        if [ "$have_epochrealtime" -eq 1 ]; then
+            # Pace to the target period: sleep only the time left after this
+            # frame's work (set-option + refresh-client cost ~30-50 ms), so the
+            # real framerate tracks @osc94_animate_fps rather than (work +
+            # 1/fps). $EPOCHREALTIME is a bash builtin (no subprocess); stripping
+            # its dot yields integer microseconds since the epoch.
+            s_us=${frame_start/./}; e_us=${EPOCHREALTIME/./}
+            rem=$((period_us - (e_us - s_us)))
+            if [ "$rem" -gt 0 ]; then
+                printf -v dur '%d.%06d' "$((rem / 1000000))" "$((rem % 1000000))"
+                sleep "$dur"
+            fi
+        else
+            # Bash 4.x fallback: no microsecond clock, so sleep a fixed interval.
+            # The real rate is (frame work + frame_sleep), i.e. a bit below the
+            # configured fps, but it still animates smoothly.
+            sleep "$frame_sleep"
         fi
     else
         # Idle (nothing active) or static (animation disabled): poll cheaply for
