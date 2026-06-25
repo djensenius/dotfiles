@@ -1,7 +1,7 @@
 return {
 	"nvim-treesitter/nvim-treesitter-textobjects",
 	branch = "main",
-	lazy = true,
+	event = { "BufReadPost", "BufNewFile" },
 	config = function()
 		require("nvim-treesitter-textobjects").setup({
 			select = {

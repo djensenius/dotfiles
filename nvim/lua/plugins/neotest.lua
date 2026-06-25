@@ -3,7 +3,6 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		"nvim-treesitter/nvim-treesitter",
 		"nvim-neotest/neotest-jest",
 		"nvim-neotest/nvim-nio",
 	},

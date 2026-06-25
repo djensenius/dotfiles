@@ -31,25 +31,19 @@ return {
 
 		local function get_outdated_parsers()
 			local outdated = {}
-			local parsers = require("nvim-treesitter.info").installed_parsers()
-			local lockfile_path = vim.fn.stdpath("data") .. "/lazy/nvim-treesitter/lockfile.json"
-			local lockfile = {}
-
-			if vim.fn.filereadable(lockfile_path) == 1 then
-				local content = vim.fn.readfile(lockfile_path)
-				local json = vim.fn.json_decode(table.concat(content, "\n"))
-				lockfile = json
+			local ok, lock = pcall(require, "arborist.lock")
+			if not ok then
+				return outdated
 			end
 
-			for _, lang in pairs(parsers) do
-				local revision_file = vim.fn.stdpath("data") .. "/site/parser/" .. lang .. ".revision"
-				if vim.fn.filereadable(revision_file) == 1 then
-					local installed_rev = vim.fn.readfile(revision_file)[1]
-					local expected_rev = lockfile[lang] and lockfile[lang].revision
+			local read_ok, data = pcall(lock.read)
+			if not read_ok or type(data) ~= "table" or type(data.parsers) ~= "table" then
+				return outdated
+			end
 
-					if expected_rev and installed_rev ~= expected_rev then
-						table.insert(outdated, lang)
-					end
+			for lang, info in pairs(data.parsers) do
+				if type(info) == "table" and info.outdated then
+					table.insert(outdated, lang)
 				end
 			end
 			return outdated
