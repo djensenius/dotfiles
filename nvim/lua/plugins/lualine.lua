@@ -32,7 +32,7 @@ return {
 		local function get_outdated_parsers()
 			local outdated = {}
 			local ok, lock = pcall(require, "arborist.lock")
-			if not ok then
+			if not ok or type(lock) ~= "table" or type(lock.read) ~= "function" then
 				return outdated
 			end
 
