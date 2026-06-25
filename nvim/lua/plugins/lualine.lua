@@ -148,20 +148,16 @@ return {
 						lualine_ts_updates,
 						icon = "",
 						on_click = function()
-							if ts_update_due() then
-								vim.notify(
-									"Checking tree-sitter parsers for updates...",
-									vim.log.levels.INFO,
-									{ title = "Tree-sitter" }
-								)
-								vim.cmd("ArboristUpdate")
-							else
-								vim.notify(
-									"Tree-sitter parser update not due yet.",
-									vim.log.levels.INFO,
-									{ title = "Tree-sitter" }
-								)
-							end
+							-- Clicking is an explicit user action: always run the
+							-- update check. arborist's cadence `due()` returns false
+							-- until `last_update` is initialized, so gating the click
+							-- on it would prevent the very first check from ever running.
+							vim.notify(
+								"Checking tree-sitter parsers for updates...",
+								vim.log.levels.INFO,
+								{ title = "Tree-sitter" }
+							)
+							vim.cmd("ArboristUpdate")
 						end,
 						color = utils.get_hlgroup("String"),
 					},

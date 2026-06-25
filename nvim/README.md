@@ -339,7 +339,6 @@ are installed eagerly at startup.
 - **Specialized**: Supercollider, Norg, SSH configs
 
 #### Advanced Features
-- **Incremental Selection**: Provided by Neovim 0.12 tree-sitter core defaults
 - **Text Objects**: Enhanced with `nvim-treesitter-textobjects`
 - **Smart Indentation**: Provided by Neovim's tree-sitter core (parsers managed by `arborist.nvim`)
 
