@@ -11,7 +11,7 @@ return {
 	config = function()
 		vim.g.pkl_neovim = {
 			start_command = { "pkl-lsp" },
-			pkl_cli_path = "pkl",
+			pkl_cli_path = vim.fn.exepath("pkl"),
 		}
 	end,
 }

@@ -63,5 +63,5 @@ alias 'gh!'='__copilot_gh-assist'
 
 # Generate copilot completions on first use (if CLI is installed)
 if command -q copilot; and not test -f ~/.config/fish/completions/copilot.fish
-    copilot completion fish > ~/.config/fish/completions/copilot.fish 2>/dev/null
+    copilot completion fish >~/.config/fish/completions/copilot.fish 2>/dev/null
 end
