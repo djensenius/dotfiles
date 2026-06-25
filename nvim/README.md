@@ -341,7 +341,7 @@ are installed eagerly at startup.
 #### Advanced Features
 - **Incremental Selection**: Provided by Neovim 0.12 tree-sitter core defaults
 - **Text Objects**: Enhanced with `nvim-treesitter-textobjects`
-- **Smart Indentation**: Tree-sitter indentation handled automatically by arborist
+- **Smart Indentation**: Provided by Neovim's tree-sitter core (parsers managed by `arborist.nvim`)
 
 ### Formatting System (`conform.nvim`)
 

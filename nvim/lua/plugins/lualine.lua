@@ -29,38 +29,34 @@ return {
 			end
 		end
 
-		local function get_outdated_parsers()
-			local outdated = {}
-			local ok, lock = pcall(require, "arborist.lock")
-			if not ok or type(lock) ~= "table" or type(lock.read) ~= "function" then
-				return outdated
+		-- arborist has no synchronous "outdated parser" list (computing it
+		-- requires a per-parser `git fetch`). The honest indicator we can show
+		-- is whether a parser update check is *due* per the configured cadence.
+		local function ts_update_due()
+			local ok_lock, lock = pcall(require, "arborist.lock")
+			local ok_cfg, cfg = pcall(require, "arborist.config")
+			local ok_update, update = pcall(require, "arborist.update")
+			if not (ok_lock and ok_cfg and ok_update) then
+				return false
+			end
+			if type(lock.read) ~= "function" or type(update.due) ~= "function" or type(cfg.values) ~= "table" then
+				return false
 			end
 
 			local read_ok, data = pcall(lock.read)
 			if not read_ok or type(data) ~= "table" or type(data.parsers) ~= "table" then
-				return outdated
+				return false
+			end
+			if next(data.parsers) == nil then
+				return false
 			end
 
-			local ok_cfg, cfg = pcall(require, "arborist.config")
-			local ok_update, update = pcall(require, "arborist.update")
-			if
-				ok_cfg
-				and ok_update
-				and type(cfg.values) == "table"
-				and type(update.due) == "function"
-				and update.due(cfg.values.update_cadence)
-			then
-				for lang in pairs(data.parsers) do
-					table.insert(outdated, lang)
-				end
-			end
-			return outdated
+			return update.due(cfg.values.update_cadence) == true
 		end
 
 		local function lualine_ts_updates()
-			local outdated = get_outdated_parsers()
-			if #outdated > 0 then
-				return #outdated
+			if ts_update_due() then
+				return "update due"
 			else
 				return ""
 			end
@@ -152,15 +148,19 @@ return {
 						lualine_ts_updates,
 						icon = "",
 						on_click = function()
-							local outdated = get_outdated_parsers()
-							if #outdated > 0 then
+							if ts_update_due() then
 								vim.notify(
-									"Outdated Parsers:\n" .. table.concat(outdated, "\n"),
+									"Checking tree-sitter parsers for updates...",
 									vim.log.levels.INFO,
-									{ title = "Tree-sitter Updates" }
+									{ title = "Tree-sitter" }
 								)
+								vim.cmd("ArboristUpdate")
 							else
-								vim.notify("All parsers up to date!", vim.log.levels.INFO, { title = "Tree-sitter" })
+								vim.notify(
+									"Tree-sitter parser update not due yet.",
+									vim.log.levels.INFO,
+									{ title = "Tree-sitter" }
+								)
 							end
 						end,
 						color = utils.get_hlgroup("String"),
