@@ -176,7 +176,7 @@ return {
 							separator = " ",
 						},
 						on_click = function()
-							vim.cmd(":LspInfo")
+							vim.cmd(":checkhealth vim.lsp")
 						end,
 					},
 				},
@@ -194,7 +194,7 @@ return {
 					{
 						"filetype",
 						on_click = function()
-							vim.cmd(":LspInfo")
+							vim.cmd(":checkhealth vim.lsp")
 						end,
 						cond = function()
 							return vim.bo.filetype and #vim.bo.filetype > 0
