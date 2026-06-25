@@ -782,8 +782,23 @@ function start_neovim_background_setup() {
         else
             echo "⚠️  Tmuxinator completions download failed with exit code $curl_exit_code" >> $neovim_log
         fi
+
+        # Generate copilot completions if the CLI is available
+        copilot_exit_code=0
+        if command -v copilot >/dev/null 2>&1; then
+            echo "Generating copilot completions..." >> $neovim_log
+            copilot completion fish > ~/.config/fish/completions/copilot.fish 2>> $neovim_log
+            copilot_exit_code=$?
+            if [ $copilot_exit_code -eq 0 ]; then
+                echo "✅ Copilot completions generated successfully" >> $neovim_log
+            else
+                echo "⚠️  Copilot completions generation failed with exit code $copilot_exit_code" >> $neovim_log
+            fi
+        else
+            echo "ℹ️  Copilot CLI not found, skipping completions generation" >> $neovim_log
+        fi
         
-        if [ $lazy_exit_code -eq 0 ] && [ $mason_exit_code -eq 0 ] && [ $curl_exit_code -eq 0 ]; then
+        if [ $lazy_exit_code -eq 0 ] && [ $mason_exit_code -eq 0 ] && [ $curl_exit_code -eq 0 ] && [ $copilot_exit_code -eq 0 ]; then
             echo "🎉 All Neovim setup completed successfully at $(date)" >> $neovim_log
         else
             echo "⚠️  Some Neovim setup steps failed - check logs above" >> $neovim_log

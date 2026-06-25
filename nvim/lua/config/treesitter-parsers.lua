@@ -31,6 +31,7 @@ return {
 	"luadoc",
 	"markdown",
 	"markdown_inline",
+	"pkl",
 	"python",
 	"regex",
 	"ruby",
