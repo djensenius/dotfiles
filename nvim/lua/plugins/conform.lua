@@ -33,6 +33,7 @@ return {
 			markdown = { "prettier" },
 			graphql = { "prettier" },
 			go = { "goimports", "gofmt" },
+			pkl = { "pkl" },
 			ruby = { "rubocop" },
 		},
 		format_on_save = function(bufnr)
