@@ -41,8 +41,10 @@ return {
 				return outdated
 			end
 
-			for lang, info in pairs(data.parsers) do
-				if type(info) == "table" and info.outdated then
+			local ok_cfg, cfg = pcall(require, "arborist.config")
+			local ok_update, update = pcall(require, "arborist.update")
+			if ok_cfg and ok_update and type(cfg.values) == "table" and type(update.due) == "function" and update.due(cfg.values.update_cadence) then
+				for lang in pairs(data.parsers) do
 					table.insert(outdated, lang)
 				end
 			end
