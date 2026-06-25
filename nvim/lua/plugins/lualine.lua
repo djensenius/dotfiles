@@ -43,7 +43,13 @@ return {
 
 			local ok_cfg, cfg = pcall(require, "arborist.config")
 			local ok_update, update = pcall(require, "arborist.update")
-			if ok_cfg and ok_update and type(cfg.values) == "table" and type(update.due) == "function" and update.due(cfg.values.update_cadence) then
+			if
+				ok_cfg
+				and ok_update
+				and type(cfg.values) == "table"
+				and type(update.due) == "function"
+				and update.due(cfg.values.update_cadence)
+			then
 				for lang in pairs(data.parsers) do
 					table.insert(outdated, lang)
 				end
