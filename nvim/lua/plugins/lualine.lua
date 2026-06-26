@@ -32,14 +32,17 @@ return {
 		-- arborist has no synchronous "outdated parser" list (computing it
 		-- requires a per-parser `git fetch`). The honest indicator we can show
 		-- is whether a parser update check is *due* per the configured cadence.
+		-- Mirror the `update_cadence` set in plugins/arborist.lua rather than
+		-- reaching into arborist's internal config table.
+		local ts_update_cadence = "weekly"
+
 		local function ts_update_due()
 			local ok_lock, lock = pcall(require, "arborist.lock")
-			local ok_cfg, cfg = pcall(require, "arborist.config")
 			local ok_update, update = pcall(require, "arborist.update")
-			if not (ok_lock and ok_cfg and ok_update) then
+			if not (ok_lock and ok_update) then
 				return false
 			end
-			if type(lock.read) ~= "function" or type(update.due) ~= "function" or type(cfg.values) ~= "table" then
+			if type(lock.read) ~= "function" or type(update.due) ~= "function" then
 				return false
 			end
 
@@ -51,7 +54,7 @@ return {
 				return false
 			end
 
-			return update.due(cfg.values.update_cadence) == true
+			return update.due(ts_update_cadence) == true
 		end
 
 		local function lualine_ts_updates()
