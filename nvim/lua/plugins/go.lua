@@ -10,6 +10,10 @@ return {
 		-- lsp_keymaps = false,
 		-- other options
 		linter = "golangci-lint",
+		-- textobjects are provided by nvim-treesitter-textobjects (we use
+		-- arborist.nvim, not nvim-treesitter), so disable go.nvim's redundant
+		-- copy to avoid a spurious "nvim-treesitter module not loaded" notice.
+		textobjects = false,
 	},
 	config = function(_, opts)
 		require("go").setup(opts)
