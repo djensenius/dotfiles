@@ -340,7 +340,7 @@ are installed eagerly at startup.
 
 #### Advanced Features
 - **Text Objects**: Enhanced with `nvim-treesitter-textobjects`
-- **Smart Indentation**: Provided by Neovim's tree-sitter core (parsers managed by `arborist.nvim`)
+- **Smart Indentation**: Tree-sitter-based indentation set up automatically by `arborist.nvim` (configures a per-buffer `indentexpr`)
 
 ### Formatting System (`conform.nvim`)
 
