@@ -29,36 +29,37 @@ return {
 			end
 		end
 
-		local function get_outdated_parsers()
-			local outdated = {}
-			local parsers = require("nvim-treesitter.info").installed_parsers()
-			local lockfile_path = vim.fn.stdpath("data") .. "/lazy/nvim-treesitter/lockfile.json"
-			local lockfile = {}
+		-- arborist has no synchronous "outdated parser" list (computing it
+		-- requires a per-parser `git fetch`). The honest indicator we can show
+		-- is whether a parser update check is *due* per the configured cadence.
+		-- Mirror the `update_cadence` set in plugins/arborist.lua rather than
+		-- reaching into arborist's internal config table.
+		local ts_update_cadence = "weekly"
 
-			if vim.fn.filereadable(lockfile_path) == 1 then
-				local content = vim.fn.readfile(lockfile_path)
-				local json = vim.fn.json_decode(table.concat(content, "\n"))
-				lockfile = json
+		local function ts_update_due()
+			local ok_lock, lock = pcall(require, "arborist.lock")
+			local ok_update, update = pcall(require, "arborist.update")
+			if not (ok_lock and ok_update) then
+				return false
+			end
+			if type(lock.read) ~= "function" or type(update.due) ~= "function" then
+				return false
 			end
 
-			for _, lang in pairs(parsers) do
-				local revision_file = vim.fn.stdpath("data") .. "/site/parser/" .. lang .. ".revision"
-				if vim.fn.filereadable(revision_file) == 1 then
-					local installed_rev = vim.fn.readfile(revision_file)[1]
-					local expected_rev = lockfile[lang] and lockfile[lang].revision
-
-					if expected_rev and installed_rev ~= expected_rev then
-						table.insert(outdated, lang)
-					end
-				end
+			local read_ok, data = pcall(lock.read)
+			if not read_ok or type(data) ~= "table" or type(data.parsers) ~= "table" then
+				return false
 			end
-			return outdated
+			if next(data.parsers) == nil then
+				return false
+			end
+
+			return update.due(ts_update_cadence) == true
 		end
 
 		local function lualine_ts_updates()
-			local outdated = get_outdated_parsers()
-			if #outdated > 0 then
-				return #outdated
+			if ts_update_due() then
+				return "update due"
 			else
 				return ""
 			end
@@ -150,16 +151,16 @@ return {
 						lualine_ts_updates,
 						icon = "",
 						on_click = function()
-							local outdated = get_outdated_parsers()
-							if #outdated > 0 then
-								vim.notify(
-									"Outdated Parsers:\n" .. table.concat(outdated, "\n"),
-									vim.log.levels.INFO,
-									{ title = "Tree-sitter Updates" }
-								)
-							else
-								vim.notify("All parsers up to date!", vim.log.levels.INFO, { title = "Tree-sitter" })
-							end
+							-- Clicking is an explicit user action: always run the
+							-- update check. arborist's cadence `due()` returns false
+							-- until `last_update` is initialized, so gating the click
+							-- on it would prevent the very first check from ever running.
+							vim.notify(
+								"Checking tree-sitter parsers for updates...",
+								vim.log.levels.INFO,
+								{ title = "Tree-sitter" }
+							)
+							vim.cmd("ArboristUpdate")
 						end,
 						color = utils.get_hlgroup("String"),
 					},

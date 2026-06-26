@@ -158,8 +158,8 @@ Bridge between mason.nvim and nvim-lspconfig.
 #### [blink.cmp](https://github.com/saghen/blink.cmp)
 Modern completion plugin with LSP support and snippet integration.
 
-#### [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
-Advanced syntax highlighting and code understanding for 65+ languages.
+#### [arborist.nvim](https://github.com/arborist-ts/arborist.nvim)
+WASM-first tree-sitter parser manager for Neovim 0.12+ (successor to the archived nvim-treesitter). Parsers and queries install automatically on demand.
 
 ### Code Quality & Formatting
 
@@ -324,9 +324,13 @@ Modern completion engine replacing the traditional `nvim-cmp` setup.
 - **Snippet Support**: Uses `friendly-snippets` for extensive snippet library
 - **Performance**: Lazy loading handled internally for optimal startup time
 
-### Treesitter Configuration (`nvim-treesitter.lua`)
+### Treesitter Configuration (`arborist.lua`)
 
-Provides advanced syntax highlighting and code understanding for 40+ languages.
+Provides advanced syntax highlighting and code understanding for 40+ languages via
+[arborist.nvim](https://github.com/arborist-ts/arborist.nvim), the WASM-first parser
+manager that replaces the archived nvim-treesitter. Parsers install automatically on
+demand; the popular set plus the languages listed in `config/treesitter-parsers.lua`
+are installed eagerly at startup.
 
 #### Language Support
 - **Comprehensive Coverage**: From web technologies (HTML, CSS, JavaScript, TypeScript) to systems languages (Go, Rust, C/C++)
@@ -335,9 +339,8 @@ Provides advanced syntax highlighting and code understanding for 40+ languages.
 - **Specialized**: Supercollider, Norg, SSH configs
 
 #### Advanced Features
-- **Incremental Selection**: `gnn` to expand selection, `gnd` to shrink
 - **Text Objects**: Enhanced with `nvim-treesitter-textobjects`
-- **Smart Indentation**: Enabled for most languages (disabled for Python due to conflicts)
+- **Smart Indentation**: Tree-sitter-based indentation set up automatically by `arborist.nvim` (configures a per-buffer `indentexpr`)
 
 ### Formatting System (`conform.nvim`)
 
