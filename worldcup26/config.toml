@@ -1,0 +1,24 @@
+# worldcup26 configuration
+#
+# On macOS this file is auto-loaded from ~/.config/worldcup26/config.toml.
+# (Set XDG_CONFIG_HOME to override the location on any platform.)
+
+# Favourite teams, by display name or abbreviation (case-insensitive).
+favorites = ["Canada", "Spain", "Argentina"]
+
+[provider]
+# Backend to use: "espn", "api-football", or "football-data".
+# ESPN requires no API key.
+kind = "espn"
+# api_football_key = "..."        # or env WORLDCUP26_API_FOOTBALL_KEY
+# football_data_key = "..."       # or env WORLDCUP26_FOOTBALL_DATA_KEY
+
+[ui]
+# Colour theme name.
+theme = "catppuccin-mocha"
+# Use Nerd Font glyphs for icons.
+nerd_fonts = true
+# Show national flags on the Live card when the terminal supports graphics.
+show_flags = true
+# Kickoff times: "local", "utc", or a fixed hour offset such as -4.
+timezone = "local"
