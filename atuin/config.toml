@@ -233,3 +233,6 @@ records = true
 
 [theme]
 name = "catppuccin-mocha-mauve"
+
+[ai]
+enabled = true
