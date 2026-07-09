@@ -283,8 +283,10 @@ config.window_frame = {
 -- Make URLs, commit SHAs, issue refs, etc. clickable
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
 
--- Honor kitty keyboard protocol requests; tmux forwards them via extkeys.
-config.enable_kitty_keyboard = true
+-- Do NOT enable the kitty keyboard protocol. tmux does not speak it; when
+-- WezTerm negotiates it directly, arrow keys get mis-encoded for TUI apps
+-- (nvim, etc.) running inside tmux. tmux's own extkeys/CSI-u handling already
+-- covers modified keys. (Regression fixed before in "Fix arrow keys".)
 
 -- Quality-of-life
 config.scrollback_lines = 10000
