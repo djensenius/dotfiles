@@ -122,6 +122,15 @@ Bat is a cat clone with syntax highlighting and Git integration.
 Bottom is a cross-platform graphical process/system monitor.
 - **Directory**: `bottom/`
 
+### cloud-sync
+A deletion-aware sync between selected `~/Documents` folders and OneDrive / Google Drive.
+Two-way pairs merge newest-wins and propagate deletions after confirmation; one-way pairs
+treat the source as authoritative. Deletions are detected against a per-pair state manifest,
+so a file modified since the last snapshot is re-copied instead of deleted.
+- **Script**: `scripts/onedrive_sync.py`
+- **Fish function**: `fish/functions/cloud-sync.fish`
+- **Usage**: `cloud-sync`, `cloud-sync --dry-run`, `cloud-sync --only NAME`
+
 ### [delta](https://github.com/dandavison/delta)
 Delta is a syntax-highlighting pager for git, diff, and grep output.
 - **Configuration**: Integrated into `gitconfig`
@@ -195,6 +204,10 @@ Pay-respects is a modern replacement for thefuck, fixing command line errors wit
 ### [ripgrep](https://github.com/BurntSushi/ripgrep)
 Ripgrep is a line-oriented search tool that recursively searches directories for a regex pattern.
 - **Installation**: Via cargo
+
+### [rio](https://rioterm.com) ([repo](https://github.com/raphamorim/rio))
+Rio is a GPU-accelerated terminal emulator, configured here with the Catppuccin Mocha theme.
+- **Directory**: `rio/`
 
 ### [Starship](https://starship.rs) ([repo](https://github.com/starship/starship))
 Starship is a cross-shell prompt that displays information about the current directory, git status, and more.
