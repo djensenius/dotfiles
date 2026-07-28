@@ -228,6 +228,9 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 | `prefix q` kill pane | same (detach moves to `prefix d`) | config |
 | `prefix p` / `n` previous/next window | same | config |
 | `prefix 1..9` select window | same | config |
+| `prefix (` / `)` previous/next session | `prefix ,` / `prefix .` previous/next workspace | config |
+| — | `prefix ^p` / `prefix ^n` previous/next agent | config |
+| — | `prefix alt+1..9` focus agent | config |
 | `prefix F1` / `^b` toggle status | `prefix b` / `prefix F1` toggle sidebar | config |
 | `prefix \`` gotop | `prefix \`` btop | `[[keys.command]]` |
 | `prefix m` man prompt | same | `herdr/scripts/herdr-man-popup.sh` |
@@ -319,6 +322,7 @@ Ripgrep is a line-oriented search tool that recursively searches directories for
 ### [rio](https://rioterm.com) ([repo](https://github.com/raphamorim/rio))
 Rio is a GPU-accelerated terminal emulator, configured here with the Catppuccin Mocha theme.
 - **Directory**: `rio/`
+- **Option key**: `option-as-alt = "left"` so `alt` chords (e.g. herdr's `prefix alt+1..9` agent focus) reach the app. Wezterm already does this by default; Ghostty defaults to it on U.S. layouts. Right Option still composes Unicode in all three.
 
 ### [Starship](https://starship.rs) ([repo](https://github.com/starship/starship))
 Starship is a cross-shell prompt that displays information about the current directory, git status, and more.
