@@ -2,6 +2,7 @@
 .venv
 nvim/lazy-lock.json
 tmux/plugins
+rio/log
 fish/completions/copilot.fish
 actionlint
 stylua

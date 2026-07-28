@@ -1,0 +1,161 @@
+# Rio terminal configuration
+# Ported from wezterm/wezterm.lua to match the same look & feel:
+#   - Catppuccin Mocha palette with an OLED-friendly pure-black background
+#   - Monaspace variable fonts (Neon / Xenon / Radon / Krypton) with ligatures
+#   - macOS-native tabs, 120x40 startup size, 10px vertical padding
+# See the full configuration reference: https://rioterm.com/docs/config
+
+# --- Top-level options (must come before any [section]) -------------------
+line-height = 1.2
+scrollback-history-limit = 10000
+confirm-before-quit = false
+draw-bold-text-with-light-colors = false
+
+# Outer window padding: [top, right, bottom, left]
+# Matches wezterm window_padding { top = 10, bottom = 10, left = 0, right = 0 }
+padding = [10, 0, 10, 0]
+
+# --- Window ---------------------------------------------------------------
+[window]
+mode = "Windowed"
+# wezterm initial_cols = 120, initial_rows = 40
+columns = 120
+rows = 40
+opacity = 1.0
+blur = false
+# INTEGRATED_BUTTONS|RESIZE with MacOsNative buttons ~= native decorations
+decorations = "Enabled"
+
+# --- Navigation -----------------------------------------------------------
+# wezterm uses the macOS fancy tab bar with integrated traffic lights;
+# NativeTab is the closest analogue (real macOS title-bar tabs).
+[navigation]
+mode = "NativeTab"
+
+# --- Bell -----------------------------------------------------------------
+# wezterm audible_bell = "Disabled"
+[bell]
+audio = false
+visual = false
+
+# --- Fonts ----------------------------------------------------------------
+# wezterm font_size = 15.0, Monaspace variable family with NF icon fallback.
+[fonts]
+size = 15.0
+# harfbuzz_features from wezterm (calt/liga/dlig + Monaspace texture healing)
+features = ["calt", "liga", "dlig", "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss09"]
+hinting = true
+use-drawable-chars = true
+
+# Nerd Font icon routing. MUST stay above the [fonts.*] subtable headers:
+# in TOML, once a subtable header opens, bare keys attach to that subtable,
+# so a symbol-map placed after [fonts.bold-italic] silently binds to it and
+# is ignored by Rio. Ranges pin the Nerd Font PUA blocks to "Symbols Nerd
+# Font", the canonical complete symbol face. (Monaspace *NF* has large gaps
+# -- e.g. the Devicons block E7BD-E8EF and ~810 codepoints in ED00-F2FF are
+# unpatched -- so glyphs like the starship /Developer icon U+E8E8 tofu'd.
+# Symbols Nerd Font covers every range, keeping all icons consistent.)
+# Rio resolves symbol-map first-match-wins, so order the ranges accordingly.
+symbol-map = [
+  { start = "E000", end = "E00A", font-family = "Symbols Nerd Font" },
+  { start = "E0A0", end = "E0C8", font-family = "Symbols Nerd Font" },
+  { start = "E0CC", end = "E0D7", font-family = "Symbols Nerd Font" },
+  { start = "E200", end = "E2A9", font-family = "Symbols Nerd Font" },
+  { start = "E300", end = "E3E3", font-family = "Symbols Nerd Font" },
+  { start = "E5FA", end = "E6B7", font-family = "Symbols Nerd Font" },
+  { start = "E700", end = "E8EF", font-family = "Symbols Nerd Font" },
+  { start = "EA60", end = "EC1E", font-family = "Symbols Nerd Font" },
+  { start = "ED00", end = "F2FF", font-family = "Symbols Nerd Font" },
+  { start = "F300", end = "F381", font-family = "Symbols Nerd Font" },
+  { start = "F400", end = "F533", font-family = "Symbols Nerd Font" },
+  { start = "F0001", end = "F1AF0", font-family = "Symbols Nerd Font" },
+]
+
+# NOTE: Rio's `style` is NOT a bool. "default" = pick the slot's implied
+# trait (upright/italic per the slot); "false" = disable; any OTHER string
+# = FontStyle::Named, a literal face-name match that ALSO disables Rio's
+# synthetic bold/italic fallback (see sugarloaf synth_decisions()).
+#
+# Italics gotcha: Rio loads a font by file path and only pins the `wght`
+# axis, never `slnt`. So the "* Var" variable files always load UPRIGHT and
+# cannot produce a slanted glyph. Naming a "*Italic" instance (style =
+# "Italic") makes it worse: it's a Named style, so synthetic italic is
+# disabled too -> still upright. The fix is to point the italic slots at the
+# STATIC Monaspace families, which ship real designed Italic / Bold Italic
+# OTF faces; with style = "default" Rio resolves the true italic face.
+[fonts.regular]
+family = "Monaspace Neon Var"
+style = "default"
+weight = 300
+
+# wezterm font_rules: Bold (non-italic) -> Monaspace Xenon Var Bold
+[fonts.bold]
+family = "Monaspace Xenon Var"
+style = "default"
+weight = 700
+
+# wezterm font_rules: Italic -> Monaspace Radon italic (real static face)
+[fonts.italic]
+family = "Monaspace Radon"
+style = "default"
+weight = 400
+
+# wezterm font_rules: Bold + Italic -> Monaspace Krypton bold italic (static)
+[fonts.bold-italic]
+family = "Monaspace Krypton"
+style = "default"
+weight = 700
+
+# Fallback: Rio 0.4.12 has no explicit fallback-list key (the sugarloaf
+# `SugarloafFonts` schema only supports `symbol-map` + automatic system
+# fallback). Glyphs missing from the primary face (emoji, CJK, etc.) are
+# resolved automatically by the OS font stack. Nerd Font icon routing is
+# configured via `symbol-map` under [fonts] above.
+
+# --- Colors: Catppuccin Mocha (OLED background) ---------------------------
+# Mirrors the wezterm "OLEDppuccin" scheme: builtin Catppuccin Mocha with the
+# background forced to pure black for OLED displays.
+[colors]
+background = "#000000"
+foreground = "#cdd6f4"
+
+cursor = "#f5e0dc"
+vi-cursor = "#b4befe"
+
+selection-background = "#585b70"
+selection-foreground = "#cdd6f4"
+
+# Normal
+black = "#45475a"
+red = "#f38ba8"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+blue = "#89b4fa"
+magenta = "#f5c2e7"
+cyan = "#94e2d5"
+white = "#bac2de"
+
+# Bright
+light-black = "#585b70"
+light-red = "#f38ba8"
+light-green = "#a6e3a1"
+light-yellow = "#f9e2af"
+light-blue = "#89b4fa"
+light-magenta = "#f5c2e7"
+light-cyan = "#94e2d5"
+light-white = "#a6adc8"
+
+# Dim
+dim-black = "#45475a"
+dim-red = "#f38ba8"
+dim-green = "#a6e3a1"
+dim-yellow = "#f9e2af"
+dim-blue = "#89b4fa"
+dim-magenta = "#f5c2e7"
+dim-cyan = "#94e2d5"
+dim-white = "#bac2de"
+
+# Tab bar / title accents (matches wezterm tab_bar bg #040404)
+tabs = "#0f0f0f"
+tabs-active = "#040404"
+bar = "#040404"
