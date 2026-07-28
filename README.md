@@ -197,7 +197,7 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 | --- | --- | --- |
 | `prefix` = `^a` | `prefix` = `ctrl+a` | config |
 | `prefix h/j/k/l` focus pane | same | config |
-| `prefix ^h/^j/^k/^l` resize 10 | same | `[[keys.command]]` → `herdr pane resize` |
+| `prefix ^h/^j/^k/^l` resize 10 | same | `[[keys.command]]` → `herdr pane resize --amount 0.05` (Herdr takes a split-ratio delta, not a cell count) |
 | `prefix ^u` / `^d` swap pane | same | `[[keys.command]]` → `herdr pane swap` |
 | `prefix \|` / `-` split | `prefix v` / `prefix \` / `prefix -` | config |
 | `prefix q` kill pane | same (detach moves to `prefix d`) | config |
@@ -255,7 +255,11 @@ silently:
 | [Television](https://github.com/alexpasmantier/television) 0.15+ | `termscope` — its build step installs this **via Homebrew**, so `brew` must be on `PATH` or the plugin install fails |
 | Clipboard command (`pbcopy` on macOS, `wl-copy` on Wayland, `xclip`/`xsel` on X11) | `herdr-pluck` |
 
-Re-run `./install.sh` to install or refresh every plugin, or do it manually:
+`install.sh` does **not** install Herdr itself. Once `herdr` is on `PATH`, re-running
+`./install.sh` installs or refreshes every plugin (`install` doubles as the update
+path, so a rerun pulls the latest revision). Without `herdr`, the script logs a warning
+and skips the plugin phase entirely — which is what happens in a fresh Codespace. To do
+it by hand:
 
 ```bash
 herdr plugin install paulbkim-dev/vim-herdr-navigation --yes

@@ -865,7 +865,11 @@ function start_git_status_background() {
 # shellcheck disable=SC2031
 setup_herdr_plugins() {
     if ! command -v herdr >/dev/null 2>&1; then
+        # install_software does not provision herdr, so this is the normal path
+        # on a fresh Codespace. The plugins are a local-machine concern; see the
+        # herdr section of README.md for the manual steps.
         echo "⚠️  herdr not installed - skipping Herdr plugin setup" >> "$LOG_FILE"
+        echo "   (install herdr, then re-run ./install.sh or install the plugins manually)" >> "$LOG_FILE"
         return 0
     fi
 
@@ -885,6 +889,10 @@ setup_herdr_plugins() {
     # `install` is also the update path in herdr 0.7 - there is no separate
     # update command - so always re-run it rather than skipping on a source
     # match, which would pin the first revision ever installed.
+    # Build output goes to the log rather than /dev/null: the plugin installers
+    # report which prerequisite is missing (termscope, for instance, explains
+    # when Homebrew or Television is unavailable), and that is the only clue
+    # when a plugin fails to build.
     local plugin
     for plugin in \
         paulbkim-dev/vim-herdr-navigation \
@@ -893,8 +901,9 @@ setup_herdr_plugins() {
         Tyru5/herdr-floax \
         thanhdat77/herdr-navigator \
         iurysza/termscope; do
-        herdr plugin install "$plugin" --yes >/dev/null 2>&1 ||
-            echo "⚠️  Failed to install Herdr plugin $plugin" >> "$LOG_FILE"
+        if ! herdr plugin install "$plugin" --yes >> "$LOG_FILE" 2>&1; then
+            echo "⚠️  Failed to install Herdr plugin $plugin (see output above)" >> "$LOG_FILE"
+        fi
     done
     log_with_timing "Installing Herdr marketplace plugins" "$start_time"
 }

@@ -106,28 +106,34 @@ navigate_pane_right = "l"
 # ================ Custom commands =================
 # tmux: `bind ^k resizep -U 10` and friends. Herdr only ships a modal
 # resize mode, so the one-shot resizes are replayed through the CLI.
+#
+# NOTE: `--amount` is a split-ratio DELTA, not a cell count. Verified against
+# herdr 0.7.5: on a 54-column split sitting at ratio 0.5, `--amount 0.05` moves
+# it to 0.55, whereas passing a cell count such as 10 slams the split straight
+# to the 0.9 clamp. 0.05 is about tmux's 10 columns on a full-width terminal and
+# never saturates the split.
 [[keys.command]]
 key = "prefix+ctrl+k"
 type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction up --amount 10"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction up --amount 0.05"
 description = "resize pane up"
 
 [[keys.command]]
 key = "prefix+ctrl+j"
 type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction down --amount 10"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction down --amount 0.05"
 description = "resize pane down"
 
 [[keys.command]]
 key = "prefix+ctrl+h"
 type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction left --amount 10"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction left --amount 0.05"
 description = "resize pane left"
 
 [[keys.command]]
 key = "prefix+ctrl+l"
 type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction right --amount 10"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction right --amount 0.05"
 description = "resize pane right"
 
 # tmux: `bind ^u swapp -U` / `bind ^d swapp -D`.
