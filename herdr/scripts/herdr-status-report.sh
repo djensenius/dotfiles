@@ -21,6 +21,8 @@
 #   HERDR_STATUS_INTERVAL   seconds between refreshes in --watch (default: 300)
 #   HERDR_STATUS_PIN        1 to keep the card first in the sidebar (default: 1)
 #   HERDR_STATUS_PER_ROW    package entries per sidebar row (default: 3)
+#   HERDR_STATUS_MAX_AGE    ignore package counts older than N seconds (default:
+#                           3600; 0 disables)
 #   HERDR_SOCKET_PATH       herdr API socket (honoured by the herdr CLI too)
 #   HERDR_STATUS_HEARTS     battery hearts to render (default: 5)
 set -uo pipefail
@@ -66,6 +68,9 @@ bounded() {
 INTERVAL=$(bounded HERDR_STATUS_INTERVAL "${HERDR_STATUS_INTERVAL:-300}" 1 28800 300)
 PER_ROW=$(bounded HERDR_STATUS_PER_ROW "${HERDR_STATUS_PER_ROW:-3}" 1 6 3)
 HEARTS=$(bounded HERDR_STATUS_HEARTS "${HERDR_STATUS_HEARTS:-5}" 1 20 5)
+# tmux-outdated-packages polls every 300s, so an hour-old count means its poller
+# is gone rather than merely idle. 0 disables the check.
+MAX_AGE=$(bounded HERDR_STATUS_MAX_AGE "${HERDR_STATUS_MAX_AGE:-3600}" 0 604800 3600)
 
 # Managers are packed into rows in this order, skipping any that are up to date,
 # so the card stays compact instead of reserving a line per manager.
@@ -114,8 +119,25 @@ manager_icon() {
 # counts-only.sh sums brew/npm/gem/pipx only, which misses cargo, go, mise and
 # pip entirely; the per-manager cache files are the real source.
 manager_count() {
-    local file="$OUTDATED_CACHE/$1.count" count
+    local file="$OUTDATED_CACHE/$1.count" count mtime age
     [ -f "$file" ] || return 0
+
+    # The cache is written by tmux-outdated-packages' own poller (300s by
+    # default), which this script neither owns nor supervises. Without an age
+    # check, a poller that died -- or never came back after a reboot -- would
+    # have its last counts republished with a fresh TTL forever, so the card
+    # would look live while showing something arbitrarily old.
+    if [ "$MAX_AGE" -gt 0 ]; then
+        mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+        if [ -n "$mtime" ]; then
+            age=$(($(date +%s) - mtime))
+            if [ "$age" -gt "$MAX_AGE" ]; then
+                log "$1.count is ${age}s old (> $MAX_AGE); poller looks dead, skipping"
+                return 0
+            fi
+        fi
+    fi
+
     # Counts occasionally land in the cache with stray blank lines.
     count=$(tr -dc '0-9' <"$file" 2>/dev/null | head -c 6)
     [ -n "$count" ] && [ "$count" -gt 0 ] 2>/dev/null || return 0
