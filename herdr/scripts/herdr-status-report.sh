@@ -32,15 +32,40 @@ export PATH
 
 SOURCE_ID='dotfiles-status'
 LABEL="${HERDR_STATUS_WORKSPACE:-status}"
-INTERVAL="${HERDR_STATUS_INTERVAL:-300}"
 PIN="${HERDR_STATUS_PIN:-1}"
-PER_ROW="${HERDR_STATUS_PER_ROW:-3}"
-HEARTS="${HERDR_STATUS_HEARTS:-5}"
 SOCKET="${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}"
 # The CLI reads HERDR_SOCKET_PATH too; export it so `herdr workspace` and the raw
 # nc calls below can never end up talking to two different servers.
 export HERDR_SOCKET_PATH="$SOCKET"
 OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
+
+log() { printf 'herdr-status: %s\n' "$1" >&2; }
+
+# The overrides are arithmetic, so a typo would otherwise surface as a broken
+# expansion or a rejected request rather than a bad setting.
+bounded() {
+    local name="$1" value="$2" min="$3" max="$4" fallback="$5"
+    case "$value" in
+        '' | *[!0-9]*)
+            log "$name='$value' is not a positive integer; using $fallback"
+            printf '%s' "$fallback"
+            return
+            ;;
+    esac
+    # Strip leading zeros so 08 is not read as invalid octal.
+    value=$((10#$value))
+    if [ "$value" -lt "$min" ] || [ "$value" -gt "$max" ]; then
+        log "$name=$value is outside $min-$max; clamping"
+        [ "$value" -lt "$min" ] && value="$min" || value="$max"
+    fi
+    printf '%s' "$value"
+}
+
+# Herdr caps metadata ttl_ms at 86_400_000 and rejects the whole report past it;
+# the TTL is three intervals, so the interval itself tops out at 8 hours.
+INTERVAL=$(bounded HERDR_STATUS_INTERVAL "${HERDR_STATUS_INTERVAL:-300}" 1 28800 300)
+PER_ROW=$(bounded HERDR_STATUS_PER_ROW "${HERDR_STATUS_PER_ROW:-3}" 1 6 3)
+HEARTS=$(bounded HERDR_STATUS_HEARTS "${HERDR_STATUS_HEARTS:-5}" 1 20 5)
 
 # Managers are packed into rows in this order, skipping any that are up to date,
 # so the card stays compact instead of reserving a line per manager.
@@ -48,8 +73,6 @@ MANAGERS=(brew npm pip cargo go mise)
 # config.toml declares a row per manager, which is the worst case (PER_ROW=1);
 # anything higher just leaves the spares unreported and therefore hidden.
 MAX_ROWS=${#MANAGERS[@]}
-
-log() { printf 'herdr-status: %s\n' "$1" >&2; }
 
 # workspace.list and report-metadata have CLI wrappers, but workspace.move does
 # not in herdr 0.7.5 -- it is socket-only -- so reads go over the socket too.
