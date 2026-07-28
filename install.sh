@@ -196,6 +196,13 @@ function link_files() {
     # -n so a rerun replaces the existing symlink instead of dereferencing it
     # and creating ~/.config/rio/rio.
     ln -sfn "$(pwd)/rio" ~/.config/rio
+
+    # Herdr keeps live sockets, logs and session state in ~/.config/herdr, and
+    # owns ~/.config/herdr/plugins for its own managed plugin checkouts, so the
+    # directory itself must not be replaced by a symlink. Link the pieces we own.
+    mkdir -p ~/.config/herdr
+    ln -sf "$(pwd)/herdr/config.toml" ~/.config/herdr/config.toml
+    ln -sfn "$(pwd)/herdr/scripts" ~/.config/herdr/scripts
     
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza
@@ -855,6 +862,55 @@ function start_git_status_background() {
     echo $! > $git_pid_file
 }
 
+# Register the Herdr plugins that replace the tmux plugin set. They come from
+# the Herdr marketplace; `install` works with no server running and re-running
+# it is safe.
+# shellcheck disable=SC2031
+setup_herdr_plugins() {
+    if ! command -v herdr >/dev/null 2>&1; then
+        # install_software does not provision herdr, so this is the normal path
+        # on a fresh Codespace. The plugins are a local-machine concern; see the
+        # herdr section of README.md for the manual steps.
+        echo "⚠️  herdr not installed - skipping Herdr plugin setup" >> "$LOG_FILE"
+        echo "   (install herdr, then re-run ./install.sh or install the plugins manually)" >> "$LOG_FILE"
+        return 0
+    fi
+
+    local start_time
+    # Marketplace equivalents of the tmux plugins. herdr-floax and
+    # herdr-navigator build with cargo; termscope needs python3.
+    start_time=$(start_operation "Installing Herdr marketplace plugins")
+
+    # herdr-navigator <= v0.3.1 shipped with the plugin id `herdr-picker-plus`.
+    # The config binds `herdr-navigator.*`, so the stale id has to go or the
+    # rebuilt plugin cannot claim its actions.
+    if herdr plugin list 2>/dev/null | grep -q '^- herdr-picker-plus '; then
+        herdr plugin uninstall herdr-picker-plus >/dev/null 2>&1 ||
+            echo "⚠️  Failed to remove legacy Herdr plugin herdr-picker-plus" >> "$LOG_FILE"
+    fi
+
+    # `install` is also the update path in herdr 0.7 - there is no separate
+    # update command - so always re-run it rather than skipping on a source
+    # match, which would pin the first revision ever installed.
+    # Build output goes to the log rather than /dev/null: the plugin installers
+    # report which prerequisite is missing (termscope, for instance, explains
+    # when Homebrew or Television is unavailable), and that is the only clue
+    # when a plugin fails to build.
+    local plugin
+    for plugin in \
+        paulbkim-dev/vim-herdr-navigation \
+        JanTvrdik/herdr-command-palette \
+        rmarganti/herdr-pluck \
+        Tyru5/herdr-floax \
+        thanhdat77/herdr-navigator \
+        iurysza/termscope; do
+        if ! herdr plugin install "$plugin" --yes >> "$LOG_FILE" 2>&1; then
+            echo "⚠️  Failed to install Herdr plugin $plugin (see output above)" >> "$LOG_FILE"
+        fi
+    done
+    log_with_timing "Installing Herdr marketplace plugins" "$start_time"
+}
+
 # shellcheck disable=SC2031
 echo '🔗 Starting file linking phase' >> "$LOG_FILE"
 link_files_start=$(date +%s)
@@ -872,6 +928,12 @@ echo '👩‍🔧 Starting software configuration phase' >> "$LOG_FILE"
 setup_software_start=$(date +%s)
 setup_software
 log_with_timing "👩‍🔧 Software configuration phase" "$setup_software_start"
+
+# shellcheck disable=SC2031
+echo '🐑 Starting Herdr plugin phase' >> "$LOG_FILE"
+herdr_plugins_start=$(date +%s)
+setup_herdr_plugins
+log_with_timing "🐑 Herdr plugin phase" "$herdr_plugins_start"
 
 # shellcheck disable=SC2031
 echo '✅ Installation completed successfully!' >> "$LOG_FILE"
