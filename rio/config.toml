@@ -11,6 +11,11 @@ scrollback-history-limit = 10000
 confirm-before-quit = false
 draw-bold-text-with-light-colors = false
 
+# macOS: Rio composes Unicode on Option by default, so alt chords (herdr's
+# `prefix+alt+1..9` agent focus) never reach the app. "left" matches wezterm's
+# default — left Option is Alt, right Option still composes (¡, £, €).
+option-as-alt = "left"
+
 # Outer window padding: [top, right, bottom, left]
 # Matches wezterm window_padding { top = 10, bottom = 10, left = 0, right = 0 }
 padding = [10, 0, 10, 0]

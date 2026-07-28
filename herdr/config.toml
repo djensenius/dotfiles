@@ -67,6 +67,17 @@ new_worktree = "prefix+shift+g"
 rename_workspace = "prefix+shift+w"
 close_workspace = "prefix+shift+d"
 switch_workspace = "prefix+shift+1..9"
+# tmux: `bind ( switch-client -p` / `bind ) switch-client -n`. Herdr's parser
+# takes named punctuation, so the shifted parens are spelled out.
+previous_workspace = "prefix+comma"
+next_workspace = "prefix+period"
+
+# --- Agents ---
+# tmux has no agent concept; these cycle the Agent sidebar rows and jump
+# straight to the pane running each agent.
+previous_agent = "prefix+ctrl+p"
+next_agent = "prefix+ctrl+n"
+focus_agent = "prefix+alt+1..9"
 
 # --- Tabs (tmux windows) ---
 new_tab = "prefix+c"
