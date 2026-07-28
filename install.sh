@@ -193,6 +193,13 @@ function link_files() {
     ln -sf "$(pwd)/bottom" ~/.config/bottom
     ln -sf "$(pwd)/tmux" ~/.config/tmux
     ln -sf "$(pwd)/zellij" ~/.config/zellij
+
+    # Herdr keeps live sockets, logs and session state in ~/.config/herdr, and
+    # owns ~/.config/herdr/plugins for its own managed plugin checkouts, so the
+    # directory itself must not be replaced by a symlink. Link the pieces we own.
+    mkdir -p ~/.config/herdr
+    ln -sf "$(pwd)/herdr/config.toml" ~/.config/herdr/config.toml
+    ln -sfn "$(pwd)/herdr/scripts" ~/.config/herdr/scripts
     
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza
@@ -852,6 +859,37 @@ function start_git_status_background() {
     echo $! > $git_pid_file
 }
 
+# Register the Herdr plugins that replace the tmux plugin set. They come from
+# the Herdr marketplace; `install` works with no server running and re-running
+# it is safe.
+# shellcheck disable=SC2031
+setup_herdr_plugins() {
+    if ! command -v herdr >/dev/null 2>&1; then
+        echo "⚠️  herdr not installed - skipping Herdr plugin setup" >> "$LOG_FILE"
+        return 0
+    fi
+
+    local start_time
+    # Marketplace equivalents of the tmux plugins. herdr-floax and
+    # herdr-navigator build with cargo; termscope needs python3.
+    start_time=$(start_operation "Installing Herdr marketplace plugins")
+    local plugin
+    for plugin in \
+        paulbkim-dev/vim-herdr-navigation \
+        JanTvrdik/herdr-command-palette \
+        rmarganti/herdr-pluck \
+        Tyru5/herdr-floax \
+        thanhdat77/herdr-navigator \
+        iurysza/termscope; do
+        if herdr plugin list 2>/dev/null | grep -q "github:$plugin@"; then
+            continue
+        fi
+        herdr plugin install "$plugin" --yes >/dev/null 2>&1 ||
+            echo "⚠️  Failed to install Herdr plugin $plugin" >> "$LOG_FILE"
+    done
+    log_with_timing "Installing Herdr marketplace plugins" "$start_time"
+}
+
 # shellcheck disable=SC2031
 echo '🔗 Starting file linking phase' >> "$LOG_FILE"
 link_files_start=$(date +%s)
@@ -869,6 +907,12 @@ echo '👩‍🔧 Starting software configuration phase' >> "$LOG_FILE"
 setup_software_start=$(date +%s)
 setup_software
 log_with_timing "👩‍🔧 Software configuration phase" "$setup_software_start"
+
+# shellcheck disable=SC2031
+echo '🐑 Starting Herdr plugin phase' >> "$LOG_FILE"
+herdr_plugins_start=$(date +%s)
+setup_herdr_plugins
+log_with_timing "🐑 Herdr plugin phase" "$herdr_plugins_start"
 
 # shellcheck disable=SC2031
 echo '✅ Installation completed successfully!' >> "$LOG_FILE"

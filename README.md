@@ -92,7 +92,17 @@ For local installation, most configurations can be symlinked to your `~/.config`
    ~/.tmux/plugins/tpm/scripts/install_plugins.sh
    ```
 
-4. **Install required tools** (see [Applications](#applications) section for details)
+4. **Special setup for Herdr:**
+   Herdr keeps sockets, logs and its own managed plugin checkouts inside
+   `~/.config/herdr`, so link the individual pieces rather than the directory.
+   ```bash
+   mkdir -p ~/.config/herdr
+   ln -sf ~/.dotfiles/herdr/config.toml ~/.config/herdr/config.toml
+   ln -sfn ~/.dotfiles/herdr/scripts ~/.config/herdr/scripts
+   ```
+   Then install the plugins listed in the [herdr](#herdr) section below.
+
+5. **Install required tools** (see [Applications](#applications) section for details)
 
 See the [install.sh](install.sh) script for the complete automated setup process used in GitHub Codespaces.
 
@@ -100,7 +110,7 @@ See the [install.sh](install.sh) script for the complete automated setup process
 
 This dotfiles collection includes configurations for:
 
-- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux multiplexer
+- **🖥️ Terminal & Shell**: Fish shell with starship prompt, tmux and herdr multiplexers
 - **📝 Editor**: Neovim with 46+ plugins for modern development ([details](nvim/README.md))
 - **🔍 Search & Navigation**: fzf, ripgrep, fd, eza, zoxide for enhanced file operations
 - **📊 Git Workflow**: lazygit, delta, gitsigns integration for visual git management
@@ -174,6 +184,73 @@ Ghostty is a fast, feature-rich terminal emulator built for performance and cust
 ### [gopod](https://github.com/djensenius/gopod)
 Gopod is a tool for making radio programs that are streaming online into podcasts.
 - **Directory**: `gopod/`
+
+### [herdr](https://herdr.dev)
+Herdr is a terminal workspace manager for AI coding agents. Its config is a deliberate mirror of `tmux/tmux.conf` — same `Ctrl+a` prefix, same Catppuccin Mocha palette, and the same muscle memory — so switching between the two costs nothing.
+- **Directory**: `herdr/`
+- **Files**: `herdr/config.toml`, popup helpers in `herdr/scripts/`
+- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. `install.sh` links `config.toml` and `scripts/` individually.
+
+#### tmux → herdr keymap
+
+| tmux | herdr | Provided by |
+| --- | --- | --- |
+| `prefix` = `^a` | `prefix` = `ctrl+a` | config |
+| `prefix h/j/k/l` focus pane | same | config |
+| `prefix ^h/^j/^k/^l` resize 10 | same | `[[keys.command]]` → `herdr pane resize` |
+| `prefix ^u` / `^d` swap pane | same | `[[keys.command]]` → `herdr pane swap` |
+| `prefix \|` / `-` split | `prefix v` / `prefix \` / `prefix -` | config |
+| `prefix q` kill pane | same (detach moves to `prefix d`) | config |
+| `prefix p` / `n` previous/next window | same | config |
+| `prefix 1..9` select window | same | config |
+| `prefix F1` / `^b` toggle status | `prefix b` / `prefix F1` toggle sidebar | config |
+| `prefix \`` gotop | `prefix \`` btop | `[[keys.command]]` |
+| `prefix m` man prompt | same | `herdr/scripts/herdr-man-popup.sh` |
+| `prefix /` command prompt | same | `herdr/scripts/herdr-run-popup.sh` |
+| `<C-h/j/k/l>` vim-tmux-navigator | same | [vim-herdr-navigation](https://github.com/paulbkim-dev/vim-herdr-navigation) |
+| tmux-sessionx (`prefix o`) | same | [herdr-navigator](https://github.com/thanhdat77/herdr-navigator) |
+| tmux-floax (`prefix O`) | same | [herdr-floax](https://github.com/Tyru5/herdr-floax) |
+| tmux-which-key (`prefix space`) | same | [herdr-command-palette](https://github.com/JanTvrdik/herdr-command-palette) |
+| tmux-thumbs | `prefix y` | [herdr-pluck](https://github.com/rmarganti/herdr-pluck) |
+| tmux-fzf-url (`prefix u`) | `prefix u` links, `prefix U` files | [termscope](https://github.com/iurysza/termscope) |
+| tmux-yank, `set-clipboard on` | `copy_on_select` | config |
+| catppuccin/tmux | `[theme] name = "catppuccin"` | config |
+
+#### Status modules
+
+The tmux `status-right` modules (`battery_hearts`, tmux-outdated-packages, tmux-speedtest) are **not** ported. Herdr has no status bar, and its tab bar has no status region — the sidebar is the only surface that renders custom metadata tokens, which is nowhere near where tmux puts them. They stay tmux-only for now.
+
+#### Tab naming
+
+Herdr's native tab naming is used as-is. `ui.prompt_new_tab_name = true` asks for a name when a tab is created, and `prefix T` renames later. The tmux equivalents — [tmux-contextual-window-name](https://github.com/djensenius/tmux-contextual-window-name) and [tmux-nerd-font-window-name](https://github.com/joshmedeski/tmux-nerd-font-window-name) — are **not** ported; the tmux config's Copilot title special-case is unnecessary here because Herdr detects agents natively.
+
+#### Agent integrations
+
+Herdr detects GitHub Copilot CLI automatically — the agent shows up in the Agent sidebar with `idle`/`working`/`blocked` state via screen-manifest detection, with no setup. This replaces the tmux config's Copilot window-title special-case.
+
+The optional hook adds **native session identity**, which lets Herdr resume a Copilot pane with `copilot --resume=<id>` after a server restart:
+
+```bash
+herdr integration install copilot
+herdr integration status
+```
+
+It writes `~/.copilot/hooks/herdr-agent-state.sh` (or `$COPILOT_HOME`) and adds a `SessionStart` entry to `~/.copilot/settings.json`; the config directory must already exist. This is a manual, one-time step — `install.sh` does not do it. Undo with `herdr integration uninstall copilot`.
+
+The hook is not a state authority — Copilot's `idle`/`working`/`blocked` state always comes from screen detection, whether or not it is installed.
+
+#### Plugin prerequisites
+
+`herdr-floax` and `herdr-navigator` build with `cargo`; `termscope` needs `python3`. Re-run `./install.sh`, or install manually:
+
+```bash
+herdr plugin install paulbkim-dev/vim-herdr-navigation --yes
+herdr plugin install JanTvrdik/herdr-command-palette --yes
+herdr plugin install rmarganti/herdr-pluck --yes
+herdr plugin install Tyru5/herdr-floax --yes
+herdr plugin install thanhdat77/herdr-navigator --yes
+herdr plugin install iurysza/termscope --yes
+```
 
 ### [k9s](https://k9scli.io) ([repo](https://github.com/derailed/k9s))
 K9s is a terminal UI to interact with your Kubernetes clusters.
@@ -270,6 +347,7 @@ The `install.sh` script is designed to set up and configure a development enviro
   - `atuin`
   - `yazi`
   - `bottom`
+  - `herdr/config.toml`, `herdr/scripts`
 
 - If running within a GitHub Codespace, it links executables (e.g., `rubocop`, `srb`, `bundle`, `solargraph`, `safe-ruby`) to `/usr/local/bin` and updates locale settings.
 
