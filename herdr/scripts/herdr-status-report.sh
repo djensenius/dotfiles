@@ -21,6 +21,7 @@
 #   HERDR_STATUS_INTERVAL   seconds between refreshes in --watch (default: 300)
 #   HERDR_STATUS_PIN        1 to keep the card first in the sidebar (default: 1)
 #   HERDR_STATUS_PER_ROW    package entries per sidebar row (default: 3)
+#   HERDR_SOCKET_PATH       herdr API socket (honoured by the herdr CLI too)
 #   HERDR_STATUS_HEARTS     battery hearts to render (default: 5)
 set -uo pipefail
 
@@ -35,14 +36,18 @@ INTERVAL="${HERDR_STATUS_INTERVAL:-300}"
 PIN="${HERDR_STATUS_PIN:-1}"
 PER_ROW="${HERDR_STATUS_PER_ROW:-3}"
 HEARTS="${HERDR_STATUS_HEARTS:-5}"
-SOCKET="${HERDR_SOCKET:-$HOME/.config/herdr/herdr.sock}"
+SOCKET="${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}"
+# The CLI reads HERDR_SOCKET_PATH too; export it so `herdr workspace` and the raw
+# nc calls below can never end up talking to two different servers.
+export HERDR_SOCKET_PATH="$SOCKET"
 OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
 
 # Managers are packed into rows in this order, skipping any that are up to date,
 # so the card stays compact instead of reserving a line per manager.
 MANAGERS=(brew npm pip cargo go mise)
-# Worst case: every manager is behind at once.
-MAX_ROWS=$(((${#MANAGERS[@]} + PER_ROW - 1) / PER_ROW))
+# config.toml declares a row per manager, which is the worst case (PER_ROW=1);
+# anything higher just leaves the spares unreported and therefore hidden.
+MAX_ROWS=${#MANAGERS[@]}
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
 

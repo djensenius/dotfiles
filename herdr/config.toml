@@ -306,8 +306,9 @@ enabled = true
 
 # ================ Sidebar =========================
 # Herdr has no status bar and no tab-bar status region; the sidebar is the only
-# status surface. The tmux status-right modules (battery_hearts, outdated
-# packages, speedtest) are intentionally not ported -- see README.
+# status surface, so the tmux status-right modules are reproduced with $custom
+# metadata tokens on a dedicated "status" workspace -- see README. Only
+# tmux-speedtest is left behind: it is on-demand rather than ambient.
 [ui.sidebar.spaces]
 row_gap = 0
 rows = [
@@ -319,11 +320,16 @@ rows = [
   # section, and this is the closest thing to one. Fed by
   # scripts/herdr-status-report.sh, which also pins the card to the top.
   #
-  # Outdated managers are packed three per row as icon + count; the script emits
-  # only as many rows as it needs, so the spare vanishes instead of showing zeros.
+  # Outdated managers are packed HERDR_STATUS_PER_ROW (default 3) at a time as
+  # icon + count. A row is declared per manager, which covers PER_ROW=1; the
+  # script reports only the rows it fills, so the spares stay hidden.
   [{ token = "$battery", fg = "#f38ba8" }],
   [{ token = "$pkg_row1", fg = "#fab387" }],
   [{ token = "$pkg_row2", fg = "#fab387" }],
+  [{ token = "$pkg_row3", fg = "#fab387" }],
+  [{ token = "$pkg_row4", fg = "#fab387" }],
+  [{ token = "$pkg_row5", fg = "#fab387" }],
+  [{ token = "$pkg_row6", fg = "#fab387" }],
 ]
 
 [ui.sidebar.agents]
