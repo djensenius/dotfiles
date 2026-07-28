@@ -873,6 +873,18 @@ setup_herdr_plugins() {
     # Marketplace equivalents of the tmux plugins. herdr-floax and
     # herdr-navigator build with cargo; termscope needs python3.
     start_time=$(start_operation "Installing Herdr marketplace plugins")
+
+    # herdr-navigator <= v0.3.1 shipped with the plugin id `herdr-picker-plus`.
+    # The config binds `herdr-navigator.*`, so the stale id has to go or the
+    # rebuilt plugin cannot claim its actions.
+    if herdr plugin list 2>/dev/null | grep -q '^- herdr-picker-plus '; then
+        herdr plugin uninstall herdr-picker-plus >/dev/null 2>&1 ||
+            echo "⚠️  Failed to remove legacy Herdr plugin herdr-picker-plus" >> "$LOG_FILE"
+    fi
+
+    # `install` is also the update path in herdr 0.7 - there is no separate
+    # update command - so always re-run it rather than skipping on a source
+    # match, which would pin the first revision ever installed.
     local plugin
     for plugin in \
         paulbkim-dev/vim-herdr-navigation \
@@ -881,9 +893,6 @@ setup_herdr_plugins() {
         Tyru5/herdr-floax \
         thanhdat77/herdr-navigator \
         iurysza/termscope; do
-        if herdr plugin list 2>/dev/null | grep -q "github:$plugin@"; then
-            continue
-        fi
         herdr plugin install "$plugin" --yes >/dev/null 2>&1 ||
             echo "⚠️  Failed to install Herdr plugin $plugin" >> "$LOG_FILE"
     done

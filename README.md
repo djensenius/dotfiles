@@ -241,7 +241,21 @@ The hook is not a state authority — Copilot's `idle`/`working`/`blocked` state
 
 #### Plugin prerequisites
 
-`herdr-floax` and `herdr-navigator` build with `cargo`; `termscope` needs `python3`. Re-run `./install.sh`, or install manually:
+Install these before the plugins, since they are needed at build time or at
+runtime and a missing one either aborts the install or makes the bound key fail
+silently:
+
+| Requirement | Needed by |
+| --- | --- |
+| `cargo` (Rust toolchain) | `herdr-floax`, `herdr-navigator` — built from source |
+| `python3` (3.10+) | `termscope` |
+| `jq` | `vim-herdr-navigation`, `herdr-floax`, `jt.command-palette` |
+| `fzf` | `jt.command-palette` |
+| `fd` | `termscope` file picker |
+| [Television](https://github.com/alexpasmantier/television) 0.15+ | `termscope` — its build step installs this **via Homebrew**, so `brew` must be on `PATH` or the plugin install fails |
+| Clipboard command (`pbcopy` on macOS, `wl-copy` on Wayland, `xclip`/`xsel` on X11) | `herdr-pluck` |
+
+Re-run `./install.sh` to install or refresh every plugin, or do it manually:
 
 ```bash
 herdr plugin install paulbkim-dev/vim-herdr-navigation --yes
