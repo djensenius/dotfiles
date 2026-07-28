@@ -224,11 +224,13 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 | `prefix h/j/k/l` focus pane | same | config |
 | `prefix ^h/^j/^k/^l` resize 10 | same | `[[keys.command]]` → `herdr pane resize --amount 0.05` (Herdr takes a split-ratio delta, not a cell count) |
 | `prefix ^u` / `^d` swap pane | same | `[[keys.command]]` → `herdr pane swap` |
-| `prefix \|` / `-` split | `prefix v` / `prefix \` / `prefix -` | config |
+| `prefix \|` / `\` / `%` split side by side | same, plus `prefix v` | `split_vertical` — Herdr names splits after the divider, so this is "vertical" where tmux calls it `-h` |
+| `prefix -` / `_` / `"` split stacked | same | `split_horizontal` |
 | `prefix q` kill pane | same (detach moves to `prefix d`) | config |
 | `prefix p` / `n` previous/next window | same | config |
 | `prefix 1..9` select window | same | config |
 | `prefix (` / `)` previous/next session | `prefix ,` / `prefix .` previous/next workspace | config |
+| — | `prefix ^g` remove worktree checkout (confirms first) | config |
 | — | `prefix ^p` / `prefix ^n` previous/next agent | config |
 | — | `prefix alt+1..9` focus agent | config |
 | `prefix F1` / `^b` toggle status | `prefix b` / `prefix F1` toggle sidebar | config |
@@ -246,7 +248,29 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 
 #### Status modules
 
-The tmux `status-right` modules (`battery_hearts`, tmux-outdated-packages, tmux-speedtest) are **not** ported. Herdr has no status bar, and its tab bar has no status region — the sidebar is the only surface that renders custom metadata tokens, which is nowhere near where tmux puts them. They stay tmux-only for now.
+Herdr has no status bar, and its sidebar sections (`spaces` and `agents`) are hardcoded in `src/ui/sidebar.rs` — there is no third section to claim and no plugin drawing surface ([herdr#1608](https://github.com/ogulcancelik/herdr/issues/1608) proposed one and was closed). Two of the tmux `status-right` modules are ported anyway, using the only persistent surface Herdr exposes: `$custom` metadata tokens.
+
+A spaces row built **only** from `$custom` tokens is dropped for any workspace that does not report them (`(!resolved.is_empty()).then_some(resolved)` in `src/ui/sidebar/tokens.rs`), so pushing tokens to one workspace turns that single card into a de-facto status section, leaving every other card untouched.
+
+- **Workspace**: create one labelled `status` (`herdr workspace create --label status --no-focus`). Override the label with `HERDR_STATUS_WORKSPACE`.
+- **Reporter**: `herdr/scripts/herdr-status-report.sh` — `battery_hearts` (5 hearts) plus outdated packages as icon + count, **three entries per row** (brew, npm, pip, cargo, go, mise), pushed with `herdr workspace report-metadata`. Managers with nothing outdated are skipped and the surviving entries are repacked, so the card shrinks to as few rows as it needs rather than showing zeros. Tune with `HERDR_STATUS_PER_ROW` and `HERDR_STATUS_HEARTS`; the numeric overrides are range-checked and clamped, since Herdr rejects a metadata report whose `ttl_ms` exceeds 86,400,000 (capping the interval at 8h). Counts older than `HERDR_STATUS_MAX_AGE` (default 1h, vs the plugin poller's 300s cadence) are skipped, so a dead poller empties the card instead of having its last readings republished forever. Note it reads the per-manager `*.count` cache files directly: the plugin's own `counts-only.sh` sums brew/npm/gem/pipx only and misses cargo, go, mise and pip.
+- **Pinned to top**: each pass moves the card to index 0 via the socket API's `workspace.move`, which has no CLI wrapper in 0.7.5 (see [herdr#323](https://github.com/ogulcancelik/herdr/issues/323)). The write is skipped when the card is already first. Set `HERDR_STATUS_PIN=0` to leave ordering alone.
+- **Refresh**: `herdr/launchd/dev.djensenius.herdr-status.plist`, every 300s. Tokens are display-only and never persisted, so they are restated on each pass and carry a TTL of three intervals — if the reporter dies, the readings expire instead of freezing.
+
+  ```bash
+  mkdir -p ~/Library/LaunchAgents
+  ln -sf ~/.dotfiles/herdr/launchd/dev.djensenius.herdr-status.plist ~/Library/LaunchAgents/
+  launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/dev.djensenius.herdr-status.plist
+  ```
+
+Run the reporter bare for a single pass, `--watch` to loop without launchd, or `--clear` to strip the tokens.
+
+tmux-speedtest stays tmux-only: it is on-demand rather than ambient, so a status card is the wrong shape for it.
+
+#### Kitty graphics
+
+`[experimental] kitty_graphics = true` turns on client-side Kitty graphics rendering, so image output (yazi previews, plots, `timg`) draws inside panes. It needs a Kitty-graphics-capable outer terminal — Ghostty, wezterm and Rio all qualify. Detach and reattach after enabling; the flag is negotiated when a client attaches.
+
 
 #### Tab naming
 
