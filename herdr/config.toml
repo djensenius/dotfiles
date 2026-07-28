@@ -1,0 +1,311 @@
+# Herdr — terminal workspace manager for AI coding agents.
+#
+# This config mirrors tmux/tmux.conf as closely as Herdr allows: same ctrl+a
+# prefix, same Catppuccin Mocha palette, and the same muscle memory for splits,
+# resizes, pickers and popups. Where tmux used a plugin, the equivalent is
+# either a Herdr setting, a [[keys.command]], or a plugin (see README.md).
+#
+# Reload after editing: herdr server reload-config
+# Validate:             herdr config check
+
+onboarding = false
+
+# ==================== Theme ======================
+# tmux uses catppuccin/tmux pinned to the Mocha flavour. Herdr's built-in
+# catppuccin theme is used as-is, with no colour overrides.
+[theme]
+name = "catppuccin"
+
+# ==================== Terminal ===================
+[terminal]
+# macOS login shells so mise/homebrew PATH setup runs, matching a tmux pane.
+shell_mode = "auto"
+new_cwd = "follow"
+
+# ==================== UI =========================
+[ui]
+# tmux draws pane borders with the catppuccin theme; keep parity.
+pane_borders = true
+pane_gaps = true
+show_agent_labels_on_pane_borders = true
+
+# `set -s set-clipboard on` + tmux-yank: selecting text copies it.
+copy_on_select = true
+mouse_capture = true
+mouse_scroll_lines = 3
+
+# tmux hides nothing, but a single-tab workspace has no useful tab row.
+hide_tab_bar_when_single_tab = false
+
+sidebar_width = 30
+sidebar_min_width = 20
+sidebar_max_width = 40
+sidebar_collapsed_mode = "compact"
+
+confirm_close = true
+prompt_new_tab_name = true
+prompt_new_workspace_name = false
+agent_panel_sort = "spaces"
+
+# ==================== Keys =======================
+# tmux: `set -g prefix ^a` / `unbind ^b`.
+[keys]
+prefix = "ctrl+a"
+
+# --- Session / global ---
+help = "prefix+?"                     # replaces tmux-which-key
+settings = "prefix+s"
+detach = "prefix+d"                   # tmux detach-client; frees prefix+q below
+reload_config = "prefix+shift+r"
+open_notification_target = "prefix+shift+m"  # moved off prefix+o (sessionx)
+
+# --- Workspaces (tmux sessions) ---
+workspace_picker = "prefix+w"
+goto = "prefix+g"
+new_workspace = "prefix+shift+n"
+new_worktree = "prefix+shift+g"
+rename_workspace = "prefix+shift+w"
+close_workspace = "prefix+shift+d"
+switch_workspace = "prefix+shift+1..9"
+
+# --- Tabs (tmux windows) ---
+new_tab = "prefix+c"
+rename_tab = "prefix+shift+t"
+previous_tab = "prefix+p"             # tmux: `bind p previous-window`
+next_tab = "prefix+n"
+switch_tab = "prefix+1..9"            # tmux base-index 1
+close_tab = "prefix+shift+x"
+
+# --- Panes ---
+# tmux-pain-control: prefix+h/j/k/l focus, prefix+\ and prefix+- split.
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+cycle_pane_next = "prefix+tab"
+cycle_pane_previous = "prefix+shift+tab"
+split_vertical = ["prefix+v", "prefix+backslash"]
+split_horizontal = "prefix+minus"
+close_pane = "prefix+q"               # tmux: `bind q killp`
+zoom = "prefix+z"
+resize_mode = "prefix+r"
+rename_pane = "prefix+shift+p"
+edit_scrollback = "prefix+e"
+
+# tmux: `bind F1 set status` and `bind ^b set-option -g status`.
+toggle_sidebar = ["prefix+b", "prefix+f1"]
+
+# --- Navigate mode ---
+navigate_workspace_up = "up"
+navigate_workspace_down = "down"
+navigate_pane_left = "h"
+navigate_pane_down = "j"
+navigate_pane_up = "k"
+navigate_pane_right = "l"
+
+# ================ Custom commands =================
+# tmux: `bind ^k resizep -U 10` and friends. Herdr only ships a modal
+# resize mode, so the one-shot resizes are replayed through the CLI.
+#
+# NOTE: `--amount` is a split-ratio DELTA, not a cell count. Verified against
+# herdr 0.7.5: on a 54-column split sitting at ratio 0.5, `--amount 0.05` moves
+# it to 0.55, whereas passing a cell count such as 10 slams the split straight
+# to the 0.9 clamp. 0.05 is about tmux's 10 columns on a full-width terminal and
+# never saturates the split.
+[[keys.command]]
+key = "prefix+ctrl+k"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction up --amount 0.05"
+description = "resize pane up"
+
+[[keys.command]]
+key = "prefix+ctrl+j"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction down --amount 0.05"
+description = "resize pane down"
+
+[[keys.command]]
+key = "prefix+ctrl+h"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction left --amount 0.05"
+description = "resize pane left"
+
+[[keys.command]]
+key = "prefix+ctrl+l"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction right --amount 0.05"
+description = "resize pane right"
+
+# tmux: `bind ^u swapp -U` / `bind ^d swapp -D`.
+[[keys.command]]
+key = "prefix+ctrl+u"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane swap --pane \"$HERDR_ACTIVE_PANE_ID\" --direction up"
+description = "swap pane up"
+
+[[keys.command]]
+key = "prefix+ctrl+d"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane swap --pane \"$HERDR_ACTIVE_PANE_ID\" --direction down"
+description = "swap pane down"
+
+# tmux: `bind ` splitw "gotop -c monokai"` — btop is the current equivalent.
+[[keys.command]]
+key = "prefix+backtick"
+type = "pane"
+command = "btop"
+description = "system monitor"
+
+# tmux: `bind m command-prompt "splitw 'exec man %%'"`.
+[[keys.command]]
+key = "prefix+m"
+type = "popup"
+command = "~/.config/herdr/scripts/herdr-man-popup.sh"
+width = "80%"
+height = "80%"
+description = "man page prompt"
+
+# tmux: `bind / command-prompt "splitw '%%'"`.
+[[keys.command]]
+key = "prefix+/"
+type = "popup"
+command = "~/.config/herdr/scripts/herdr-run-popup.sh"
+width = "80%"
+height = "80%"
+description = "run command prompt"
+
+# Scratch shell popup, matching tmux-floax's size. Replaced below by the
+# herdr-floax plugin, which keeps a persistent per-workspace session; this
+# stays as the zero-plugin fallback on prefix+shift+s.
+[[keys.command]]
+key = "prefix+shift+s"
+type = "popup"
+command = "exec \"${SHELL:-sh}\""
+width = "80%"
+height = "80%"
+description = "floating scratch shell (fallback)"
+
+[[keys.command]]
+key = "prefix+shift+l"
+type = "popup"
+command = "lazygit"
+width = "90%"
+height = "90%"
+description = "lazygit"
+
+# ================ Plugin actions ==================
+# Installed with `herdr plugin install` — see README.md. Keys mirror the tmux
+# bindings the plugins replace.
+
+# vim-tmux-navigator: direct ctrl+h/j/k/l, forwarded into nvim when it owns
+# the pane, otherwise moving Herdr's pane focus.
+[[keys.command]]
+key = "ctrl+h"
+type = "plugin_action"
+command = "vim-herdr-navigation.left"
+description = "navigate left (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+j"
+type = "plugin_action"
+command = "vim-herdr-navigation.down"
+description = "navigate down (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+k"
+type = "plugin_action"
+command = "vim-herdr-navigation.up"
+description = "navigate up (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "plugin_action"
+command = "vim-herdr-navigation.right"
+description = "navigate right (vim/herdr)"
+
+# tmux-sessionx: `set -g @sessionx-bind 'o'`.
+[[keys.command]]
+key = "prefix+o"
+type = "plugin_action"
+command = "herdr-navigator.open"
+description = "workspace/session navigator"
+
+[[keys.command]]
+key = "prefix+shift+j"
+type = "plugin_action"
+command = "herdr-navigator.jump-back"
+description = "jump back to previous workspace"
+
+# tmux-floax: `set -g @floax-bind 'O'` at 80%x80%.
+[[keys.command]]
+key = "prefix+shift+o"
+type = "plugin_action"
+command = "herdr-floax.toggle"
+description = "toggle floating scratch pane"
+
+# tmux-which-key, which was bound to prefix+space.
+[[keys.command]]
+key = "prefix+space"
+type = "plugin_action"
+command = "jt.command-palette.open"
+description = "command palette"
+
+# tmux-thumbs: hint-based copying of visible tokens.
+[[keys.command]]
+key = "prefix+y"
+type = "plugin_action"
+command = "rmarganti.herdr-pluck.pluck"
+description = "pluck visible token (thumbs)"
+
+# tmux-fzf-url: `prefix+u` opens visible links; prefix+shift+u opens files.
+[[keys.command]]
+key = "prefix+u"
+type = "plugin_action"
+command = "termscope.open-links"
+description = "open visible link"
+
+[[keys.command]]
+key = "prefix+shift+u"
+type = "plugin_action"
+command = "termscope.open"
+description = "open visible file"
+
+# ================ Notifications ===================
+[ui.toast]
+delivery = "herdr"
+delay_seconds = 1
+
+[ui.toast.herdr]
+position = "bottom-right"
+
+[ui.toast.clipboard]
+enabled = true
+position = "bottom-center"
+
+[ui.sound]
+enabled = true
+
+# ================ Sidebar =========================
+# Herdr has no status bar and no tab-bar status region; the sidebar is the only
+# status surface. The tmux status-right modules (battery_hearts, outdated
+# packages, speedtest) are intentionally not ported -- see README.
+[ui.sidebar.spaces]
+row_gap = 0
+rows = [
+  ["state_icon", "workspace"],
+  ["branch", "git_status"],
+]
+
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  ["state_icon", "workspace", "tab"],
+  ["agent"],
+]
+
+# ================ Session =========================
+[session]
+resume_agents_on_restore = true
+
+[advanced]
+scrollback_limit_bytes = 10000000
