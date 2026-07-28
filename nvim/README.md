@@ -57,7 +57,7 @@ The leader key is set to `,` (comma). Here are the main key mappings:
 ### Navigation
 - `<S-h>` / `<S-l>` - Previous/Next buffer
 - `<S-j>` / `<S-k>` - Next/Previous tab
-- `<C-h/j/k/l>` - Navigate splits (handled by vim-tmux-navigator)
+- `<C-h/j/k/l>` - Navigate splits (seamless across Neovim, Herdr and tmux panes)
 
 ### Finding & Search
 - `<leader>ff` - Find files (Telescope)
@@ -229,6 +229,11 @@ Search and replace across multiple files.
 
 #### [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator)
 Seamless navigation between Neovim and tmux panes.
+
+`<C-h/j/k/l>` are bound once and work in either multiplexer. When Herdr's
+`vim-herdr-navigation` plugin is installed, its Neovim module is loaded and owns the
+mappings; otherwise they fall back to the `TmuxNavigate*` commands. See
+`nvim/lua/plugins/vim-tmux-navigator.lua`.
 
 ### Utilities
 
