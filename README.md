@@ -130,6 +130,22 @@ so a file modified since the last snapshot is re-copied instead of deleted.
 - **Script**: `scripts/onedrive_sync.py`
 - **Fish function**: `fish/functions/cloud-sync.fish`
 - **Usage**: `cloud-sync`, `cloud-sync --dry-run`, `cloud-sync --only NAME`
+- **Exit status**: non-zero if any transfer, delete or listing failed, so it is safe to schedule
+
+Cloud destinations go through [rclone](https://rclone.org), which `install.sh` does
+**not** provision. Install it and create the remotes the pairs refer to — `onedrive`
+and `gdrive` — before the first run:
+
+```bash
+brew install rclone
+rclone config   # create a remote named "onedrive", then one named "gdrive"
+rclone listremotes   # expect: gdrive:  onedrive:
+cloud-sync --dry-run # plans without touching anything or prompting
+```
+
+The remote names are the `Dest(...)` first argument in `scripts/onedrive_sync.py`, so
+renaming a remote means updating `PAIRS` to match. Without the remotes, a run fails
+loudly rather than mistaking the unreachable destination for an empty one.
 
 ### [delta](https://github.com/dandavison/delta)
 Delta is a syntax-highlighting pager for git, diff, and grep output.

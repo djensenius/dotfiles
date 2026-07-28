@@ -114,8 +114,9 @@ def _onedrive_doc(name: str, dst_rel: str | None = None,
 
 
 # --- The sync pairs --------------------------------------------------------
-# NOTE: Google Drive / Dropbox destinations for Books are added once rclone remotes
-# are configured (see config-rclone / wire-rclone steps).
+# Destinations with kind="rclone" need an rclone remote of that name to already
+# exist (`rclone config`); see the cloud-sync section of the repository README
+# for the setup steps.
 PAIRS: list[Pair] = [
     _onedrive_doc("3D Printer"),
     _onedrive_doc("Archive", exclude=["Older music libraries"]),
@@ -338,10 +339,26 @@ def load_manifest(key: str) -> dict[str, Meta]:
 
 
 def save_manifest(key: str, files: dict[str, Meta]) -> None:
+    """Atomically replace the manifest.
+
+    Writing in place would truncate the live deletion state before the new JSON
+    is durable; an interruption there leaves a manifest that load_manifest reads
+    as a first run, which silently changes every deletion decision.
+    """
     p = manifest_path(key)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({k: v.to_dict() for k, v in files.items()}, indent=0),
-                 encoding="utf-8")
+    payload = json.dumps({k: v.to_dict() for k, v in files.items()}, indent=0)
+    fd, tmp_name = tempfile.mkstemp(dir=p.parent, prefix=p.name, suffix=".tmp")
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(payload)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, p)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -648,6 +665,7 @@ def sync_dest(pair: Pair, dest: Dest, log: Logger, confirmer: Confirmer, dry: bo
     a_ep = LocalEndpoint(pair.source)     # source (always local)
     b_ep = make_endpoint(dest)            # destination (local or rclone)
     key = f"{pair.name}::{dest.label}"
+    failures_before = len(FAILURES)
 
     log("")
     log(f"[{pair.mode}] {pair.name}  ->  {dest.label} ({b_ep.display()})")
@@ -681,15 +699,25 @@ def sync_dest(pair: Pair, dest: Dest, log: Logger, confirmer: Confirmer, dry: bo
 
     execute_plan(plan, log, confirmer, dry)
 
-    if not dry:
-        try:
-            _rebuild_manifest(key, pair, a_ep, b_ep)
-        except ScanIncomplete as e:
-            # Keeping the previous manifest is the safe choice: a manifest built
-            # from a partial scan would make the missing files look deleted on
-            # the next run.
-            log(f"  !! manifest not updated: {e}")
-            FAILURES.append(f"{pair.name} -> {dest.label} (manifest not updated)")
+    if dry:
+        return
+    if len(FAILURES) > failures_before:
+        # A failed copy or delete means the live tree no longer matches what a
+        # rebuild would record. The one-way manifest is just the source, and the
+        # two-way manifest is the intersection, so either way the affected path
+        # would drop out of state and stop being recognised as tracked - the
+        # retry promised in the summary would never happen. Keeping the previous
+        # manifest is what makes the next run retry.
+        log("  (manifest left unchanged after failures, so the next run retries)")
+        return
+    try:
+        _rebuild_manifest(key, pair, a_ep, b_ep)
+    except ScanIncomplete as e:
+        # Keeping the previous manifest is the safe choice: a manifest built
+        # from a partial scan would make the missing files look deleted on
+        # the next run.
+        log(f"  !! manifest not updated: {e}")
+        FAILURES.append(f"{pair.name} -> {dest.label} (manifest not updated)")
 
 
 def _sync_rel_twoway(rel, a_meta, b_meta, m_meta, a_ep, b_ep, plan, log):
