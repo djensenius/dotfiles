@@ -8,7 +8,7 @@
 # workspace turns that one card into a de-facto status section.
 #
 # This ports the tmux status-right modules that were left behind: battery_hearts
-# and tmux-outdated-packages, the latter as icon/count pairs packed a couple to
+# and tmux-outdated-packages, the latter as icon/count pairs packed a few to
 # a row.
 #
 # Usage:
@@ -20,7 +20,7 @@
 #   HERDR_STATUS_WORKSPACE  workspace label to decorate (default: status)
 #   HERDR_STATUS_INTERVAL   seconds between refreshes in --watch (default: 300)
 #   HERDR_STATUS_PIN        1 to keep the card first in the sidebar (default: 1)
-#   HERDR_STATUS_PER_ROW    package entries per sidebar row (default: 2)
+#   HERDR_STATUS_PER_ROW    package entries per sidebar row (default: 3)
 #   HERDR_STATUS_HEARTS     battery hearts to render (default: 5)
 set -uo pipefail
 
@@ -33,7 +33,7 @@ SOURCE_ID='dotfiles-status'
 LABEL="${HERDR_STATUS_WORKSPACE:-status}"
 INTERVAL="${HERDR_STATUS_INTERVAL:-300}"
 PIN="${HERDR_STATUS_PIN:-1}"
-PER_ROW="${HERDR_STATUS_PER_ROW:-2}"
+PER_ROW="${HERDR_STATUS_PER_ROW:-3}"
 HEARTS="${HERDR_STATUS_HEARTS:-5}"
 SOCKET="${HERDR_SOCKET:-$HOME/.config/herdr/herdr.sock}"
 OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
@@ -120,7 +120,7 @@ report_once() {
     fi
 
     # Icon plus count only -- the glyph already names the manager, and dropping
-    # the word is what makes two entries fit on a sidebar row.
+    # the word is what fits three entries on a sidebar row.
     for manager in "${MANAGERS[@]}"; do
         count=$(manager_count "$manager")
         [ -n "$count" ] || continue
