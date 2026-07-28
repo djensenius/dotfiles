@@ -133,7 +133,7 @@ pin_to_top() {
 }
 
 report_once() {
-    local ws battery count manager entry row i args=() entries=()
+    local ws battery count manager entry row i output args=() entries=()
     ws=$(resolve_workspace)
     if [ -z "$ws" ]; then
         log "no workspace labelled '$LABEL' (server down, or not created yet)"
@@ -173,23 +173,31 @@ report_once() {
     # Tokens are display-only and never persisted, so each pass restates them.
     # The TTL outlives one missed refresh, then expires, so a dead reporter
     # leaves no frozen readings on the card.
-    herdr workspace report-metadata "$ws" \
+    if ! output=$(herdr workspace report-metadata "$ws" \
         --source "$SOURCE_ID" \
         --ttl-ms $((INTERVAL * 3000)) \
-        "${args[@]}" >/dev/null 2>&1
+        "${args[@]}" 2>&1); then
+        # The server explains itself (invalid_metadata_ttl, unknown workspace),
+        # so surface it rather than exiting 0 on a card that never refreshed.
+        log "report-metadata failed: $(printf '%s' "$output" | tr '\n' ' ')"
+        return 1
+    fi
 
     pin_to_top "$ws"
 }
 
 clear_all() {
-    local ws i args=()
+    local ws i output args=()
     ws=$(resolve_workspace)
     [ -n "$ws" ] || return 1
     args+=(--clear-token battery)
     for ((i = 1; i <= MAX_ROWS; i++)); do
         args+=(--clear-token "pkg_row$i")
     done
-    herdr workspace report-metadata "$ws" --source "$SOURCE_ID" "${args[@]}" >/dev/null 2>&1
+    if ! output=$(herdr workspace report-metadata "$ws" --source "$SOURCE_ID" "${args[@]}" 2>&1); then
+        log "clear failed: $(printf '%s' "$output" | tr '\n' ' ')"
+        return 1
+    fi
 }
 
 command -v herdr >/dev/null 2>&1 || { log 'herdr not on PATH'; exit 0; }
