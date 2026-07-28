@@ -8,7 +8,8 @@
 # workspace turns that one card into a de-facto status section.
 #
 # This ports the tmux status-right modules that were left behind: battery_hearts
-# and tmux-outdated-packages, the latter broken out one manager per line.
+# and tmux-outdated-packages, the latter as icon/count pairs packed a couple to
+# a row.
 #
 # Usage:
 #   herdr-status-report.sh            report once
@@ -19,6 +20,8 @@
 #   HERDR_STATUS_WORKSPACE  workspace label to decorate (default: status)
 #   HERDR_STATUS_INTERVAL   seconds between refreshes in --watch (default: 300)
 #   HERDR_STATUS_PIN        1 to keep the card first in the sidebar (default: 1)
+#   HERDR_STATUS_PER_ROW    package entries per sidebar row (default: 2)
+#   HERDR_STATUS_HEARTS     battery hearts to render (default: 5)
 set -uo pipefail
 
 # launchd runs with a minimal PATH; mise shims hold battery_hearts, and herdr
@@ -30,12 +33,16 @@ SOURCE_ID='dotfiles-status'
 LABEL="${HERDR_STATUS_WORKSPACE:-status}"
 INTERVAL="${HERDR_STATUS_INTERVAL:-300}"
 PIN="${HERDR_STATUS_PIN:-1}"
+PER_ROW="${HERDR_STATUS_PER_ROW:-2}"
+HEARTS="${HERDR_STATUS_HEARTS:-5}"
 SOCKET="${HERDR_SOCKET:-$HOME/.config/herdr/herdr.sock}"
 OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
 
-# One token per manager, so each gets its own sidebar row. Order matches the
-# rows in config.toml.
+# Managers are packed into rows in this order, skipping any that are up to date,
+# so the card stays compact instead of reserving a line per manager.
 MANAGERS=(brew npm pip cargo go mise)
+# Worst case: every manager is behind at once.
+MAX_ROWS=$(((${#MANAGERS[@]} + PER_ROW - 1) / PER_ROW))
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
 
@@ -58,7 +65,7 @@ resolve_workspace() {
 
 battery_token() {
     command -v battery_hearts >/dev/null 2>&1 || return 0
-    battery_hearts 2>/dev/null | tr -d '\n'
+    battery_hearts --max-hearts "$HEARTS" 2>/dev/null | tr -d '\n'
 }
 
 # Nerd font glyphs, matching tmux-outdated-packages/scripts/icons.sh. Kept as
@@ -98,7 +105,7 @@ pin_to_top() {
 }
 
 report_once() {
-    local ws battery count manager args=()
+    local ws battery count manager entry row i args=() entries=()
     ws=$(resolve_workspace)
     if [ -z "$ws" ]; then
         log "no workspace labelled '$LABEL' (server down, or not created yet)"
@@ -112,14 +119,26 @@ report_once() {
         args+=(--clear-token battery)
     fi
 
+    # Icon plus count only -- the glyph already names the manager, and dropping
+    # the word is what makes two entries fit on a sidebar row.
     for manager in "${MANAGERS[@]}"; do
         count=$(manager_count "$manager")
-        if [ -n "$count" ]; then
-            args+=(--token "pkg_$manager=$(manager_icon "$manager") $manager $count")
+        [ -n "$count" ] || continue
+        entries+=("$(manager_icon "$manager") $count")
+    done
+
+    # Pack the survivors PER_ROW at a time and clear the rows left over, so the
+    # card shrinks as managers catch up rather than stranding old counts.
+    for ((i = 0; i < MAX_ROWS; i++)); do
+        row=''
+        for entry in "${entries[@]:$((i * PER_ROW)):$PER_ROW}"; do
+            [ -n "$row" ] && row="$row  "
+            row="$row$entry"
+        done
+        if [ -n "$row" ]; then
+            args+=(--token "pkg_row$((i + 1))=$row")
         else
-            # Clearing rather than skipping drops the row once a manager is back
-            # up to date, instead of leaving the last count on screen.
-            args+=(--clear-token "pkg_$manager")
+            args+=(--clear-token "pkg_row$((i + 1))")
         fi
     done
 
@@ -135,12 +154,12 @@ report_once() {
 }
 
 clear_all() {
-    local ws manager args=()
+    local ws i args=()
     ws=$(resolve_workspace)
     [ -n "$ws" ] || return 1
     args+=(--clear-token battery)
-    for manager in "${MANAGERS[@]}"; do
-        args+=(--clear-token "pkg_$manager")
+    for ((i = 1; i <= MAX_ROWS; i++)); do
+        args+=(--clear-token "pkg_row$i")
     done
     herdr workspace report-metadata "$ws" --source "$SOURCE_ID" "${args[@]}" >/dev/null 2>&1
 }

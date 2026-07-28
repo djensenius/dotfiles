@@ -314,15 +314,12 @@ rows = [
   # section, and this is the closest thing to one. Fed by
   # scripts/herdr-status-report.sh, which also pins the card to the top.
   #
-  # One row per package manager: a manager with nothing outdated reports no
-  # token, so its row disappears instead of showing a zero.
+  # Outdated managers are packed two per row as icon + count; the script emits
+  # only as many rows as it needs, so the spares vanish instead of showing zeros.
   [{ token = "$battery", fg = "#f38ba8" }],
-  [{ token = "$pkg_brew", fg = "#fab387" }],
-  [{ token = "$pkg_npm", fg = "#fab387" }],
-  [{ token = "$pkg_pip", fg = "#fab387" }],
-  [{ token = "$pkg_cargo", fg = "#fab387" }],
-  [{ token = "$pkg_go", fg = "#fab387" }],
-  [{ token = "$pkg_mise", fg = "#fab387" }],
+  [{ token = "$pkg_row1", fg = "#fab387" }],
+  [{ token = "$pkg_row2", fg = "#fab387" }],
+  [{ token = "$pkg_row3", fg = "#fab387" }],
 ]
 
 [ui.sidebar.agents]
