@@ -258,6 +258,7 @@ A spaces row built **only** from `$custom` tokens is dropped for any workspace t
 - **Refresh**: `herdr/launchd/dev.djensenius.herdr-status.plist`, every 300s. Tokens are display-only and never persisted, so they are restated on each pass and carry a TTL of three intervals — if the reporter dies, the readings expire instead of freezing.
 
   ```bash
+  mkdir -p ~/Library/LaunchAgents
   ln -sf ~/.dotfiles/herdr/launchd/dev.djensenius.herdr-status.plist ~/Library/LaunchAgents/
   launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/dev.djensenius.herdr-status.plist
   ```
