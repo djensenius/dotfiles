@@ -55,7 +55,11 @@ LOG_DIR = DOCUMENTS / "Scripts" / "logs"
 # files whose mtimes are within this window as "the same time".
 MTIME_TOL = 2.0
 
-# Paths that failed to copy this run (reported at the end).
+# rclone exits 3 for "directory not found", which is a legitimately empty
+# destination rather than a failure to list it.
+RCLONE_DIR_NOT_FOUND = 3
+
+# Paths that failed to copy/delete this run (reported at the end).
 FAILURES: list[str] = []
 PLACEHOLDERS_SKIPPED: list[str] = []
 
@@ -245,28 +249,53 @@ def fmt_size(n: int) -> str:
 # Logging
 # ---------------------------------------------------------------------------
 class Logger:
-    def __init__(self, path: Path):
-        self.fh = path.open("w", encoding="utf-8")
+    """Echoes to stdout, and to a file when one is given.
+
+    `path` is None for dry runs, which must not create or truncate anything.
+    """
+
+    def __init__(self, path: Path | None):
+        self.fh = path.open("w", encoding="utf-8") if path is not None else None
 
     def __call__(self, msg: str = "") -> None:
         print(msg)
-        self.fh.write(msg + "\n")
-        self.fh.flush()
+        if self.fh is not None:
+            self.fh.write(msg + "\n")
+            self.fh.flush()
 
     def close(self):
-        self.fh.close()
+        if self.fh is not None:
+            self.fh.close()
+            self.fh = None
 
 
 # ---------------------------------------------------------------------------
 # Scanning
 # ---------------------------------------------------------------------------
+class ScanIncomplete(RuntimeError):
+    """A side could not be fully inventoried.
+
+    A partial listing is indistinguishable from a deletion: any file that is in
+    the manifest but missing from the scan looks deleted, so propagating it
+    would remove the intact copy on the other side. Callers must abort the pair
+    and preserve its manifest instead.
+    """
+
+
 def scan(root: Path, include: list[str] | None = None,
          exclude: list[str] | None = None) -> dict[str, Meta]:
-    """{relative_path: Meta} for every non-excluded regular file under root."""
+    """{relative_path: Meta} for every non-excluded regular file under root.
+
+    Raises ScanIncomplete if any directory or file could not be read.
+    """
     out: dict[str, Meta] = {}
     if not root.exists():
         return out
-    for dirpath, dirnames, filenames in os.walk(root):
+
+    def _walk_error(err: OSError) -> None:
+        raise ScanIncomplete(f"cannot read {getattr(err, 'filename', root)}: {err}")
+
+    for dirpath, dirnames, filenames in os.walk(root, onerror=_walk_error):
         rel_dir = "" if Path(dirpath) == root else str(Path(dirpath).relative_to(root))
         # Prune ignored/excluded directories so we don't descend into them at all.
         dirnames[:] = [
@@ -284,8 +313,8 @@ def scan(root: Path, include: list[str] | None = None,
                 if full.is_symlink() or not full.is_file():
                     continue
                 out[rel] = Meta.from_path(full)
-            except OSError:
-                continue
+            except OSError as e:
+                raise ScanIncomplete(f"cannot read {full}: {e}") from e
     return out
 
 
@@ -435,13 +464,20 @@ class RcloneEndpoint:
     def scan(self, include, exclude=None):
         out: dict[str, Meta] = {}
         p = subprocess.run(["rclone", "lsjson", "-R", self.target()],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, check=False)
+        if p.returncode == RCLONE_DIR_NOT_FOUND:
+            return out  # base folder does not exist yet -> genuinely empty
         if p.returncode != 0:
-            return out  # base folder may not exist yet -> treat as empty
+            # A transient failure (network, auth, rate limit) must never be read
+            # as "the remote is empty" — that would propose deleting every file.
+            raise ScanIncomplete(
+                f"rclone lsjson {self.target()} failed (exit {p.returncode}): "
+                f"{p.stderr.strip()}")
         try:
             data = json.loads(p.stdout or "[]")
-        except json.JSONDecodeError:
-            return out
+        except json.JSONDecodeError as e:
+            raise ScanIncomplete(
+                f"rclone lsjson {self.target()} returned invalid JSON: {e}") from e
         for e in data:
             if e.get("IsDir"):
                 continue
@@ -521,11 +557,13 @@ def delete_ep(ep, rel: str, log: Logger, dry: bool) -> None:
             ep.local_path(rel).unlink()
         except OSError as e:
             log(f"    !! failed to remove: {e}")
+            FAILURES.append(f"{ep.display()}/{rel} (delete failed)")
         return
     r = subprocess.run(["rclone", "deletefile", ep.arg(rel)],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, check=False)
     if r.returncode != 0:
         log(f"    !! rclone delete failed: {r.stderr.strip()}")
+        FAILURES.append(f"{ep.display()}/{rel} (delete failed)")
 
 
 # ---------------------------------------------------------------------------
@@ -622,8 +660,15 @@ def sync_dest(pair: Pair, dest: Dest, log: Logger, confirmer: Confirmer, dry: bo
         log("  (neither side exists — skipping)")
         return
 
-    a = a_ep.scan(pair.include, pair.exclude)
-    b = b_ep.scan(pair.include, pair.exclude)
+    try:
+        a = a_ep.scan(pair.include, pair.exclude)
+        b = b_ep.scan(pair.include, pair.exclude)
+    except ScanIncomplete as e:
+        log(f"  !! incomplete inventory: {e}")
+        log("  (skipping this pair; manifest preserved so nothing is "
+            "mistaken for a deletion)")
+        FAILURES.append(f"{pair.name} -> {dest.label} (incomplete inventory)")
+        return
     m = load_manifest(key)
 
     plan = Plan()
@@ -637,7 +682,14 @@ def sync_dest(pair: Pair, dest: Dest, log: Logger, confirmer: Confirmer, dry: bo
     execute_plan(plan, log, confirmer, dry)
 
     if not dry:
-        _rebuild_manifest(key, pair, a_ep, b_ep)
+        try:
+            _rebuild_manifest(key, pair, a_ep, b_ep)
+        except ScanIncomplete as e:
+            # Keeping the previous manifest is the safe choice: a manifest built
+            # from a partial scan would make the missing files look deleted on
+            # the next run.
+            log(f"  !! manifest not updated: {e}")
+            FAILURES.append(f"{pair.name} -> {dest.label} (manifest not updated)")
 
 
 def _sync_rel_twoway(rel, a_meta, b_meta, m_meta, a_ep, b_ep, plan, log):
@@ -739,9 +791,13 @@ def main() -> int:
                         help="Only sync pairs whose name contains NAME (case-insensitive).")
     args = parser.parse_args()
 
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    log_file = LOG_DIR / f"onedrive-sync-{datetime.now():%Y%m%d-%H%M%S}.log"
+    # A dry run must be side-effect free, so it neither creates the state/log
+    # directories nor opens a log file.
+    log_file = None
+    if not args.dry_run:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        STATE_DIR.mkdir(parents=True, exist_ok=True)
+        log_file = LOG_DIR / f"onedrive-sync-{datetime.now():%Y%m%d-%H%M%S}.log"
     log = Logger(log_file)
 
     log("=" * 62)
@@ -749,7 +805,8 @@ def main() -> int:
     if args.dry_run:
         log("*** DRY RUN — no changes, no prompts ***")
     log(f"State dir : {STATE_DIR}")
-    log(f"Log file  : {log_file}")
+    if log_file is not None:
+        log(f"Log file  : {log_file}")
     log("=" * 62)
 
     pairs = PAIRS
@@ -774,7 +831,7 @@ def main() -> int:
         log(f"{len(PLACEHOLDERS_SKIPPED)} cloud-placeholder file(s) skipped "
             f"(content only in the cloud; already backed up, nothing to read/upload).")
     if FAILURES:
-        log(f"{len(FAILURES)} file(s) FAILED to copy (will retry next run):")
+        log(f"{len(FAILURES)} operation(s) FAILED (will retry next run):")
         for p in FAILURES[:20]:
             log(f"  - {p}")
         if len(FAILURES) > 20:
@@ -782,7 +839,8 @@ def main() -> int:
     log(f"Sync complete  {datetime.now():%Y-%m-%d %H:%M:%S}")
     log("=" * 62)
     log.close()
-    return 0
+    # Non-zero on any failure so schedulers can detect an incomplete sync.
+    return 1 if FAILURES else 0
 
 
 if __name__ == "__main__":

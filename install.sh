@@ -193,7 +193,9 @@ function link_files() {
     ln -sf "$(pwd)/bottom" ~/.config/bottom
     ln -sf "$(pwd)/tmux" ~/.config/tmux
     ln -sf "$(pwd)/zellij" ~/.config/zellij
-    ln -sf "$(pwd)/rio" ~/.config/rio
+    # -n so a rerun replaces the existing symlink instead of dereferencing it
+    # and creating ~/.config/rio/rio.
+    ln -sfn "$(pwd)/rio" ~/.config/rio
     
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza
