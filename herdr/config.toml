@@ -98,8 +98,13 @@ focus_pane_up = "prefix+k"
 focus_pane_right = "prefix+l"
 cycle_pane_next = "prefix+tab"
 cycle_pane_previous = "prefix+shift+tab"
-split_vertical = ["prefix+v", "prefix+backslash"]
-split_horizontal = "prefix+minus"
+# Herdr names splits after the divider, which inverts tmux's flags: split_vertical
+# runs SplitDirection::Right (side by side), split_horizontal runs Down (stacked).
+# The keys line up with tmux-pain-control regardless, so mirror all six of them --
+# | \ % side by side, - _ " stacked -- rather than only the two already bound.
+# Names like "pipe" and "underscore" are rejected by the parser; literals work.
+split_vertical = ["prefix+v", "prefix+backslash", "prefix+|", "prefix+%"]
+split_horizontal = ["prefix+minus", "prefix+_", "prefix+\""]
 close_pane = "prefix+q"               # tmux: `bind q killp`
 zoom = "prefix+z"
 resize_mode = "prefix+r"

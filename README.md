@@ -224,7 +224,8 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 | `prefix h/j/k/l` focus pane | same | config |
 | `prefix ^h/^j/^k/^l` resize 10 | same | `[[keys.command]]` → `herdr pane resize --amount 0.05` (Herdr takes a split-ratio delta, not a cell count) |
 | `prefix ^u` / `^d` swap pane | same | `[[keys.command]]` → `herdr pane swap` |
-| `prefix \|` / `-` split | `prefix v` / `prefix \` / `prefix -` | config |
+| `prefix \|` / `\` / `%` split side by side | same, plus `prefix v` | `split_vertical` — Herdr names splits after the divider, so this is "vertical" where tmux calls it `-h` |
+| `prefix -` / `_` / `"` split stacked | same | `split_horizontal` |
 | `prefix q` kill pane | same (detach moves to `prefix d`) | config |
 | `prefix p` / `n` previous/next window | same | config |
 | `prefix 1..9` select window | same | config |
