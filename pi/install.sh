@@ -406,9 +406,18 @@ install_mise_tools() {
     as_user cp "$PI_DIR/mise.toml" "$mise_config"
     ok "Wrote ~/.config/mise/config.toml from pi/mise.toml"
 
-    as_user mise trust "$mise_config"
+    # mise resolves configs from the current directory upward, and this script
+    # normally runs from inside the dotfiles checkout, whose mise/config.toml is
+    # the workstation manifest. mise would refuse it as untrusted and abort, so
+    # every mise call is pinned to $HOME to keep only the global config in
+    # scope, and the repo manifest is marked ignored so shims invoked from the
+    # checkout by later phases do not trip over it either.
+    if [ -f "$DOTFILES_DIR/mise/config.toml" ]; then
+        as_user_quiet mise -C "$HOME" trust --ignore "$DOTFILES_DIR/mise/config.toml"
+    fi
+    as_user mise -C "$HOME" trust "$mise_config"
     log "Running mise install (downloads prebuilt binaries; a few minutes on a Pi)"
-    tee_log as_user mise install
+    tee_log as_user mise -C "$HOME" install
     ok "mise tools installed"
 
     # Later phases (tmux plugins, nvim sync, herdr) need the freshly installed
@@ -618,7 +627,7 @@ set_login_shell() {
     local fish_path
     # mise which / command -v are read-only, so a dry run resolves the real
     # path rather than guessing at mise's backend-specific install layout.
-    fish_path="$(run_as_user mise which fish 2>/dev/null || true)"
+    fish_path="$(run_as_user mise -C "$HOME" which fish 2>/dev/null || true)"
     [ -n "$fish_path" ] || fish_path="$(command -v fish || true)"
     if [ -z "$fish_path" ]; then
         if $DRY_RUN; then
