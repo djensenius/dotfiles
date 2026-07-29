@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Entry point: ./install-pi
+# Provisions a Raspberry Pi with these dotfiles. See pi/README.md.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pi/install.sh" "$@"

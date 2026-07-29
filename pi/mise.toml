@@ -1,0 +1,61 @@
+# Raspberry Pi tool manifest — installed to ~/.config/mise/config.toml by
+# ./install-pi.
+#
+# Targets 64-bit Raspberry Pi OS (arm64). Several of these publish aarch64
+# Linux binaries only, so this manifest does not work on 32-bit armhf.
+#
+# Everything here downloads a prebuilt binary — nothing compiles — so a full
+# `mise install` on a Pi 4/5 is minutes, not hours.
+#
+# Derived from Telephone-Booth's packaging/raspberry-pi/mise.toml, with the
+# extra tools these dotfiles assume (fish's config.fish sources zoxide and
+# fzf, tmux-thumbs builds with cargo, nvim's LSPs need node).
+
+[tools]
+tmux = "latest"
+bat = "latest"
+eza = "latest"
+neovim = "latest"
+starship = "latest"
+atuin = "latest"
+zellij = "latest"
+bottom = "latest"   # provides the `btm` binary
+delta = "latest"    # git-delta
+herdr = "latest"    # agent multiplexer for the terminal
+
+# Sourced unconditionally by fish/config.fish, so fish errors on every prompt
+# without them.
+zoxide = "latest"
+fzf = "latest"
+
+# Used by nvim (telescope, grep pickers) and the tmux fzf plugins.
+ripgrep = "latest"
+fd = "latest"
+
+# termscope's own build step installs Television through Homebrew, which a Pi
+# does not have, so provide `tv` up front. README.md's plugin prerequisites
+# table requires 0.15+.
+television = "latest"
+
+jq = "latest"
+gh = "latest"
+yazi = "latest"
+lazygit = "latest"
+
+# node backs the nvim language servers and copilot; rust gives cargo, which
+# tmux-thumbs and tmux-floax need at plugin-install time.
+node = "latest"
+rust = "latest"
+
+# fish has no short registry name in mise, so name the aqua backend directly.
+# Upstream ships a self-contained static aarch64 binary from 4.0 onward, which
+# is far newer than Debian's package. `install-pi --fish-shell` makes it the
+# login shell.
+"aqua:fish-shell/fish-shell" = "latest"
+
+[settings]
+experimental = true
+jobs = 4
+not_found_auto_install = true
+idiomatic_version_file_enable_tools = ['node', 'rust']
+status = { missing_tools = "if_other_versions_installed", show_env = false, show_tools = false }
