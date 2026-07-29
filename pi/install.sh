@@ -123,8 +123,8 @@ Options:
   --help, -h        Show this help
 
 Environment:
-  INSTALL_PI_LOG    Log file path (default: ~/install-pi.log). --dry-run logs
-                    to a temporary file and leaves this one alone.
+  INSTALL_PI_LOG    Log file path (default: ~/install-pi.log). --dry-run does
+                    not write a log, and leaves this file alone.
 
 Everything is idempotent — re-run it after `git pull` to pick up changes.
 EOF
@@ -311,7 +311,10 @@ ensure_locale() {
     # locale will do, so a Pi already set to en_GB.UTF-8 keeps its own regional
     # settings rather than being switched to en_US.
     local existing
-    existing="$(locale -a 2>/dev/null | grep -iE '\.utf-?8$' | head -1)"
+    # grep exits 1 when a fresh Raspberry Pi OS Lite image has no UTF-8 locale
+    # at all, which is precisely the case this function exists to handle, so
+    # the no-match status must not trip `set -e`.
+    existing="$(locale -a 2>/dev/null | grep -iE '\.utf-?8$' | head -1 || true)"
     if [ -n "$existing" ]; then
         skip "UTF-8 locale already available ($existing)"
         return
@@ -604,15 +607,17 @@ set_login_shell() {
     step "Making fish the login shell"
 
     local fish_path
-    if $DRY_RUN; then
-        fish_path="$HOME/.local/share/mise/installs/fish/latest/bin/fish"
-    else
-        fish_path="$(run_as_user mise which fish 2>/dev/null || true)"
-        [ -n "$fish_path" ] || fish_path="$(command -v fish || true)"
-        if [ -z "$fish_path" ]; then
+    # mise which / command -v are read-only, so a dry run resolves the real
+    # path rather than guessing at mise's backend-specific install layout.
+    fish_path="$(run_as_user mise which fish 2>/dev/null || true)"
+    [ -n "$fish_path" ] || fish_path="$(command -v fish || true)"
+    if [ -z "$fish_path" ]; then
+        if $DRY_RUN; then
+            log "${C_DIM}[dry-run] fish is not installed yet; its path would come from 'mise which fish' after step 4${C_RESET}"
+        else
             warn "fish not found; not changing the login shell"
-            return 0
         fi
+        return 0
     fi
 
     local current_shell

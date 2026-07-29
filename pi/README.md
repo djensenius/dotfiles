@@ -40,8 +40,9 @@ is the update path.
 | 7 | herdr plugins | The same marketplace plugins `install.sh` installs, including its removal of the legacy `herdr-picker-plus` id. |
 
 Progress goes to the terminal; full command output goes to `~/install-pi.log`
-(override with `INSTALL_PI_LOG`). `--dry-run` logs to a temporary file instead,
-so previewing never touches the real one.
+(override with `INSTALL_PI_LOG`). `--dry-run` writes no log at all — every line
+it would contain is already on the terminal — so previewing leaves nothing
+behind, including the real log.
 
 ## Options
 
