@@ -61,6 +61,24 @@ wait $(cat ~/.dotfiles_neovim_setup.pid)  # Wait for Neovim setup
 
 **Performance:** The new parallel installation reduces foreground setup time by **93%** - from 5+ minutes down to ~20 seconds for immediate productivity!
 
+### Raspberry Pi Installation
+
+A Raspberry Pi (64-bit Raspberry Pi OS, `arm64`) gets the whole setup — apt
+packages, mise and every CLI tool, config symlinks, tmux/neovim/herdr plugins —
+from one command:
+
+```bash
+git clone https://github.com/djensenius/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+./install-pi
+```
+
+It detects whether it needs `sudo`, escalates only for apt and `/etc/shells`,
+backs up any config it replaces, and is safe to re-run after a `git pull`.
+Add `--fish-shell` to make fish your login shell, or `--dry-run` to preview.
+
+See [pi/README.md](pi/README.md) for the full step list and options.
+
 ### Manual Local Installation
 
 For local installation, most configurations can be symlinked to your `~/.config` directory:
