@@ -26,6 +26,11 @@ SET_FISH_SHELL=false
 DRY_RUN=false
 ASSUME_YES=false
 FORCE=false
+# mise's aqua/github backends hit api.github.com, which allows only 60
+# unauthenticated requests an hour per IP — nowhere near enough for a full
+# tool install. Resolved from the environment or the gh CLI in
+# resolve_github_token, and forwarded to every demoted command.
+GITHUB_TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
 
 APT_PACKAGES=(
     ca-certificates
@@ -123,6 +128,11 @@ Options:
   --help, -h        Show this help
 
 Environment:
+  GITHUB_TOKEN      Token used for GitHub API downloads (mise's aqua/github
+                    backends). Without one you get 60 API calls an hour per IP
+                    and `mise install` fails with 403. Any token works, no
+                    scopes needed; GH_TOKEN and an authenticated `gh` CLI are
+                    picked up automatically.
   INSTALL_PI_LOG    Log file path (default: ~/install-pi.log). --dry-run does
                     not write a log, and leaves this file alone.
 
@@ -201,7 +211,8 @@ apt_get() {
 # this script prepends.
 run_as_user() {
     if [ -n "$DEMOTE_USER" ]; then
-        sudo -u "$DEMOTE_USER" -H env "PATH=$PATH" "$@"
+        sudo -u "$DEMOTE_USER" -H env "PATH=$PATH" \
+            ${GITHUB_TOKEN:+"GITHUB_TOKEN=$GITHUB_TOKEN"} "$@"
     else
         "$@"
     fi
@@ -374,6 +385,35 @@ install_mise() {
     ok "mise installed from its apt repository"
 }
 
+# mise downloads most tools through its aqua/github backends, which query
+# api.github.com. Unauthenticated that is 60 requests an hour for the whole
+# IP, so a fresh install reliably dies with "403 rate limit exceeded". Any
+# token works — no scopes are needed for reading public releases.
+resolve_github_token() {
+    if [ -n "$GITHUB_TOKEN" ]; then
+        export GITHUB_TOKEN
+        ok "Using GITHUB_TOKEN from the environment for GitHub downloads"
+        return 0
+    fi
+
+    if have gh; then
+        local token
+        token="$(run_as_user gh auth token 2>/dev/null || true)"
+        if [ -n "$token" ]; then
+            GITHUB_TOKEN="$token"
+            export GITHUB_TOKEN
+            ok "Using the gh CLI's token for GitHub downloads"
+            return 0
+        fi
+    fi
+
+    warn "No GITHUB_TOKEN found; GitHub allows only 60 unauthenticated API calls an hour per IP and mise will likely fail with a 403."
+    log "  Create a token at https://github.com/settings/tokens (no scopes needed) and re-run:"
+    log "    GITHUB_TOKEN=ghp_... ./install-pi"
+    log "  Or authenticate the gh CLI first: gh auth login"
+    return 0
+}
+
 install_mise_tools() {
     $DO_MISE || { skip "Skipping mise tools (--skip-mise)"; return; }
     step "Installing tools with mise"
@@ -382,6 +422,8 @@ install_mise_tools() {
         warn "mise not on PATH; skipping tool install"
         return 0
     fi
+
+    resolve_github_token
 
     local mise_dir="$HOME/.config/mise"
     local mise_config="$mise_dir/config.toml"

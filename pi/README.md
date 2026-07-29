@@ -28,6 +28,19 @@ is the update path.
   cargo-build, as do the herdr marketplace plugins in step 7 that publish no
   arm64 binary — `herdr-floax`, `herdr-navigator` and `herdr-pluck` at the time
   of writing.
+- **A GitHub token.** mise fetches most tools through its aqua/github backends,
+  which call `api.github.com`. Unauthenticated that is 60 requests an hour for
+  your whole IP, so step 4 fails with `403 rate limit exceeded` part-way
+  through. Create one at <https://github.com/settings/tokens> — **no scopes are
+  required**, it only reads public releases — and pass it in:
+
+  ```bash
+  GITHUB_TOKEN=ghp_... ./install-pi
+  ```
+
+  `GH_TOKEN` works too, and if the `gh` CLI is already authenticated on the Pi
+  the script picks up `gh auth token` on its own. Re-running after a rate-limit
+  failure is safe: already-installed tools are skipped.
 
 ## What it does
 
