@@ -75,10 +75,12 @@ die()  { log "${C_RED}✗${C_RESET} $*"; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # A dry run must leave the disk untouched, including whatever INSTALL_PI_LOG
-# points at, which a real run truncates. So it logs to a throwaway file.
+# points at, which a real run truncates. It has nothing worth keeping either —
+# every line also goes to the terminal — so it logs to /dev/null rather than a
+# temporary file it would have to clean up.
 init_logging() {
     if $DRY_RUN; then
-        LOG_FILE="$(mktemp "${TMPDIR:-/tmp}/install-pi-dry-run.XXXXXX")"
+        LOG_FILE=/dev/null
         return 0
     fi
     LOG_FILE="${INSTALL_PI_LOG:-$HOME/install-pi.log}"
@@ -258,7 +260,11 @@ preflight() {
         die "$DOTFILES_DIR does not look like the dotfiles repo (no fish/ directory)."
     ok "Dotfiles: $DOTFILES_DIR"
     ok "Provisioning: $TARGET_USER (home: $HOME)"
-    ok "Log: $LOG_FILE"
+    if $DRY_RUN; then
+        ok "Log: not written (dry run)"
+    else
+        ok "Log: $LOG_FILE"
+    fi
 
     if ! $ASSUME_YES && ! $DRY_RUN && [ -t 0 ]; then
         printf '\nProceed? [Y/n] '
@@ -301,9 +307,13 @@ install_apt_packages() {
 
 ensure_locale() {
     # fish, neovim and the Catppuccin/nerd-font glyphs all assume a UTF-8
-    # locale; Raspberry Pi OS Lite ships without one generated.
-    if locale -a 2>/dev/null | grep -qiE '^(en_US\.utf-?8|C\.utf-?8)$'; then
-        skip "UTF-8 locale already available"
+    # locale; Raspberry Pi OS Lite ships without one generated. Any UTF-8
+    # locale will do, so a Pi already set to en_GB.UTF-8 keeps its own regional
+    # settings rather than being switched to en_US.
+    local existing
+    existing="$(locale -a 2>/dev/null | grep -iE '\.utf-?8$' | head -1)"
+    if [ -n "$existing" ]; then
+        skip "UTF-8 locale already available ($existing)"
         return
     fi
     log "Generating en_US.UTF-8 locale"
@@ -679,7 +689,7 @@ main() {
 
     local elapsed=$(( $(date +%s) - start_time ))
     step "Done in $((elapsed / 60))m $((elapsed % 60))s"
-    log "Log: $LOG_FILE"
+    $DRY_RUN || log "Log: $LOG_FILE"
     if [ -d "$BACKUP_DIR" ]; then
         log "Replaced configs were backed up to $BACKUP_DIR"
     fi
