@@ -24,20 +24,20 @@ is the update path.
   through `sudo`, it provisions `$SUDO_USER`'s account rather than root's.
 - Network access. mise downloads prebuilt binaries instead of building them,
   so the toolchain is minutes rather than the hours a source build would take.
-  The exception is step 5: `tmux-thumbs` and `tmux-floax` cargo-build on the
-  Pi.
+  The exceptions are the plugins: `tmux-thumbs` and `tmux-floax` (step 5) and
+  `herdr-floax` and `herdr-navigator` (step 7) cargo-build on the Pi.
 
 ## What it does
 
 | # | Step | Notes |
 | --- | --- | --- |
-| 1 | apt packages | `git`, `build-essential`, `python3`, `tmuxinator`, and friends. Falls back to installing one by one if a package is missing on your release. Generates a UTF-8 locale if the image has none. |
+| 1 | apt packages | `git`, `build-essential`, `python3`, `btop`, `tmuxinator`, and friends. Falls back to installing one by one if a package is missing on your release. Generates a UTF-8 locale if the image has none. |
 | 2 | mise | Installed from [its own apt repository](https://mise.jdx.dev), keyring and all. With `--skip-apt` it falls back to `https://mise.run`. |
-| 3 | Symlinks | Links this repo into `~/.config` (fish, nvim, tmux, starship, atuin, bat, bottom, btop, delta, eza, fastfetch, yazi, zellij, tmuxinator, gh, gh-dash, herdr) plus `~/.gitconfig` and friends. Anything already there is moved to `~/.dotfiles-backup/<timestamp>/` first. |
+| 3 | Symlinks | Links this repo into `~/.config` (fish, nvim, tmux, starship, atuin, bat, bottom, btop, delta, eza, fastfetch, yazi, zellij, tmuxinator, gh, gh-dash, herdr) plus `~/.gitconfig` and friends. Anything already there is moved to `~/.dotfiles-backup/<timestamp>/`, under its path relative to `~`, first. |
 | 4 | Tools | Copies [`mise.toml`](mise.toml) to `~/.config/mise/config.toml`, trusts it, and runs `mise install`. |
 | 5 | tmux plugins | Clones tpm and installs the plugin set. `tmux-thumbs` and `tmux-floax` build with cargo, which is why the manifest includes rust. |
 | 6 | Neovim | `nvim --headless "+Lazy! sync" +qa`. |
-| 7 | herdr plugins | The same marketplace plugins `install.sh` installs. |
+| 7 | herdr plugins | The same marketplace plugins `install.sh` installs, including its removal of the legacy `herdr-picker-plus` id. |
 
 Progress goes to the terminal; full command output goes to `~/install-pi.log`
 (override with `INSTALL_PI_LOG`). `--dry-run` logs to a temporary file instead,

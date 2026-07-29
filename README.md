@@ -73,8 +73,9 @@ cd ~/.dotfiles
 ./install-pi
 ```
 
-It detects whether it needs `sudo`, escalates only for apt and `/etc/shells`,
-backs up any config it replaces, and is safe to re-run after a `git pull`.
+It detects whether it needs `sudo`, escalates only for apt, `/etc/shells` and
+`chsh`, backs up any config it replaces, and is safe to re-run after a
+`git pull`.
 Add `--fish-shell` to make fish your login shell, or `--dry-run` to preview.
 
 See [pi/README.md](pi/README.md) for the full step list and options.

@@ -47,6 +47,7 @@ APT_PACKAGES=(
     python3
     python3-pip
     python3-venv
+    btop
     tmuxinator
 )
 
@@ -212,6 +213,23 @@ as_user() {
     run_as_user "$@"
 }
 
+# as_user with the command's own chatter captured in the log instead of the
+# terminal. A dry run has nothing to capture and must show the planned command,
+# so it skips the redirect.
+as_user_quiet() {
+    if $DRY_RUN; then
+        as_user "$@"
+        return 0
+    fi
+    as_user "$@" >>"$LOG_FILE" 2>&1
+}
+
+# Run a command with its output on the terminal *and* in the log. pipefail
+# means the command's own exit status still wins over tee's.
+tee_log() {
+    "$@" 2>&1 | tee -a "$LOG_FILE"
+}
+
 # ---------------------------------------------------------------- checks ----
 
 preflight() {
@@ -258,12 +276,12 @@ install_apt_packages() {
     $DO_APT || { skip "Skipping apt packages (--skip-apt)"; return; }
     step "Installing apt packages"
 
-    apt_get update
+    tee_log apt_get update
 
     # One batch is much faster, but a single unavailable package (tmuxinator is
     # not in every Debian release) would abort the lot — so fall back to
     # installing individually and only warn about what is genuinely missing.
-    if apt_get install -y --no-install-recommends "${APT_PACKAGES[@]}"; then
+    if tee_log apt_get install -y --no-install-recommends "${APT_PACKAGES[@]}"; then
         ok "Installed ${#APT_PACKAGES[@]} apt packages"
     else
         warn "Batch install failed; retrying package by package"
@@ -338,8 +356,8 @@ install_mise() {
         printf '%s\n' "$line" | as_root tee /etc/apt/sources.list.d/mise.list >/dev/null
     fi
 
-    apt_get update
-    apt_get install -y mise
+    tee_log apt_get update
+    tee_log apt_get install -y mise
     ok "mise installed from its apt repository"
 }
 
@@ -352,8 +370,21 @@ install_mise_tools() {
         return 0
     fi
 
-    as_user mkdir -p "$HOME/.config/mise"
-    local mise_config="$HOME/.config/mise/config.toml"
+    local mise_dir="$HOME/.config/mise"
+    local mise_config="$mise_dir/config.toml"
+
+    # On a workstation ~/.config/mise is a symlink to this repo's mise/ (see
+    # fish/config.fish). Writing config.toml through it would rewrite the repo's
+    # own workstation manifest, so the link is replaced by a real directory.
+    if [ -L "$mise_dir" ]; then
+        if $FORCE; then
+            as_user rm -f "$mise_dir"
+        else
+            backup_path "$mise_dir"
+        fi
+    fi
+    as_user mkdir -p "$mise_dir"
+
     # A copy, not a symlink: mise treats a config resolved through a symlink
     # into the repo as non-global. That also means an existing symlink has to
     # go first, or cp would follow it and overwrite the file it points at
@@ -361,18 +392,17 @@ install_mise_tools() {
     # manifest there).
     if [ -e "$mise_config" ] || [ -L "$mise_config" ]; then
         if ! $FORCE && ! cmp -s "$PI_DIR/mise.toml" "$mise_config" 2>/dev/null; then
-            as_user mkdir -p "$BACKUP_DIR"
-            as_user cp -P "$mise_config" "$BACKUP_DIR/mise-config.toml"
-            warn "Backed up existing ~/.config/mise/config.toml to ${BACKUP_DIR/#$HOME/\~}"
+            backup_path "$mise_config"
+        else
+            as_user rm -f "$mise_config"
         fi
-        as_user rm -f "$mise_config"
     fi
     as_user cp "$PI_DIR/mise.toml" "$mise_config"
     ok "Wrote ~/.config/mise/config.toml from pi/mise.toml"
 
     as_user mise trust "$mise_config"
     log "Running mise install (downloads prebuilt binaries; a few minutes on a Pi)"
-    as_user mise install
+    tee_log as_user mise install
     ok "mise tools installed"
 
     # Later phases (tmux plugins, nvim sync, herdr) need the freshly installed
@@ -385,6 +415,18 @@ install_mise_tools() {
 }
 
 # ---------------------------------------------------------------- links ------
+
+# Move <target> into the backup tree, keeping its path relative to $HOME so
+# that two configs sharing a basename (~/.config/gh/config.yml and
+# ~/.config/gh-dash/config.yml) cannot overwrite each other's backup.
+backup_path() {
+    local target="$1" rel dest
+    rel="${target#"$HOME"/}"
+    dest="$BACKUP_DIR/$rel"
+    as_user mkdir -p "$(dirname "$dest")"
+    as_user mv "$target" "$dest"
+    warn "Backed up ${target/#$HOME/\~} to ${dest/#$HOME/\~}"
+}
 
 # link_config <repo-relative source> <absolute target>
 link_config() {
@@ -404,9 +446,7 @@ link_config() {
         if $FORCE; then
             as_user rm -rf "$target"
         else
-            as_user mkdir -p "$BACKUP_DIR"
-            as_user mv "$target" "$BACKUP_DIR/$(basename "$target")"
-            warn "Backed up existing ${target/#$HOME/\~} to ${BACKUP_DIR/#$HOME/\~}"
+            backup_path "$target"
         fi
     fi
 
@@ -488,7 +528,7 @@ install_tmux_plugins() {
 
     # tmux-thumbs and tmux-floax build with cargo, so this needs the mise rust.
     log "Installing tmux plugins (a couple of these build from source)"
-    if as_user "$tpm/bin/install_plugins" >>"$LOG_FILE" 2>&1; then
+    if as_user_quiet "$tpm/bin/install_plugins"; then
         ok "tmux plugins installed"
     else
         warn "Some tmux plugins failed to install — see $LOG_FILE"
@@ -505,7 +545,7 @@ sync_neovim() {
     fi
 
     log "Running lazy.nvim sync headless (a few minutes on a first run)"
-    if as_user nvim --headless "+Lazy! sync" +qa >>"$LOG_FILE" 2>&1; then
+    if as_user_quiet nvim --headless "+Lazy! sync" +qa; then
         ok "Neovim plugins synced"
     else
         warn "Neovim plugin sync reported errors — see $LOG_FILE"
@@ -521,6 +561,14 @@ install_herdr_plugins() {
         return
     fi
 
+    # herdr-navigator <= v0.3.1 shipped under the plugin id `herdr-picker-plus`.
+    # The config binds `herdr-navigator.*`, so the stale id has to go or the
+    # rebuilt plugin cannot claim its actions. install.sh does the same.
+    if ! $DRY_RUN && run_as_user herdr plugin list 2>/dev/null | grep -q '^- herdr-picker-plus '; then
+        as_user_quiet herdr plugin uninstall herdr-picker-plus ||
+            warn "Failed to remove the legacy herdr plugin herdr-picker-plus"
+    fi
+
     local plugin failed=()
     for plugin in \
         paulbkim-dev/vim-herdr-navigation \
@@ -529,7 +577,7 @@ install_herdr_plugins() {
         Tyru5/herdr-floax \
         thanhdat77/herdr-navigator \
         iurysza/termscope; do
-        as_user herdr plugin install "$plugin" --yes >>"$LOG_FILE" 2>&1 ||
+        as_user_quiet herdr plugin install "$plugin" --yes ||
             failed+=("$plugin")
     done
     if [ ${#failed[@]} -gt 0 ]; then
