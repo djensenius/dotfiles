@@ -81,7 +81,14 @@ init_logging() {
         return 0
     fi
     LOG_FILE="${INSTALL_PI_LOG:-$HOME/install-pi.log}"
-    run_as_user install -m 644 /dev/null "$LOG_FILE" 2>/dev/null || : >"$LOG_FILE"
+    local dir
+    dir="$(dirname "$LOG_FILE")"
+    run_as_user mkdir -p "$dir" 2>/dev/null || mkdir -p "$dir" 2>/dev/null || true
+    # install(1) so the file belongs to the target user, not root, when this
+    # was started with sudo.
+    run_as_user install -m 644 /dev/null "$LOG_FILE" 2>/dev/null ||
+        : >"$LOG_FILE" ||
+        { printf 'Cannot write to log file %s\n' "$LOG_FILE" >&2; exit 1; }
 }
 
 show_help() {
