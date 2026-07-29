@@ -389,14 +389,7 @@ install_mise_tools() {
     # On a workstation ~/.config/mise is a symlink to this repo's mise/ (see
     # fish/config.fish). Writing config.toml through it would rewrite the repo's
     # own workstation manifest, so the link is replaced by a real directory.
-    if [ -L "$mise_dir" ]; then
-        if $FORCE; then
-            as_user rm -f "$mise_dir"
-        else
-            backup_path "$mise_dir"
-        fi
-    fi
-    as_user mkdir -p "$mise_dir"
+    ensure_real_dir "$mise_dir"
 
     # A copy, not a symlink: mise treats a config resolved through a symlink
     # into the repo as non-global. That also means an existing symlink has to
@@ -439,6 +432,22 @@ backup_path() {
     as_user mkdir -p "$(dirname "$dest")"
     as_user mv "$target" "$dest"
     warn "Backed up ${target/#$HOME/\~} to ${dest/#$HOME/\~}"
+}
+
+# Make sure <path> is a real directory. A symlink there — the workstation
+# layout links ~/.config/mise into this repo, and ~/.config/herdr could be
+# linked the same way — would send everything written "inside" it into the
+# clone instead.
+ensure_real_dir() {
+    local dir="$1"
+    if [ -L "$dir" ]; then
+        if $FORCE; then
+            as_user rm -f "$dir"
+        else
+            backup_path "$dir"
+        fi
+    fi
+    as_user mkdir -p "$dir"
 }
 
 # link_config <repo-relative source> <absolute target>
@@ -504,7 +513,7 @@ link_configs() {
     # herdr keeps live sockets, logs and its own plugin checkouts in
     # ~/.config/herdr, so the directory itself must stay real — link only the
     # pieces this repo owns.
-    as_user mkdir -p "$HOME/.config/herdr"
+    ensure_real_dir "$HOME/.config/herdr"
     link_config herdr/config.toml "$HOME/.config/herdr/config.toml"
     link_config herdr/scripts "$HOME/.config/herdr/scripts"
 

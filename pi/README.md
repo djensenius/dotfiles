@@ -24,8 +24,10 @@ is the update path.
   through `sudo`, it provisions `$SUDO_USER`'s account rather than root's.
 - Network access. mise downloads prebuilt binaries instead of building them,
   so the toolchain is minutes rather than the hours a source build would take.
-  The exceptions are the plugins: `tmux-thumbs` and `tmux-floax` (step 5) and
-  `herdr-floax` and `herdr-navigator` (step 7) cargo-build on the Pi.
+  The exceptions are the plugins: `tmux-thumbs` and `tmux-floax` (step 5)
+  cargo-build, as do the herdr marketplace plugins in step 7 that publish no
+  arm64 binary — `herdr-floax`, `herdr-navigator` and `herdr-pluck` at the time
+  of writing.
 
 ## What it does
 
