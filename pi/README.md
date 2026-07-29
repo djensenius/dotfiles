@@ -19,10 +19,13 @@ is the update path.
   only, so 32-bit `armhf` cannot reproduce the set. The script warns and keeps
   going if it detects another architecture.
 - A user with `sudo`, or run it as root. The script detects which it is and
-  only escalates for the steps that need it (apt, `/etc/shells`); everything
-  else runs as you, so nothing in `~` ends up owned by root.
-- Network access. Nothing is compiled — mise downloads prebuilt binaries — so
-  a full run is minutes rather than the hours a source build would take.
+  only escalates for the steps that need it (apt, `/etc/shells`, `chsh`);
+  everything else runs as you, so nothing in `~` ends up owned by root. Run
+  through `sudo`, it provisions `$SUDO_USER`'s account rather than root's.
+- Network access. mise downloads prebuilt binaries instead of building them,
+  so the toolchain is minutes rather than the hours a source build would take.
+  The exception is step 5: `tmux-thumbs` and `tmux-floax` cargo-build on the
+  Pi.
 
 ## What it does
 
@@ -37,7 +40,8 @@ is the update path.
 | 7 | herdr plugins | The same marketplace plugins `install.sh` installs. |
 
 Progress goes to the terminal; full command output goes to `~/install-pi.log`
-(override with `INSTALL_PI_LOG`).
+(override with `INSTALL_PI_LOG`). `--dry-run` logs to a temporary file instead,
+so previewing never touches the real one.
 
 ## Options
 
@@ -64,7 +68,8 @@ Not done by default, because a mise-managed fish lives under `~` rather than
 ./install-pi --fish-shell
 ```
 
-That appends the path to `/etc/shells` and runs `chsh`. **Open a second SSH
+That appends the path to `/etc/shells` and runs `chsh` as root against your
+account. **Open a second SSH
 session and confirm it works before closing the first** — a broken login shell
 also breaks `ssh host <command>`, which is awkward on a headless Pi. The path
 survives `mise upgrade`, because `latest` resolves through a symlink mise

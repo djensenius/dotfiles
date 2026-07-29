@@ -9,8 +9,12 @@ set -euo pipefail
 
 PI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$PI_DIR/.." && pwd)"
-LOG_FILE="${INSTALL_PI_LOG:-$HOME/install-pi.log}"
-BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+# Filled in by detect_target_user and init_logging, once HOME is known to
+# point at the account being provisioned rather than root's.
+TARGET_USER=""
+DEMOTE_USER=""
+LOG_FILE=""
+BACKUP_DIR=""
 
 DO_APT=true
 DO_MISE=true
@@ -55,14 +59,30 @@ else
     C_BOLD=''; C_DIM=''; C_RED=''; C_GREEN=''; C_YELLOW=''; C_RESET=''
 fi
 
-log()  { printf '%s\n' "$*"; printf '[%s] %s\n' "$(date '+%F %T')" "$*" >>"$LOG_FILE"; }
-step() { printf '\n%s==> %s%s\n' "$C_BOLD" "$*" "$C_RESET"; printf '\n[%s] ==> %s\n' "$(date '+%F %T')" "$*" >>"$LOG_FILE"; }
+log_to_file() {
+    [ -n "$LOG_FILE" ] || return 0
+    printf '[%s] %s\n' "$(date '+%F %T')" "$*" >>"$LOG_FILE"
+}
+
+log()  { printf '%s\n' "$*"; log_to_file "$*"; }
+step() { printf '\n%s==> %s%s\n' "$C_BOLD" "$*" "$C_RESET"; log_to_file "==> $*"; }
 ok()   { log "${C_GREEN}✓${C_RESET} $*"; }
 skip() { log "${C_DIM}·${C_RESET} $*"; }
 warn() { log "${C_YELLOW}⚠${C_RESET} $*"; }
 die()  { log "${C_RED}✗${C_RESET} $*"; exit 1; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+# A dry run must leave the disk untouched, including whatever INSTALL_PI_LOG
+# points at, which a real run truncates. So it logs to a throwaway file.
+init_logging() {
+    if $DRY_RUN; then
+        LOG_FILE="$(mktemp "${TMPDIR:-/tmp}/install-pi-dry-run.XXXXXX")"
+        return 0
+    fi
+    LOG_FILE="${INSTALL_PI_LOG:-$HOME/install-pi.log}"
+    run_as_user install -m 644 /dev/null "$LOG_FILE" 2>/dev/null || : >"$LOG_FILE"
+}
 
 show_help() {
     cat <<'EOF'
@@ -93,7 +113,8 @@ Options:
   --help, -h        Show this help
 
 Environment:
-  INSTALL_PI_LOG    Log file path (default: ~/install-pi.log)
+  INSTALL_PI_LOG    Log file path (default: ~/install-pi.log). --dry-run logs
+                    to a temporary file and leaves this one alone.
 
 Everything is idempotent — re-run it after `git pull` to pick up changes.
 EOF
@@ -102,6 +123,34 @@ EOF
 # ------------------------------------------------------------ privileges ----
 
 SUDO=""
+
+# Work out whose machine this actually is. Under `sudo ./install-pi` the
+# process is root but the account being provisioned is $SUDO_USER, so HOME is
+# repointed and every non-privileged command is demoted back to that user —
+# otherwise the symlinks, plugin checkouts and chsh would all land on root.
+detect_target_user() {
+    if [ "$(id -u)" -ne 0 ]; then
+        TARGET_USER="$(id -un)"
+        DEMOTE_USER=""
+        return 0
+    fi
+
+    if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
+        TARGET_USER="$SUDO_USER"
+        DEMOTE_USER="$SUDO_USER"
+    else
+        TARGET_USER="root"
+        DEMOTE_USER=""
+    fi
+
+    local home
+    home="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
+    [ -n "$home" ] ||
+        printf 'Cannot resolve the home directory of %s\n' "$TARGET_USER" >&2
+    [ -n "$home" ] || exit 1
+    export HOME="$home"
+    export USER="$TARGET_USER" LOGNAME="$TARGET_USER"
+}
 
 setup_sudo() {
     if [ "$(id -u)" -eq 0 ]; then
@@ -137,13 +186,23 @@ apt_get() {
     as_root env DEBIAN_FRONTEND=noninteractive apt-get "$@"
 }
 
-# Run a command as the current user.
+# Run a command as the account being provisioned. PATH is passed through
+# explicitly because sudo resets it, and later phases rely on the mise shims
+# this script prepends.
+run_as_user() {
+    if [ -n "$DEMOTE_USER" ]; then
+        sudo -u "$DEMOTE_USER" -H env "PATH=$PATH" "$@"
+    else
+        "$@"
+    fi
+}
+
 as_user() {
     if $DRY_RUN; then
         log "${C_DIM}[dry-run] $*${C_RESET}"
         return 0
     fi
-    "$@"
+    run_as_user "$@"
 }
 
 # ---------------------------------------------------------------- checks ----
@@ -173,6 +232,7 @@ preflight() {
     [ -d "$DOTFILES_DIR/fish" ] ||
         die "$DOTFILES_DIR does not look like the dotfiles repo (no fish/ directory)."
     ok "Dotfiles: $DOTFILES_DIR"
+    ok "Provisioning: $TARGET_USER (home: $HOME)"
     ok "Log: $LOG_FILE"
 
     if ! $ASSUME_YES && ! $DRY_RUN && [ -t 0 ]; then
@@ -421,9 +481,11 @@ install_tmux_plugins() {
 
     # tmux-thumbs and tmux-floax build with cargo, so this needs the mise rust.
     log "Installing tmux plugins (a couple of these build from source)"
-    as_user "$tpm/bin/install_plugins" >>"$LOG_FILE" 2>&1 ||
+    if as_user "$tpm/bin/install_plugins" >>"$LOG_FILE" 2>&1; then
+        ok "tmux plugins installed"
+    else
         warn "Some tmux plugins failed to install — see $LOG_FILE"
-    ok "tmux plugins installed"
+    fi
 }
 
 sync_neovim() {
@@ -436,9 +498,11 @@ sync_neovim() {
     fi
 
     log "Running lazy.nvim sync headless (a few minutes on a first run)"
-    as_user nvim --headless "+Lazy! sync" +qa >>"$LOG_FILE" 2>&1 ||
+    if as_user nvim --headless "+Lazy! sync" +qa >>"$LOG_FILE" 2>&1; then
+        ok "Neovim plugins synced"
+    else
         warn "Neovim plugin sync reported errors — see $LOG_FILE"
-    ok "Neovim plugins synced"
+    fi
 }
 
 install_herdr_plugins() {
@@ -450,7 +514,7 @@ install_herdr_plugins() {
         return
     fi
 
-    local plugin
+    local plugin failed=()
     for plugin in \
         paulbkim-dev/vim-herdr-navigation \
         JanTvrdik/herdr-command-palette \
@@ -459,9 +523,13 @@ install_herdr_plugins() {
         thanhdat77/herdr-navigator \
         iurysza/termscope; do
         as_user herdr plugin install "$plugin" --yes >>"$LOG_FILE" 2>&1 ||
-            warn "Failed to install herdr plugin $plugin — see $LOG_FILE"
+            failed+=("$plugin")
     done
-    ok "herdr plugins installed"
+    if [ ${#failed[@]} -gt 0 ]; then
+        warn "Failed to install herdr plugins: ${failed[*]} — see $LOG_FILE"
+    else
+        ok "herdr plugins installed"
+    fi
 }
 
 # ------------------------------------------------------------ login shell ----
@@ -474,26 +542,37 @@ set_login_shell() {
     if $DRY_RUN; then
         fish_path="$HOME/.local/share/mise/installs/fish/latest/bin/fish"
     else
-        fish_path="$(mise which fish 2>/dev/null || command -v fish || true)"
+        fish_path="$(run_as_user mise which fish 2>/dev/null || true)"
+        [ -n "$fish_path" ] || fish_path="$(command -v fish || true)"
         if [ -z "$fish_path" ]; then
             warn "fish not found; not changing the login shell"
             return 0
         fi
     fi
 
-    if [ "${SHELL:-}" = "$fish_path" ]; then
-        skip "fish is already the login shell"
+    local current_shell
+    current_shell="$(getent passwd "$TARGET_USER" | cut -d: -f7)"
+    if [ "$current_shell" = "$fish_path" ]; then
+        skip "fish is already $TARGET_USER's login shell"
         return
     fi
 
     if ! grep -qxF "$fish_path" /etc/shells 2>/dev/null; then
-        printf '%s\n' "$fish_path" | as_root tee -a /etc/shells >/dev/null
+        if $DRY_RUN; then
+            log "${C_DIM}[dry-run] append $fish_path to /etc/shells${C_RESET}"
+        else
+            printf '%s\n' "$fish_path" | as_root tee -a /etc/shells >/dev/null
+        fi
     fi
-    as_user chsh -s "$fish_path" ||
-        warn "chsh failed; run: chsh -s $fish_path"
 
-    warn "Your login shell now depends on mise. Open a second SSH session and confirm it works before closing this one."
-    ok "Login shell set to $fish_path"
+    # chsh runs as root and names the account explicitly: as the user it would
+    # prompt for a password, and under sudo it would retarget root's shell.
+    if as_root chsh -s "$fish_path" "$TARGET_USER"; then
+        warn "Your login shell now depends on mise. Open a second SSH session and confirm it works before closing this one."
+        ok "Login shell for $TARGET_USER set to $fish_path"
+    else
+        warn "chsh failed; run: chsh -s $fish_path $TARGET_USER"
+    fi
 }
 
 # ----------------------------------------------------------------- main ------
@@ -517,7 +596,10 @@ main() {
         shift
     done
 
-    : >"$LOG_FILE"
+    detect_target_user
+    init_logging
+    BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+
     local start_time
     start_time=$(date +%s)
 
