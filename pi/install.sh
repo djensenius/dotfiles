@@ -132,7 +132,8 @@ Environment:
                     backends). Without one you get 60 API calls an hour per IP
                     and `mise install` fails with 403. Any token works, no
                     scopes needed; GH_TOKEN and an authenticated `gh` CLI are
-                    picked up automatically.
+                    picked up automatically. If none is found, the script
+                    installs gh from apt and offers to run `gh auth login`.
   INSTALL_PI_LOG    Log file path (default: ~/install-pi.log). --dry-run does
                     not write a log, and leaves this file alone.
 
@@ -385,6 +386,78 @@ install_mise() {
     ok "mise installed from its apt repository"
 }
 
+# gh is also in pi/mise.toml, but that is installed by the very step the token
+# is needed for, so bootstrap it from GitHub's apt repository instead. apt
+# needs no GitHub API calls, so it works even with the rate limit exhausted.
+# mise's copy shadows this one on PATH afterwards; both are the same CLI and
+# share ~/.config/gh, so the login survives.
+install_gh_cli() {
+    if have gh; then
+        return 0
+    fi
+    if ! $DO_APT; then
+        return 1
+    fi
+
+    step "Installing the gh CLI (for GitHub authentication)"
+    as_root install -dm 755 /etc/apt/keyrings
+    if [ ! -s /etc/apt/keyrings/githubcli-archive-keyring.gpg ]; then
+        if $DRY_RUN; then
+            log "${C_DIM}[dry-run] fetch gh gpg key -> /etc/apt/keyrings/githubcli-archive-keyring.gpg${C_RESET}"
+        else
+            wget -qO - https://cli.github.com/packages/githubcli-archive-keyring.gpg |
+                as_root tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+            as_root chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+        fi
+    fi
+
+    local arch line
+    arch="$(dpkg --print-architecture 2>/dev/null || echo arm64)"
+    line="deb [arch=$arch signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+    if $DRY_RUN; then
+        log "${C_DIM}[dry-run] write /etc/apt/sources.list.d/github-cli.list${C_RESET}"
+    else
+        printf '%s\n' "$line" | as_root tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+    fi
+
+    tee_log apt_get update
+    tee_log apt_get install -y gh
+    $DRY_RUN || have gh || { warn "gh install failed"; return 1; }
+    ok "gh installed from GitHub's apt repository"
+    return 0
+}
+
+# `gh auth login --web` prints a one-time code and a URL to open on any other
+# machine, which is what a headless Pi needs. The token lands in
+# ~/.config/gh/hosts.yml — a real file, since only gh/config.yml is symlinked
+# into this repo — so re-runs pick it up without asking again.
+gh_login() {
+    if [ ! -t 0 ]; then
+        log "  Not a terminal, so skipping the interactive gh login."
+        return 1
+    fi
+    if $DRY_RUN; then
+        log "${C_DIM}[dry-run] gh auth login --web${C_RESET}"
+        return 1
+    fi
+
+    if ! $ASSUME_YES; then
+        printf 'Authenticate with GitHub now using the gh CLI? [Y/n] '
+        local reply
+        read -r reply
+        case "$reply" in
+            [nN]*) return 1 ;;
+        esac
+    fi
+
+    # Interactive by design: no tee_log, no output capture.
+    if ! as_user gh auth login --hostname github.com --git-protocol https --web; then
+        warn "gh auth login did not complete"
+        return 1
+    fi
+    return 0
+}
+
 # mise downloads most tools through its aqua/github backends, which query
 # api.github.com. Unauthenticated that is 60 requests an hour for the whole
 # IP, so a fresh install reliably dies with "403 rate limit exceeded". Any
@@ -396,21 +469,30 @@ resolve_github_token() {
         return 0
     fi
 
-    if have gh; then
-        local token
-        token="$(run_as_user gh auth token 2>/dev/null || true)"
-        if [ -n "$token" ]; then
-            GITHUB_TOKEN="$token"
-            export GITHUB_TOKEN
-            ok "Using the gh CLI's token for GitHub downloads"
-            return 0
-        fi
+    if gh_token_into_env; then
+        return 0
     fi
 
-    warn "No GITHUB_TOKEN found; GitHub allows only 60 unauthenticated API calls an hour per IP and mise will likely fail with a 403."
+    log "No GitHub token yet. GitHub allows only 60 unauthenticated API calls an hour per IP, which is not enough for mise to install this manifest."
+    if install_gh_cli && gh_login && gh_token_into_env; then
+        return 0
+    fi
+
+    warn "Continuing unauthenticated; mise will likely fail with a 403 rate-limit error."
     log "  Create a token at https://github.com/settings/tokens (no scopes needed) and re-run:"
     log "    GITHUB_TOKEN=ghp_... ./install-pi"
-    log "  Or authenticate the gh CLI first: gh auth login"
+    return 0
+}
+
+# Take the token gh already holds, if it has one.
+gh_token_into_env() {
+    have gh || return 1
+    local token
+    token="$(run_as_user gh auth token 2>/dev/null || true)"
+    [ -n "$token" ] || return 1
+    GITHUB_TOKEN="$token"
+    export GITHUB_TOKEN
+    ok "Using the gh CLI's token for GitHub downloads"
     return 0
 }
 

@@ -28,19 +28,27 @@ is the update path.
   cargo-build, as do the herdr marketplace plugins in step 7 that publish no
   arm64 binary — `herdr-floax`, `herdr-navigator` and `herdr-pluck` at the time
   of writing.
-- **A GitHub token.** mise fetches most tools through its aqua/github backends,
-  which call `api.github.com`. Unauthenticated that is 60 requests an hour for
-  your whole IP, so step 4 fails with `403 rate limit exceeded` part-way
-  through. Create one at <https://github.com/settings/tokens> — **no scopes are
-  required**, it only reads public releases — and pass it in:
+- **A GitHub account.** mise fetches most tools through its aqua/github
+  backends, which call `api.github.com`. Unauthenticated that is 60 requests an
+  hour for your whole IP, so step 4 fails with `403 rate limit exceeded`
+  part-way through. You do not have to do anything up front: if the script
+  finds no token it installs the `gh` CLI from GitHub's apt repository and
+  offers to run `gh auth login --web`, which prints a one-time code to enter on
+  another machine. The token lands in `~/.config/gh/hosts.yml` (a real file —
+  only `gh/config.yml` is symlinked into this repo) and is reused on later
+  runs.
+
+  To skip the prompt, bring your own token from
+  <https://github.com/settings/tokens> — **no scopes are required**, it only
+  reads public releases:
 
   ```bash
   GITHUB_TOKEN=ghp_... ./install-pi
   ```
 
-  `GH_TOKEN` works too, and if the `gh` CLI is already authenticated on the Pi
-  the script picks up `gh auth token` on its own. Re-running after a rate-limit
-  failure is safe: already-installed tools are skipped.
+  `GH_TOKEN` works too. Under `sudo`, use `sudo -E`, or sudo strips the
+  variable before the script sees it. Re-running after a rate-limit failure is
+  safe: already-installed tools are skipped.
 
 ## What it does
 
@@ -49,7 +57,7 @@ is the update path.
 | 1 | apt packages | `git`, `build-essential`, `python3`, `btop`, `tmuxinator`, and friends. Falls back to installing one by one if a package is missing on your release. Generates a UTF-8 locale if the image has none. |
 | 2 | mise | Installed from [its own apt repository](https://mise.jdx.dev), keyring and all. With `--skip-apt` it falls back to `https://mise.run`. |
 | 3 | Symlinks | Links this repo into `~/.config` (fish, nvim, tmux, starship, atuin, bat, bottom, btop, delta, eza, fastfetch, yazi, zellij, tmuxinator, gh, gh-dash, herdr) plus `~/.gitconfig` and friends. Anything already there is moved to `~/.dotfiles-backup/<timestamp>/`, under its path relative to `~`, first. |
-| 4 | Tools | Copies [`mise.toml`](mise.toml) to `~/.config/mise/config.toml`, trusts it, and runs `mise install`. |
+| 4 | Tools | Copies [`mise.toml`](mise.toml) to `~/.config/mise/config.toml`, trusts it, and runs `mise install`. Resolves a GitHub token first (env, `gh`, or an offered `gh auth login`) so the downloads are not rate-limited. |
 | 5 | tmux plugins | Clones tpm and installs the plugin set. `tmux-thumbs` and `tmux-floax` build with cargo, which is why the manifest includes rust. |
 | 6 | Neovim | `nvim --headless "+Lazy! sync" +qa`. |
 | 7 | herdr plugins | The same marketplace plugins `install.sh` installs, including its removal of the legacy `herdr-picker-plus` id. |
