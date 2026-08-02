@@ -23,13 +23,16 @@
 #   HERDR_STATUS_PER_ROW    package entries per sidebar row (default: 3)
 #   HERDR_STATUS_MAX_AGE    ignore package counts older than N seconds (default:
 #                           3600; 0 disables)
+#   HERDR_STATUS_POLLER     tmux-outdated-packages poller path (default:
+#                           ~/.config/tmux/plugins/.../scripts/poller.sh)
 #   HERDR_SOCKET_PATH       herdr API socket (honoured by the herdr CLI too)
 #   HERDR_STATUS_HEARTS     battery hearts to render (default: 5)
 set -uo pipefail
 
 # launchd runs with a minimal PATH; mise shims hold battery_hearts, and herdr
-# itself lives in homebrew.
-PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/usr/local/bin:$PATH"
+# itself lives in homebrew. ~/.cargo/bin covers package-check helpers installed
+# outside mise.
+PATH="$HOME/.local/share/mise/shims:$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 export PATH
 
 SOURCE_ID='dotfiles-status'
@@ -40,6 +43,7 @@ SOCKET="${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}"
 # nc calls below can never end up talking to two different servers.
 export HERDR_SOCKET_PATH="$SOCKET"
 OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
+OUTDATED_POLLER="${HERDR_STATUS_POLLER:-$HOME/.config/tmux/plugins/tmux-outdated-packages/scripts/poller.sh}"
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
 
@@ -85,6 +89,26 @@ api() {
     local method="$1" params="$2"
     printf '{"id":"herdr-status","method":"%s","params":%s}\n' "$method" "$params" |
         nc -U "$SOCKET" 2>/dev/null
+}
+
+# The cache originally belonged only to tmux, whose plugin starts this poller
+# when tmux loads. Herdr may run for days without tmux, so keep the shared
+# poller alive here too instead of repeatedly publishing an abandoned cache.
+ensure_outdated_poller() {
+    local pid_file="$OUTDATED_CACHE/poller.pid" pid=''
+    if [ ! -x "$OUTDATED_POLLER" ]; then
+        log "outdated-package poller not found at $OUTDATED_POLLER"
+        return 0
+    fi
+
+    if [ -f "$pid_file" ]; then
+        pid=$(tr -dc '0-9' <"$pid_file" 2>/dev/null)
+        [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && return 0
+    fi
+
+    mkdir -p "$OUTDATED_CACHE"
+    nohup "$OUTDATED_POLLER" >>"$OUTDATED_CACHE/herdr-poller.log" 2>&1 &
+    log "started outdated-package poller (pid $!)"
 }
 
 # Workspace ids are assigned by the server and change between sessions, so the
@@ -233,11 +257,13 @@ case "${1:-}" in
         ;;
     --watch)
         while true; do
+            ensure_outdated_poller
             report_once
             sleep "$INTERVAL"
         done
         ;;
     '')
+        ensure_outdated_poller
         report_once
         ;;
     *)
