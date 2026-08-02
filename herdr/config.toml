@@ -212,6 +212,14 @@ width = "90%"
 height = "90%"
 description = "lazygit"
 
+[[keys.command]]
+key = "prefix+shift+i"
+type = "popup"
+command = "~/.config/herdr/scripts/herdr-cli-update.sh"
+width = "80%"
+height = "80%"
+description = "update outdated CLI packages"
+
 # ================ Plugin actions ==================
 # Installed with `herdr plugin install` — see README.md. Keys mirror the tmux
 # bindings the plugins replace.
