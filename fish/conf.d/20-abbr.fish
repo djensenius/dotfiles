@@ -11,6 +11,19 @@ __abbr_add monolith 'gh cs create -R github/github -m xLargePremiumLinux --devco
 __abbr_add youtub-dl yt-dlp
 __abbr_add vim nvim
 __abbr_add vi nvim
+# Keep elevated editing in the user's Neovim environment instead of starting
+# a separate root-owned editor and plugin tree.
+function __sudoedit_editor
+    set -l tokens (commandline -opc)
+    if test (count $tokens) -eq 2
+        echo -- -e
+        return 0
+    end
+    return 1
+end
+if not abbr --query sudoedit-editor
+    abbr --add sudoedit-editor --command sudo --regex '^(vi|vim|nvim)$' --function __sudoedit_editor
+end
 __abbr_add clear-tmux-window 'tmux set-window-option -t1 automatic-rename on'
 __abbr_add kw 'curl https://wttr.in/Kitchener'
 
