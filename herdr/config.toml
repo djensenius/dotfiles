@@ -34,8 +34,17 @@ copy_on_select = true
 mouse_capture = true
 mouse_scroll_lines = 3
 
-# tmux hides nothing, but a single-tab workspace has no useful tab row.
+# Keep the tab row visible with one tab because it also hosts status entries.
 hide_tab_bar_when_single_tab = false
+
+# Herdr 0.8.2 added a tmux-style status area to the right side of the tab row.
+# The command reads the same battery/package cache as tmux without needing a
+# dedicated status workspace.
+tab_bar_right = [
+  { type = "zoom" },
+  { type = "command", command = "~/.config/herdr/scripts/herdr-status-report.sh --tab-bar", interval_seconds = 5, timeout_seconds = 2 },
+]
+tab_bar_right_separator = " · "
 
 sidebar_width = 30
 sidebar_min_width = 20
@@ -108,6 +117,12 @@ split_horizontal = ["prefix+minus", "prefix+_", "prefix+\""]
 close_pane = "prefix+q"               # tmux: `bind q killp`
 zoom = "prefix+z"
 resize_mode = "prefix+r"
+# Herdr 0.8.2 handles tmux-style one-shot resizes natively with the same 0.05
+# split-ratio delta the old shell-command shims used.
+resize_pane_left = "prefix+ctrl+h"
+resize_pane_down = "prefix+ctrl+j"
+resize_pane_up = "prefix+ctrl+k"
+resize_pane_right = "prefix+ctrl+l"
 rename_pane = "prefix+shift+p"
 edit_scrollback = "prefix+e"
 
@@ -123,38 +138,6 @@ navigate_pane_up = "k"
 navigate_pane_right = "l"
 
 # ================ Custom commands =================
-# tmux: `bind ^k resizep -U 10` and friends. Herdr only ships a modal
-# resize mode, so the one-shot resizes are replayed through the CLI.
-#
-# NOTE: `--amount` is a split-ratio DELTA, not a cell count. Verified against
-# herdr 0.7.5: on a 54-column split sitting at ratio 0.5, `--amount 0.05` moves
-# it to 0.55, whereas passing a cell count such as 10 slams the split straight
-# to the 0.9 clamp. 0.05 is about tmux's 10 columns on a full-width terminal and
-# never saturates the split.
-[[keys.command]]
-key = "prefix+ctrl+k"
-type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction up --amount 0.05"
-description = "resize pane up"
-
-[[keys.command]]
-key = "prefix+ctrl+j"
-type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction down --amount 0.05"
-description = "resize pane down"
-
-[[keys.command]]
-key = "prefix+ctrl+h"
-type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction left --amount 0.05"
-description = "resize pane left"
-
-[[keys.command]]
-key = "prefix+ctrl+l"
-type = "shell"
-command = "\"$HERDR_BIN_PATH\" pane resize --pane \"$HERDR_ACTIVE_PANE_ID\" --direction right --amount 0.05"
-description = "resize pane right"
-
 # tmux: `bind ^u swapp -U` / `bind ^d swapp -D`.
 [[keys.command]]
 key = "prefix+ctrl+u"
@@ -313,31 +296,11 @@ position = "bottom-center"
 enabled = true
 
 # ================ Sidebar =========================
-# Herdr has no status bar and no tab-bar status region; the sidebar is the only
-# status surface, so the tmux status-right modules are reproduced with $custom
-# metadata tokens on a dedicated "status" workspace -- see README. Only
-# tmux-speedtest is left behind: it is on-demand rather than ambient.
 [ui.sidebar.spaces]
 row_gap = 0
 rows = [
   ["state_icon", "workspace"],
   ["branch", "git_status"],
-  # Ambient host status, ported from the tmux status-right modules. A row of
-  # only $custom tokens is dropped for workspaces that do not report them, so
-  # these render on the "status" workspace alone -- Herdr has no third sidebar
-  # section, and this is the closest thing to one. Fed by
-  # scripts/herdr-status-report.sh, which also pins the card to the top.
-  #
-  # Outdated managers are packed HERDR_STATUS_PER_ROW (default 3) at a time as
-  # icon + count. A row is declared per manager, which covers PER_ROW=1; the
-  # script reports only the rows it fills, so the spares stay hidden.
-  [{ token = "$battery", fg = "#f38ba8" }],
-  [{ token = "$pkg_row1", fg = "#fab387" }],
-  [{ token = "$pkg_row2", fg = "#fab387" }],
-  [{ token = "$pkg_row3", fg = "#fab387" }],
-  [{ token = "$pkg_row4", fg = "#fab387" }],
-  [{ token = "$pkg_row5", fg = "#fab387" }],
-  [{ token = "$pkg_row6", fg = "#fab387" }],
 ]
 
 [ui.sidebar.agents]
