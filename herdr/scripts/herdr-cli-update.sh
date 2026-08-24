@@ -252,10 +252,10 @@ update_all() {
     return "$failed"
 }
 
+list_only=0
 case "${1:-}" in
     --list)
-        draw_screen
-        exit 0
+        list_only=1
         ;;
     '')
         ;;
@@ -268,6 +268,11 @@ esac
 if [ "$cache_initialized" -eq 0 ] && ! "$STATUS_HELPER" --ensure-poller; then
     printf 'cli-update: unable to start the package-status poller\n' >&2
     exit 1
+fi
+
+if [ "$list_only" -eq 1 ]; then
+    draw_screen
+    exit 0
 fi
 
 if [ ! -t 0 ]; then
