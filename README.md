@@ -282,8 +282,10 @@ dedicated `status` workspace and its custom sidebar metadata.
 The package checks themselves remain asynchronous. Before showing update
 actions, `cli-update` waits for a fresh result from every installed checker so
 a partially written cache cannot be mistaken for an all-clear. The tmux plugin
-starts its poller whenever tmux runs; on macOS, the launch agent below makes
-sure it is also running when Herdr is used on its own:
+owns an atomic startup lock, so tmux, the updater and the launch agent can all
+start the poller without creating competing workers. The plugin starts it
+whenever tmux runs; on macOS, the launch agent below makes sure it is also
+running when Herdr is used on its own:
 
   ```bash
   mkdir -p ~/Library/LaunchAgents

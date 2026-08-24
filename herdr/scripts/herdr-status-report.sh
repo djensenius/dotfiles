@@ -175,13 +175,12 @@ running_poller_pid() {
 }
 
 refresh_outdated_poller() {
-    local pid
-    if pid=$(running_poller_pid); then
-        kill -USR1 "$pid"
-        return
-    fi
-
-    # A newly started poller performs an initial check without needing a signal.
+    local manager
+    mkdir -p "$OUTDATED_CACHE"
+    while IFS= read -r manager; do
+        [ -n "$manager" ] || continue
+        rm -f "$OUTDATED_CACHE/$manager.count"
+    done < <(expected_package_managers)
     ensure_outdated_poller
 }
 
