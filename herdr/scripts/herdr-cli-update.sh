@@ -17,6 +17,13 @@ fi
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 CACHE_DIR="${TMPDIR:-/tmp}/tmux-outdated-packages"
 STATUS_HELPER="$SCRIPT_DIR/herdr-status-report.sh"
+MAX_AGE="${HERDR_STATUS_MAX_AGE:-3600}"
+
+case "$MAX_AGE" in
+    '' | *[!0-9]*) MAX_AGE=3600 ;;
+esac
+MAX_AGE=$((10#$MAX_AGE))
+[ "$MAX_AGE" -le 604800 ] || MAX_AGE=604800
 
 declare -a manager_ids=()
 declare -a manager_names=()
@@ -24,10 +31,6 @@ declare -a manager_counts=()
 declare -a manager_commands=()
 declare -a manager_lists=()
 cache_initialized=0
-
-if compgen -G "$CACHE_DIR/*.count" >/dev/null; then
-    cache_initialized=1
-fi
 
 manager_icon() {
     case "$1" in
@@ -44,9 +47,21 @@ manager_icon() {
     esac
 }
 
+cache_file_is_usable() {
+    local file="$1" mtime age
+    [ -f "$file" ] || return 1
+    awk 'NR == 1 && /^[0-9]+$/ { found = 1 } END { exit !found }' "$file" || return 1
+
+    [ "$MAX_AGE" -gt 0 ] || return 0
+    mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+    [ -n "$mtime" ] || return 1
+    age=$(($(date +%s) - mtime))
+    [ "$age" -le "$MAX_AGE" ]
+}
+
 read_count() {
     local file="$CACHE_DIR/$1" count
-    [ -f "$file" ] || return 0
+    cache_file_is_usable "$file" || return 0
     count=$(awk 'NR == 1 && /^[0-9]+$/ { print; exit }' "$file")
     [ -n "$count" ] || return 0
     printf '%s' "$count"
@@ -63,16 +78,6 @@ add_manager() {
     manager_commands+=("$command")
     manager_lists+=("$list_file")
 }
-
-add_manager brew "Homebrew" brew.count "brew upgrade" brew.list
-add_manager npm "npm" npm.count "npm update -g" npm.list
-add_manager cargo "Cargo" cargo.count "cargo install-update -a" cargo.list
-add_manager composer "Composer" composer.count "composer global update" composer.list
-add_manager go "Go" go.count "go-global-update" go.list
-add_manager apt "Apt" apt.count "sudo apt upgrade" apt.list
-add_manager dnf "DNF" dnf.count "sudo dnf upgrade" dnf.list
-add_manager mise "Mise" mise.count "mise upgrade" mise.list
-add_manager pip "pip" pip.count "pip3 install --upgrade <packages>" pip.list
 
 BOLD=$'\033[1m'
 DIM=$'\033[2m'
@@ -259,6 +264,26 @@ if ! "$STATUS_HELPER" --ensure-poller; then
     printf 'cli-update: unable to start the package-status poller\n' >&2
     exit 1
 fi
+
+shopt -s nullglob
+count_files=("$CACHE_DIR"/*.count)
+shopt -u nullglob
+for count_file in "${count_files[@]}"; do
+    if cache_file_is_usable "$count_file"; then
+        cache_initialized=1
+        break
+    fi
+done
+
+add_manager brew "Homebrew" brew.count "brew upgrade" brew.list
+add_manager npm "npm" npm.count "npm update -g" npm.list
+add_manager cargo "Cargo" cargo.count "cargo install-update -a" cargo.list
+add_manager composer "Composer" composer.count "composer global update" composer.list
+add_manager go "Go" go.count "go-global-update" go.list
+add_manager apt "Apt" apt.count "sudo apt upgrade" apt.list
+add_manager dnf "DNF" dnf.count "sudo dnf upgrade" dnf.list
+add_manager mise "Mise" mise.count "mise upgrade" mise.list
+add_manager pip "pip" pip.count "pip3 install --upgrade <packages>" pip.list
 
 if [ "$list_only" -eq 1 ]; then
     draw_screen
