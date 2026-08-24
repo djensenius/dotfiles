@@ -265,7 +265,7 @@ case "${1:-}" in
         ;;
 esac
 
-if [ "$cache_initialized" -eq 0 ] && ! "$STATUS_HELPER" --ensure-poller; then
+if ! "$STATUS_HELPER" --ensure-poller; then
     printf 'cli-update: unable to start the package-status poller\n' >&2
     exit 1
 fi
