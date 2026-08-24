@@ -8,12 +8,16 @@
 # Usage:
 #   herdr-status-report.sh --tab-bar       print one status line
 #   herdr-status-report.sh --ensure-poller start the shared poller if needed
+#   herdr-status-report.sh --wait-poller   wait for a complete cache refresh
+#   herdr-status-report.sh --cache-ready   check for a complete, fresh cache
 #   herdr-status-report.sh --refresh-poller refresh it, starting it if needed
 #   herdr-status-report.sh                 same as --ensure-poller (launchd compatibility)
 #
 # Env:
 #   HERDR_STATUS_MAX_AGE  ignore package counts older than N seconds (default:
 #                         3600; 0 disables)
+#   HERDR_STATUS_WAIT_TIMEOUT maximum seconds to wait for a complete refresh
+#                         (default: 250)
 #   HERDR_STATUS_POLLER   tmux-outdated-packages poller path
 #   HERDR_STATUS_HEARTS   battery hearts to render (default: 5)
 set -uo pipefail
@@ -58,6 +62,8 @@ bounded() {
 
 HEARTS=$(bounded HERDR_STATUS_HEARTS "${HERDR_STATUS_HEARTS:-5}" 1 20 5)
 MAX_AGE=$(bounded HERDR_STATUS_MAX_AGE "${HERDR_STATUS_MAX_AGE:-3600}" 0 604800 3600)
+WAIT_TIMEOUT=$(bounded \
+    HERDR_STATUS_WAIT_TIMEOUT "${HERDR_STATUS_WAIT_TIMEOUT:-250}" 1 600 250)
 
 manager_icon() {
     case "$1" in
@@ -122,7 +128,7 @@ render_tab_bar() {
 }
 
 ensure_outdated_poller() {
-    local pid_file="$OUTDATED_CACHE/poller.pid" pid
+    local pid_file="$OUTDATED_CACHE/poller.pid" pid running_pid attempts=0
     running_poller_pid >/dev/null && return 0
     rm -f "$pid_file"
 
@@ -133,11 +139,22 @@ ensure_outdated_poller() {
     mkdir -p "$OUTDATED_CACHE"
     nohup "$OUTDATED_POLLER" >>"$OUTDATED_CACHE/herdr-poller.log" 2>&1 </dev/null &
     pid=$!
-    if ! kill -0 "$pid" 2>/dev/null; then
-        log 'failed to start outdated-package poller'
-        return 1
-    fi
-    log "started outdated-package poller (pid $pid)"
+    while [ "$attempts" -lt 20 ]; do
+        if running_pid=$(running_poller_pid); then
+            # Let the poller install its signal handlers before callers can
+            # request a refresh.
+            sleep 1
+            running_pid=$(running_poller_pid) || break
+            log "started outdated-package poller (pid $running_pid)"
+            return 0
+        fi
+        kill -0 "$pid" 2>/dev/null || break
+        attempts=$((attempts + 1))
+        sleep 0.1
+    done
+
+    log 'failed to start outdated-package poller'
+    return 1
 }
 
 running_poller_pid() {
@@ -168,12 +185,106 @@ refresh_outdated_poller() {
     ensure_outdated_poller
 }
 
+expected_package_managers() {
+    command -v brew >/dev/null 2>&1 && printf '%s\n' brew
+    command -v npm >/dev/null 2>&1 && printf '%s\n' npm
+    command -v pip3 >/dev/null 2>&1 && printf '%s\n' pip
+    if command -v cargo >/dev/null 2>&1 &&
+        command -v cargo-install-update >/dev/null 2>&1; then
+        printf '%s\n' cargo
+    fi
+    command -v composer >/dev/null 2>&1 && printf '%s\n' composer
+    if command -v go >/dev/null 2>&1 &&
+        command -v go-global-update >/dev/null 2>&1; then
+        printf '%s\n' go
+    fi
+    if command -v apt >/dev/null 2>&1 &&
+        { [ -r /var/lib/apt/lists ] || [ "$EUID" -eq 0 ]; }; then
+        printf '%s\n' apt
+    fi
+    command -v dnf >/dev/null 2>&1 && printf '%s\n' dnf
+    command -v mise >/dev/null 2>&1 && printf '%s\n' mise
+}
+
+count_file_is_usable() {
+    local file="$1" marker="${2:-}" mtime age
+    [ -f "$file" ] || return 1
+    awk 'NR == 1 && /^[0-9]+$/ { found = 1 } END { exit !found }' "$file" ||
+        return 1
+
+    if [ -n "$marker" ]; then
+        [ "$file" -nt "$marker" ]
+        return
+    fi
+
+    [ "$MAX_AGE" -gt 0 ] || return 0
+    mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+    [ -n "$mtime" ] || return 1
+    age=$(($(date +%s) - mtime))
+    [ "$age" -le "$MAX_AGE" ]
+}
+
+package_cache_is_ready() {
+    local marker="${1:-}" manager expected=0
+    while IFS= read -r manager; do
+        [ -n "$manager" ] || continue
+        expected=1
+        count_file_is_usable "$OUTDATED_CACHE/$manager.count" "$marker" ||
+            return 1
+    done < <(expected_package_managers)
+    [ "$expected" -eq 1 ]
+}
+
+remove_refresh_marker() {
+    rm -f "$1"
+    trap - INT TERM
+}
+
+wait_for_outdated_poller() {
+    local deadline marker expected
+    ensure_outdated_poller || return
+    package_cache_is_ready && return 0
+
+    expected=$(expected_package_managers)
+    [ -n "$expected" ] || return 0
+
+    marker="$OUTDATED_CACHE/herdr-refresh.$$"
+    : >"$marker"
+    trap 'rm -f "$marker"; exit 130' INT TERM
+    if ! refresh_outdated_poller; then
+        remove_refresh_marker "$marker"
+        return 1
+    fi
+    deadline=$(($(date +%s) + WAIT_TIMEOUT))
+
+    until package_cache_is_ready "$marker"; do
+        if ! running_poller_pid >/dev/null; then
+            remove_refresh_marker "$marker"
+            log 'outdated-package poller exited before completing a check'
+            return 1
+        fi
+        if [ "$(date +%s)" -ge "$deadline" ]; then
+            remove_refresh_marker "$marker"
+            log 'timed out waiting for outdated-package checks'
+            return 1
+        fi
+        sleep 1
+    done
+    remove_refresh_marker "$marker"
+}
+
 case "${1:-}" in
     --tab-bar)
         render_tab_bar
         ;;
     --ensure-poller | '')
         ensure_outdated_poller
+        ;;
+    --wait-poller)
+        wait_for_outdated_poller
+        ;;
+    --cache-ready)
+        package_cache_is_ready
         ;;
     --refresh-poller)
         refresh_outdated_poller

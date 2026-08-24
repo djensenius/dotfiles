@@ -260,20 +260,17 @@ case "${1:-}" in
         ;;
 esac
 
-if ! "$STATUS_HELPER" --ensure-poller; then
-    printf 'cli-update: unable to start the package-status poller\n' >&2
+if ! "$STATUS_HELPER" --cache-ready; then
+    printf '%s\n' 'Checking package status...'
+fi
+if ! "$STATUS_HELPER" --wait-poller; then
+    printf 'cli-update: unable to refresh package status\n' >&2
     exit 1
 fi
 
-shopt -s nullglob
-count_files=("$CACHE_DIR"/*.count)
-shopt -u nullglob
-for count_file in "${count_files[@]}"; do
-    if cache_file_is_usable "$count_file"; then
-        cache_initialized=1
-        break
-    fi
-done
+if "$STATUS_HELPER" --cache-ready; then
+    cache_initialized=1
+fi
 
 add_manager brew "Homebrew" brew.count "brew upgrade" brew.list
 add_manager npm "npm" npm.count "npm update -g" npm.list

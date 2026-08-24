@@ -21,6 +21,11 @@
     <key>RunAtLoad</key>
     <true/>
 
+    <!-- The helper exits after starting the long-lived poller. Keep launchd
+         from reaping the poller's process group with the helper. -->
+    <key>AbandonProcessGroup</key>
+    <true/>
+
     <key>StandardErrorPath</key>
     <string>/tmp/herdr-status.log</string>
 </dict>

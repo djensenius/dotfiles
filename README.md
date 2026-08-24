@@ -279,9 +279,11 @@ right-aligned status entries.
 shared `tmux-outdated-packages` cache every five seconds. This replaces the old
 dedicated `status` workspace and its custom sidebar metadata.
 
-The package checks themselves remain asynchronous. The tmux plugin starts its
-poller whenever tmux runs; on macOS, the launch agent below makes sure it is
-also running when Herdr is used on its own:
+The package checks themselves remain asynchronous. Before showing update
+actions, `cli-update` waits for a fresh result from every installed checker so
+a partially written cache cannot be mistaken for an all-clear. The tmux plugin
+starts its poller whenever tmux runs; on macOS, the launch agent below makes
+sure it is also running when Herdr is used on its own:
 
   ```bash
   mkdir -p ~/Library/LaunchAgents
