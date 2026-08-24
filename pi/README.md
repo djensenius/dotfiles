@@ -98,4 +98,4 @@ finds, and can be re-run to update.
 (go, ruby, python, kubectl, npm packages) and would be a long, largely
 source-built install on a Pi. It started as Telephone-Booth's
 `packaging/raspberry-pi/mise.toml`, with the extra tools these dotfiles assume
-(zoxide, fzf, ripgrep, fd, node, rust).
+(zoxide, fzf, ripgrep, fd, tree-sitter, node, rust).

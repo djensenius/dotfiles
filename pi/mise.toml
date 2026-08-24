@@ -9,7 +9,7 @@
 #
 # Derived from Telephone-Booth's packaging/raspberry-pi/mise.toml, with the
 # extra tools these dotfiles assume (fish's config.fish sources zoxide and
-# fzf, tmux-thumbs builds with cargo, nvim's LSPs need node).
+# fzf, tmux-thumbs builds with cargo, and nvim needs node and tree-sitter).
 
 [tools]
 tmux = "latest"
@@ -31,6 +31,10 @@ fzf = "latest"
 # Used by nvim (telescope, grep pickers) and the tmux fzf plugins.
 ripgrep = "latest"
 fd = "latest"
+
+# Required by Neovim's parser tooling. mise resolves this through aqua to the
+# official prebuilt ARM64 binary rather than compiling the CLI with cargo.
+tree-sitter = "latest"
 
 # termscope's own build step installs Television through Homebrew, which a Pi
 # does not have, so provide `tv` up front. README.md's plugin prerequisites

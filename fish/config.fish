@@ -18,6 +18,12 @@ if command -q mise
     end
 end
 
+# sudoedit may receive sudo's restricted PATH, so resolve the user-managed
+# Neovim after mise has added its shims.
+if command -q nvim
+    set -gx SUDO_EDITOR (command -s nvim)
+end
+
 if status is-interactive
     # Codespace path reconstruction (fixes PATH issues in GitHub Codespaces)
     if test -d /workspaces
