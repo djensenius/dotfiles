@@ -36,7 +36,7 @@ is the update path.
 | 1 | apt packages | `git`, `build-essential`, `python3`, `btop`, `tmuxinator`, and friends. Falls back to installing one by one if a package is missing on your release. Generates a UTF-8 locale if the image has none. |
 | 2 | mise | Installed from [its own apt repository](https://mise.jdx.dev), keyring and all. With `--skip-apt` it falls back to `https://mise.run`. |
 | 3 | Symlinks | Links this repo into `~/.config` (fish, nvim, tmux, starship, atuin, bat, bottom, btop, delta, eza, fastfetch, yazi, zellij, tmuxinator, gh, gh-dash, herdr) plus `~/.gitconfig` and friends. Anything already there is moved to `~/.dotfiles-backup/<timestamp>/`, under its path relative to `~`, first. |
-| 4 | Tools | Copies [`mise.toml`](mise.toml) to `~/.config/mise/config.toml`, trusts it, and runs `mise install`. |
+| 4 | Tools | Copies [`mise.toml`](mise.toml) to `~/.config/mise/config.toml`, trusts it, and runs `mise install` outside the clone so the workstation manifest is not merged. |
 | 5 | tmux plugins | Clones tpm and installs the plugin set. `tmux-thumbs` and `tmux-floax` build with cargo, which is why the manifest includes rust. |
 | 6 | Neovim | `nvim --headless "+Lazy! sync" +qa`. |
 | 7 | herdr plugins | The same marketplace plugins `install.sh` installs, including its removal of the legacy `herdr-picker-plus` id. |
@@ -96,6 +96,8 @@ finds, and can be re-run to update.
 [`mise.toml`](mise.toml) here is the Pi tool manifest and is unrelated to
 [`../mise/config.toml`](../mise/config.toml), which is the workstation set
 (go, ruby, python, kubectl, npm packages) and would be a long, largely
-source-built install on a Pi. It started as Telephone-Booth's
-`packaging/raspberry-pi/mise.toml`, with the extra tools these dotfiles assume
-(zoxide, fzf, ripgrep, fd, tree-sitter, node, rust).
+source-built install on a Pi. Since mise also recognizes `mise/config.toml` as
+a project manifest, the installer and Fish configuration exclude that file
+when the Pi uses its separate global manifest. The Pi manifest started as
+Telephone-Booth's `packaging/raspberry-pi/mise.toml`, with the extra tools
+these dotfiles assume (zoxide, fzf, ripgrep, fd, tree-sitter, node, rust).

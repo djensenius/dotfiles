@@ -406,9 +406,19 @@ install_mise_tools() {
     as_user cp "$PI_DIR/mise.toml" "$mise_config"
     ok "Wrote ~/.config/mise/config.toml from pi/mise.toml"
 
-    as_user mise trust "$mise_config"
+    # mise recognizes <repo>/mise/config.toml as a project manifest when this
+    # script is launched from the clone. Explicitly ignore it and run from the
+    # global config directory so workstation-only tools are never merged into
+    # the Pi installation.
+    local ignored_config_paths="$DOTFILES_DIR/mise/config.toml"
+    if [ -n "${MISE_IGNORED_CONFIG_PATHS:-}" ]; then
+        ignored_config_paths="${MISE_IGNORED_CONFIG_PATHS}:$ignored_config_paths"
+    fi
+    as_user env "MISE_IGNORED_CONFIG_PATHS=$ignored_config_paths" \
+        mise -C "$mise_dir" trust "$mise_config"
     log "Running mise install (downloads prebuilt binaries; a few minutes on a Pi)"
-    tee_log as_user mise install
+    tee_log as_user env "MISE_IGNORED_CONFIG_PATHS=$ignored_config_paths" \
+        mise -C "$mise_dir" install
     ok "mise tools installed"
 
     # Later phases (tmux plugins, nvim sync, herdr) need the freshly installed
