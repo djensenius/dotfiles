@@ -8,6 +8,7 @@
 # Usage:
 #   herdr-status-report.sh --tab-bar       print one status line
 #   herdr-status-report.sh --ensure-poller start the shared poller if needed
+#   herdr-status-report.sh --refresh-poller refresh it, starting it if needed
 #   herdr-status-report.sh                 same as --ensure-poller (launchd compatibility)
 #
 # Env:
@@ -121,17 +122,14 @@ render_tab_bar() {
 }
 
 ensure_outdated_poller() {
-    local pid_file="$OUTDATED_CACHE/poller.pid" pid=''
-    if [ -f "$pid_file" ]; then
-        pid=$(awk 'NR == 1 && /^[0-9]+$/ { print; exit }' "$pid_file")
-        [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && return 0
-    fi
+    local pid_file="$OUTDATED_CACHE/poller.pid" pid
+    running_poller_pid >/dev/null && return 0
+    rm -f "$pid_file"
 
     if [ ! -x "$OUTDATED_POLLER" ]; then
         log "outdated-package poller not found at $OUTDATED_POLLER"
         return 127
     fi
-
     mkdir -p "$OUTDATED_CACHE"
     nohup "$OUTDATED_POLLER" >>"$OUTDATED_CACHE/herdr-poller.log" 2>&1 </dev/null &
     pid=$!
@@ -142,12 +140,43 @@ ensure_outdated_poller() {
     log "started outdated-package poller (pid $pid)"
 }
 
+running_poller_pid() {
+    local pid_file="$OUTDATED_CACHE/poller.pid" pid process_command
+    [ -f "$pid_file" ] || return 1
+    pid=$(awk 'NR == 1 && /^[0-9]+$/ { print; exit }' "$pid_file")
+    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || return 1
+
+    process_command=$(ps -ww -p "$pid" -o command= 2>/dev/null) || return 1
+    case "$process_command" in
+        *"$OUTDATED_POLLER"*)
+            printf '%s' "$pid"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+refresh_outdated_poller() {
+    local pid
+    if pid=$(running_poller_pid); then
+        kill -USR1 "$pid"
+        return
+    fi
+
+    # A newly started poller performs an initial check without needing a signal.
+    ensure_outdated_poller
+}
+
 case "${1:-}" in
     --tab-bar)
         render_tab_bar
         ;;
     --ensure-poller | '')
         ensure_outdated_poller
+        ;;
+    --refresh-poller)
+        refresh_outdated_poller
         ;;
     *)
         log "unknown argument: $1"

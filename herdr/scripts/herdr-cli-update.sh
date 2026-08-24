@@ -189,17 +189,7 @@ run_upgrade() {
 }
 
 refresh_cache() {
-    local pid_file="$CACHE_DIR/poller.pid" pid=''
-    if [ -f "$pid_file" ]; then
-        pid=$(awk 'NR == 1 && /^[0-9]+$/ { print; exit }' "$pid_file")
-    fi
-
-    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-        kill -USR1 "$pid"
-        return
-    fi
-
-    "$STATUS_HELPER" --ensure-poller
+    "$STATUS_HELPER" --refresh-poller
 }
 
 pause_before_close() {
