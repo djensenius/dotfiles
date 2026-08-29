@@ -3,14 +3,63 @@
 Modern development environment configuration files optimized for productivity and visual consistency. This setup provides a comprehensive development environment with integrated tools for coding, git workflow, terminal enhancement, and system monitoring.
 
 **Key Features:**
-- 🎨 **Consistent Theming**: [Catppuccin Mocha theme](https://github.com/catppuccin/catppuccin) across all applications
+- 🎨 **Consistent Theming**: [Catppuccin theme](https://github.com/catppuccin/catppuccin) across all applications with automatic light/dark mode switching
+- 🌗 **Auto Light/Dark Mode**: Switches between Catppuccin Mocha (dark) and Latte (light) based on macOS system appearance or sunrise/sunset times
 - 🚀 **Parallel Installation**: 40-60% faster setup with concurrent package installation
 - ⚡ **Performance Optimized**: Fast startup times and efficient resource usage
 - 🔧 **Development Focused**: Comprehensive language support and development tools
 - 📦 **Automated Setup**: One-script installation for GitHub Codespaces
 - 🐚 **Modern Shell**: Fish shell with starship prompt and productivity enhancements
 
-All configurations use the [Catppuccin Mocha theme](https://github.com/catppuccin/catppuccin) for a consistent and visually appealing look across all tools and applications.
+All configurations use the [Catppuccin theme](https://github.com/catppuccin/catppuccin) with automatic light/dark mode switching for a consistent look across all tools.
+
+## Light/Dark Mode Switching
+
+The theme automatically switches between **Catppuccin Mocha** (dark) and **Catppuccin Latte** (light) based on your system settings.
+
+### How It Works
+
+- **macOS**: A Swift daemon watches for system appearance changes and instantly switches all tools. Ghostty and Neovim also detect this natively.
+- **Linux/Remote**: Uses sunrise/sunset calculations from `~/.config/tz.conf` to determine light or dark mode. Falls back to 7 AM–7 PM if no config exists.
+
+### tz.conf (for non-macOS systems)
+
+Create `~/.config/tz.conf` to enable time-based theme switching:
+
+```ini
+# Theme Mode Configuration
+# Used for sunrise/sunset-based light/dark mode switching
+# on non-macOS systems. On macOS, system appearance is used instead.
+#
+# timezone: IANA timezone identifier (e.g., America/Toronto, Europe/Berlin)
+# latitude: Decimal degrees, positive = North, negative = South
+# longitude: Decimal degrees, positive = East, negative = West
+
+timezone = America/Toronto
+latitude = 43.65
+longitude = -79.38
+```
+
+### Manual Override
+
+```bash
+# Switch manually at any time
+scripts/switch-theme.fish light
+scripts/switch-theme.fish dark
+```
+
+### macOS Theme Watcher Setup
+
+The install script handles this automatically, but for manual setup:
+
+```bash
+# Compile the watcher
+swiftc -O scripts/theme-watcher.swift -o ~/.local/bin/theme-watcher
+
+# Install and start the launchd agent
+cp scripts/com.dotfiles.theme-watcher.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dotfiles.theme-watcher.plist
+```
 
 ## Installation
 
