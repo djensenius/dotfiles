@@ -41,6 +41,7 @@ OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
 OUTDATED_POLLER="${HERDR_STATUS_POLLER:-$HOME/.config/tmux/plugins/tmux-outdated-packages/scripts/poller.sh}"
 COMPLETE_FILE="$OUTDATED_CACHE/complete"
 CHECKING_FILE="$OUTDATED_CACHE/checking"
+REFRESH_COMPLETE_FILE="$OUTDATED_CACHE/refresh-complete"
 LAUNCH_LABEL='dev.djensenius.herdr-status'
 MANAGERS=(brew npm pip cargo go mise)
 
@@ -180,25 +181,14 @@ running_poller_pid() {
     fi
 
     process_command=$(ps -ww -p "$pid" -o command= 2>/dev/null) || return 1
-    if [ -n "$recorded_start" ]; then
-        case "$process_command" in
-            *'/scripts/poller.sh'*)
-                printf '%s' "$pid"
-                ;;
-            *)
-                return 1
-                ;;
-        esac
-    else
-        case "$process_command" in
-            *"$OUTDATED_POLLER"*)
-                printf '%s' "$pid"
-                ;;
-            *)
-                return 1
-                ;;
-        esac
-    fi
+    case "$process_command" in
+        *"$OUTDATED_POLLER"*)
+            printf '%s' "$pid"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 wait_for_running_poller() {
@@ -227,6 +217,8 @@ start_poller_launch_agent() {
         return 1
     fi
 
+    launchctl setenv HERDR_STATUS_POLLER "$OUTDATED_POLLER" || return
+
     if definition=$(launchctl print "$job" 2>/dev/null); then
         case "$definition" in
             *'--run-poller'*) ;;
@@ -239,7 +231,7 @@ start_poller_launch_agent() {
         launchctl bootstrap "$domain" "$plist" || return
     fi
 
-    launchctl kickstart "$job"
+    launchctl kickstart -k "$job"
 }
 
 run_outdated_poller() {
@@ -251,15 +243,28 @@ run_outdated_poller() {
     exec "$OUTDATED_POLLER"
 }
 
+request_outdated_poller_refresh() {
+    local attempts=0 pid
+    ensure_outdated_poller || return
+
+    while [ "$attempts" -lt 2 ]; do
+        if pid=$(running_poller_pid) && kill -SIGUSR1 "$pid" 2>/dev/null; then
+            sleep 0.1
+            return 0
+        fi
+        attempts=$((attempts + 1))
+        sleep 0.1
+        ensure_outdated_poller || return
+    done
+
+    log 'failed to signal outdated-package poller'
+    return 1
+}
+
 refresh_outdated_poller() {
-    local manager
     mkdir -p "$OUTDATED_CACHE"
-    rm -f "$COMPLETE_FILE"
-    while IFS= read -r manager; do
-        [ -n "$manager" ] || continue
-        rm -f "$OUTDATED_CACHE/$manager.count" "$OUTDATED_CACHE/$manager.list"
-    done < <(expected_package_managers)
-    ensure_outdated_poller
+    rm -f "$COMPLETE_FILE" "$REFRESH_COMPLETE_FILE"
+    request_outdated_poller_refresh
 }
 
 expected_package_managers() {
@@ -306,6 +311,12 @@ completion_is_usable() {
     [ "$age" -le "$MAX_AGE" ]
 }
 
+refresh_is_acknowledged() {
+    local marker="$1"
+    [ -f "$REFRESH_COMPLETE_FILE" ] &&
+        [ "$REFRESH_COMPLETE_FILE" -nt "$marker" ]
+}
+
 package_cache_is_ready() {
     local marker="${1:-}" manager count_file list_file expected
     expected=$(expected_package_managers)
@@ -346,7 +357,8 @@ wait_for_outdated_poller() {
     fi
     deadline=$(($(date +%s) + WAIT_TIMEOUT))
 
-    until package_cache_is_ready "$marker"; do
+    until refresh_is_acknowledged "$marker" &&
+        package_cache_is_ready "$marker"; do
         if ! running_poller_pid >/dev/null; then
             remove_refresh_marker "$marker"
             log 'outdated-package poller exited before completing a check'
