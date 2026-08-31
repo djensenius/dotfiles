@@ -307,19 +307,21 @@ completion_is_usable() {
 }
 
 package_cache_is_ready() {
-    local marker="${1:-}" manager count_file list_file expected=0
+    local marker="${1:-}" manager count_file list_file expected
+    expected=$(expected_package_managers)
+    [ -n "$expected" ] || return 0
+
     completion_is_usable "$marker" || return
     while IFS= read -r manager; do
         [ -n "$manager" ] || continue
-        expected=1
         count_file="$OUTDATED_CACHE/$manager.count"
         list_file="$OUTDATED_CACHE/$manager.list"
         count_file_is_usable "$count_file" || return 1
         [ -f "$list_file" ] || return 1
         [ ! "$count_file" -nt "$COMPLETE_FILE" ] || return 1
         [ ! "$list_file" -nt "$COMPLETE_FILE" ] || return 1
-    done < <(expected_package_managers)
-    [ "$expected" -eq 1 ] && completion_is_usable "$marker"
+    done <<<"$expected"
+    completion_is_usable "$marker"
 }
 
 remove_refresh_marker() {
@@ -329,11 +331,11 @@ remove_refresh_marker() {
 
 wait_for_outdated_poller() {
     local deadline marker expected
-    ensure_outdated_poller || return
-    package_cache_is_ready && return 0
-
     expected=$(expected_package_managers)
     [ -n "$expected" ] || return 0
+
+    ensure_outdated_poller || return
+    package_cache_is_ready && return 0
 
     marker="$OUTDATED_CACHE/herdr-refresh.$$"
     : >"$marker"
