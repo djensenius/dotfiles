@@ -10,7 +10,7 @@
     <array>
         <string>/bin/bash</string>
         <string>-lc</string>
-        <string>exec "$HOME/.config/herdr/scripts/herdr-status-report.sh" --ensure-poller</string>
+        <string>exec "$HOME/.config/herdr/scripts/herdr-status-report.sh" --run-poller</string>
     </array>
 
     <!-- Herdr's tab-bar command only reads the shared package cache. Keep the
@@ -19,11 +19,6 @@
     <integer>300</integer>
 
     <key>RunAtLoad</key>
-    <true/>
-
-    <!-- The helper exits after starting the long-lived poller. Keep launchd
-         from reaping the poller's process group with the helper. -->
-    <key>AbandonProcessGroup</key>
     <true/>
 
     <key>StandardErrorPath</key>

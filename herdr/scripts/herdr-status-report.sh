@@ -11,7 +11,8 @@
 #   herdr-status-report.sh --wait-poller   wait for a complete cache refresh
 #   herdr-status-report.sh --cache-ready   check for a complete, fresh cache
 #   herdr-status-report.sh --refresh-poller refresh it, starting it if needed
-#   herdr-status-report.sh                 same as --ensure-poller (launchd compatibility)
+#   herdr-status-report.sh --run-poller    run the poller under a service manager
+#   herdr-status-report.sh                 same as --ensure-poller
 #
 # Env:
 #   HERDR_STATUS_MAX_AGE  ignore package counts older than N seconds (default:
@@ -38,6 +39,9 @@ fi
 
 OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
 OUTDATED_POLLER="${HERDR_STATUS_POLLER:-$HOME/.config/tmux/plugins/tmux-outdated-packages/scripts/poller.sh}"
+COMPLETE_FILE="$OUTDATED_CACHE/complete"
+CHECKING_FILE="$OUTDATED_CACHE/checking"
+LAUNCH_LABEL='dev.djensenius.herdr-status'
 MANAGERS=(brew npm pip cargo go mise)
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
@@ -128,58 +132,132 @@ render_tab_bar() {
 }
 
 ensure_outdated_poller() {
-    local pid_file="$OUTDATED_CACHE/poller.pid" pid running_pid attempts=0
+    local running_pid
     running_poller_pid >/dev/null && return 0
-    rm -f "$pid_file"
 
     if [ ! -x "$OUTDATED_POLLER" ]; then
         log "outdated-package poller not found at $OUTDATED_POLLER"
         return 127
     fi
     mkdir -p "$OUTDATED_CACHE"
-    nohup "$OUTDATED_POLLER" >>"$OUTDATED_CACHE/herdr-poller.log" 2>&1 </dev/null &
-    pid=$!
-    while [ "$attempts" -lt 20 ]; do
-        if running_pid=$(running_poller_pid); then
-            # Let the poller install its signal handlers before callers can
-            # request a refresh.
-            sleep 1
-            running_pid=$(running_poller_pid) || break
-            log "started outdated-package poller (pid $running_pid)"
-            return 0
-        fi
-        kill -0 "$pid" 2>/dev/null || break
-        attempts=$((attempts + 1))
-        sleep 0.1
-    done
 
+    case "$(uname -s)" in
+        Darwin)
+            start_poller_launch_agent || return
+            ;;
+        *)
+            if ! command -v setsid >/dev/null 2>&1; then
+                log 'cannot start poller outside this pane: setsid is unavailable'
+                return 127
+            fi
+            setsid -f "$OUTDATED_POLLER" \
+                >>"$OUTDATED_CACHE/herdr-poller.log" 2>&1 </dev/null
+            ;;
+    esac
+
+    if running_pid=$(wait_for_running_poller); then
+        log "started outdated-package poller (pid $running_pid)"
+        return 0
+    fi
     log 'failed to start outdated-package poller'
     return 1
 }
 
 running_poller_pid() {
-    local pid_file="$OUTDATED_CACHE/poller.pid" pid process_command
+    local pid_file="$OUTDATED_CACHE/poller.pid" pid recorded_start actual_start
+    local process_command
     [ -f "$pid_file" ] || return 1
     pid=$(awk 'NR == 1 && /^[0-9]+$/ { print; exit }' "$pid_file")
     [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || return 1
 
-    process_command=$(ps -ww -p "$pid" -o command= 2>/dev/null) || return 1
-    case "$process_command" in
-        *"$OUTDATED_POLLER"*)
-            printf '%s' "$pid"
-            ;;
-        *)
+    recorded_start=$(awk 'NR == 2 {$1 = $1; print; exit}' "$pid_file")
+    if [ -n "$recorded_start" ]; then
+        actual_start=$(LC_ALL=C ps -ww -p "$pid" -o lstart= 2>/dev/null |
+            awk '{$1 = $1; print; exit}')
+        if [ -z "$actual_start" ] || [ "$recorded_start" != "$actual_start" ]; then
             return 1
-            ;;
-    esac
+        fi
+    fi
+
+    process_command=$(ps -ww -p "$pid" -o command= 2>/dev/null) || return 1
+    if [ -n "$recorded_start" ]; then
+        case "$process_command" in
+            *'/scripts/poller.sh'*)
+                printf '%s' "$pid"
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    else
+        case "$process_command" in
+            *"$OUTDATED_POLLER"*)
+                printf '%s' "$pid"
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    fi
+}
+
+wait_for_running_poller() {
+    local attempts=0 pid
+    while [ "$attempts" -lt 50 ]; do
+        if pid=$(running_poller_pid); then
+            printf '%s' "$pid"
+            return 0
+        fi
+        attempts=$((attempts + 1))
+        sleep 0.1
+    done
+    return 1
+}
+
+start_poller_launch_agent() {
+    local domain job
+    local plist="$HOME/Library/LaunchAgents/$LAUNCH_LABEL.plist"
+    local definition
+
+    domain="gui/$(id -u)"
+    job="$domain/$LAUNCH_LABEL"
+
+    if [ ! -f "$plist" ]; then
+        log "launch agent is not installed at $plist"
+        return 1
+    fi
+
+    if definition=$(launchctl print "$job" 2>/dev/null); then
+        case "$definition" in
+            *'--run-poller'*) ;;
+            *)
+                launchctl bootout "$domain" "$plist" 2>/dev/null || true
+                launchctl bootstrap "$domain" "$plist" || return
+                ;;
+        esac
+    else
+        launchctl bootstrap "$domain" "$plist" || return
+    fi
+
+    launchctl kickstart "$job"
+}
+
+run_outdated_poller() {
+    if [ ! -x "$OUTDATED_POLLER" ]; then
+        log "outdated-package poller not found at $OUTDATED_POLLER"
+        return 127
+    fi
+    mkdir -p "$OUTDATED_CACHE"
+    exec "$OUTDATED_POLLER"
 }
 
 refresh_outdated_poller() {
     local manager
     mkdir -p "$OUTDATED_CACHE"
+    rm -f "$COMPLETE_FILE"
     while IFS= read -r manager; do
         [ -n "$manager" ] || continue
-        rm -f "$OUTDATED_CACHE/$manager.count"
+        rm -f "$OUTDATED_CACHE/$manager.count" "$OUTDATED_CACHE/$manager.list"
     done < <(expected_package_managers)
     ensure_outdated_poller
 }
@@ -206,32 +284,42 @@ expected_package_managers() {
 }
 
 count_file_is_usable() {
-    local file="$1" marker="${2:-}" mtime age
+    local file="$1"
     [ -f "$file" ] || return 1
     awk 'NR == 1 && /^[0-9]+$/ { found = 1 } END { exit !found }' "$file" ||
         return 1
+}
 
+completion_is_usable() {
+    local marker="${1:-}" mtime age
+    [ -f "$COMPLETE_FILE" ] && [ ! -e "$CHECKING_FILE" ] || return 1
     if [ -n "$marker" ]; then
-        [ "$file" -nt "$marker" ]
+        [ "$COMPLETE_FILE" -nt "$marker" ]
         return
     fi
 
     [ "$MAX_AGE" -gt 0 ] || return 0
-    mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+    mtime=$(stat -f %m "$COMPLETE_FILE" 2>/dev/null ||
+        stat -c %Y "$COMPLETE_FILE" 2>/dev/null)
     [ -n "$mtime" ] || return 1
     age=$(($(date +%s) - mtime))
     [ "$age" -le "$MAX_AGE" ]
 }
 
 package_cache_is_ready() {
-    local marker="${1:-}" manager expected=0
+    local marker="${1:-}" manager count_file list_file expected=0
+    completion_is_usable "$marker" || return
     while IFS= read -r manager; do
         [ -n "$manager" ] || continue
         expected=1
-        count_file_is_usable "$OUTDATED_CACHE/$manager.count" "$marker" ||
-            return 1
+        count_file="$OUTDATED_CACHE/$manager.count"
+        list_file="$OUTDATED_CACHE/$manager.list"
+        count_file_is_usable "$count_file" || return 1
+        [ -f "$list_file" ] || return 1
+        [ ! "$count_file" -nt "$COMPLETE_FILE" ] || return 1
+        [ ! "$list_file" -nt "$COMPLETE_FILE" ] || return 1
     done < <(expected_package_managers)
-    [ "$expected" -eq 1 ]
+    [ "$expected" -eq 1 ] && completion_is_usable "$marker"
 }
 
 remove_refresh_marker() {
@@ -287,6 +375,9 @@ case "${1:-}" in
         ;;
     --refresh-poller)
         refresh_outdated_poller
+        ;;
+    --run-poller)
+        run_outdated_poller
         ;;
     *)
         log "unknown argument: $1"
