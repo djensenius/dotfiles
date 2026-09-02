@@ -31,6 +31,63 @@ export HERDR_STATUS_HELPER="$STATUS_HELPER"
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 PATH=/usr/bin:/bin "$SCRIPT_DIR/../scripts/herdr-status-report.sh" \
     --expected-managers >/dev/null
+
+export HERDR_STATUS_MAX_AGE=60
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/../scripts/herdr-status-report.sh"
+expected_package_managers() { printf '%s\n' pip; }
+
+OUTDATED_CACHE="$TMPDIR/tmux-outdated-packages"
+COMPLETE_FILE="$OUTDATED_CACHE/complete"
+# shellcheck disable=SC2034 # Consumed by the sourced status helper.
+CHECKING_FILE="$OUTDATED_CACHE/checking"
+refresh_marker="$OUTDATED_CACHE/test-refresh"
+old_time=202001010000
+marker_time=202101010000
+new_time=202201010000
+complete_time=202301010000
+
+printf '1\n' >"$OUTDATED_CACHE/pip.count"
+printf 'package\n' >"$OUTDATED_CACHE/pip.list"
+touch -t "$old_time" "$OUTDATED_CACHE/pip.count"
+printf 'generation-current-1\n' >"$COMPLETE_FILE"
+if package_cache_is_ready; then
+    printf '%s\n' 'stale count file was accepted' >&2
+    exit 1
+fi
+
+touch "$OUTDATED_CACHE/pip.count"
+touch -t "$old_time" "$OUTDATED_CACHE/pip.list"
+printf 'generation-current-2\n' >"$COMPLETE_FILE"
+if package_cache_is_ready; then
+    printf '%s\n' 'stale list file was accepted' >&2
+    exit 1
+fi
+
+touch "$OUTDATED_CACHE/pip.count" "$OUTDATED_CACHE/pip.list"
+printf 'generation-current-3\n' >"$COMPLETE_FILE"
+package_cache_is_ready
+
+touch -t "$marker_time" "$refresh_marker"
+touch -t "$old_time" "$OUTDATED_CACHE/pip.count"
+touch -t "$new_time" "$OUTDATED_CACHE/pip.list"
+touch -t "$complete_time" "$COMPLETE_FILE"
+if package_cache_is_ready "$refresh_marker"; then
+    printf '%s\n' 'count file predating refresh was accepted' >&2
+    exit 1
+fi
+
+touch -t "$new_time" "$OUTDATED_CACHE/pip.count"
+touch -t "$old_time" "$OUTDATED_CACHE/pip.list"
+if package_cache_is_ready "$refresh_marker"; then
+    printf '%s\n' 'list file predating refresh was accepted' >&2
+    exit 1
+fi
+
+touch -t "$new_time" "$OUTDATED_CACHE/pip.list"
+package_cache_is_ready "$refresh_marker"
+rm -f "$refresh_marker"
+
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/../scripts/herdr-cli-update.sh"
 

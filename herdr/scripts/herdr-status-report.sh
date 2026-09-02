@@ -309,6 +309,20 @@ count_file_is_usable() {
         return 1
 }
 
+cache_file_is_current() {
+    local file="$1" marker="${2:-}" mtime age
+    [ -f "$file" ] || return 1
+    if [ -n "$marker" ]; then
+        [ -f "$marker" ] && [ "$file" -nt "$marker" ]
+        return
+    fi
+    [ "$MAX_AGE" -gt 0 ] || return 0
+    mtime=$(portable_stat %m %Y "$file")
+    [ -n "$mtime" ] || return 1
+    age=$(($(date +%s) - mtime))
+    [ "$age" -le "$MAX_AGE" ]
+}
+
 complete_generation_token() {
     local token
     [ -f "$COMPLETE_FILE" ] && [ ! -e "$CHECKING_FILE" ] || return 1
@@ -321,7 +335,7 @@ completion_is_usable() {
     local marker="${1:-}" mtime age
     complete_generation_token >/dev/null || return 1
     if [ -n "$marker" ]; then
-        [ "$COMPLETE_FILE" -nt "$marker" ]
+        [ -f "$marker" ] && [ "$COMPLETE_FILE" -nt "$marker" ]
         return
     fi
     [ "$MAX_AGE" -gt 0 ] || return 0
@@ -348,7 +362,8 @@ package_cache_is_ready() {
         count_file="$OUTDATED_CACHE/$manager.count"
         list_file="$OUTDATED_CACHE/$manager.list"
         count_file_is_usable "$count_file" || return 1
-        [ -f "$list_file" ] || return 1
+        cache_file_is_current "$count_file" "$marker" || return 1
+        cache_file_is_current "$list_file" "$marker" || return 1
         [ ! "$count_file" -nt "$COMPLETE_FILE" ] || return 1
         [ ! "$list_file" -nt "$COMPLETE_FILE" ] || return 1
     done <<<"$expected"
@@ -393,6 +408,10 @@ wait_for_outdated_poller() {
     done
     remove_refresh_marker "$marker"
 }
+
+if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+    return 0
+fi
 
 case "${1:-}" in
     --tab-bar)
