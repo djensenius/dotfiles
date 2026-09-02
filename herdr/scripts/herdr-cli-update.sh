@@ -61,7 +61,11 @@ cache_generation_token() {
     [ -f "$complete_file" ] && [ ! -e "$LIVE_CACHE_DIR/checking" ] || return 1
 
     IFS= read -r token <"$complete_file" || [ -n "$token" ] || return 1
-    [ -n "$token" ] && [ ! -e "$LIVE_CACHE_DIR/checking" ] || return 1
+    case "$token" in
+        v2:?*) ;;
+        *) return 1 ;;
+    esac
+    [ ! -e "$LIVE_CACHE_DIR/checking" ] || return 1
     printf '%s' "$token"
 }
 

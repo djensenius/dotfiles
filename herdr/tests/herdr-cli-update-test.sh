@@ -47,10 +47,16 @@ marker_time=202101010000
 new_time=202201010000
 complete_time=202301010000
 
+printf 'legacy-generation\n' >"$COMPLETE_FILE"
+if complete_generation_token >/dev/null; then
+    printf '%s\n' 'legacy status generation was accepted' >&2
+    exit 1
+fi
+
 printf '1\n' >"$OUTDATED_CACHE/pip.count"
 printf 'package\n' >"$OUTDATED_CACHE/pip.list"
 touch -t "$old_time" "$OUTDATED_CACHE/pip.count"
-printf 'generation-current-1\n' >"$COMPLETE_FILE"
+printf 'v2:generation-current-1\n' >"$COMPLETE_FILE"
 if package_cache_is_ready; then
     printf '%s\n' 'stale count file was accepted' >&2
     exit 1
@@ -58,14 +64,14 @@ fi
 
 touch "$OUTDATED_CACHE/pip.count"
 touch -t "$old_time" "$OUTDATED_CACHE/pip.list"
-printf 'generation-current-2\n' >"$COMPLETE_FILE"
+printf 'v2:generation-current-2\n' >"$COMPLETE_FILE"
 if package_cache_is_ready; then
     printf '%s\n' 'stale list file was accepted' >&2
     exit 1
 fi
 
 touch "$OUTDATED_CACHE/pip.count" "$OUTDATED_CACHE/pip.list"
-printf 'generation-current-3\n' >"$COMPLETE_FILE"
+printf 'v2:generation-current-3\n' >"$COMPLETE_FILE"
 package_cache_is_ready
 
 touch -t "$marker_time" "$refresh_marker"
@@ -98,7 +104,12 @@ if cache_generation_token >/dev/null; then
     printf '%s\n' 'empty complete generation was accepted' >&2
     exit 1
 fi
-printf 'generation-1\n' >"$LIVE_CACHE_DIR/complete"
+printf 'legacy-generation\n' >"$LIVE_CACHE_DIR/complete"
+if cache_generation_token >/dev/null; then
+    printf '%s\n' 'legacy updater generation was accepted' >&2
+    exit 1
+fi
+printf 'v2:generation-1\n' >"$LIVE_CACHE_DIR/complete"
 
 copy_attempt=0
 copy_cache_file() {
@@ -107,7 +118,7 @@ copy_cache_file() {
         copy_attempt=1
         printf '2\n' >"$LIVE_CACHE_DIR/pip.count"
         printf 'new-package\n' >"$LIVE_CACHE_DIR/pip.list"
-        printf 'generation-2\n' >"$LIVE_CACHE_DIR/.complete.next"
+        printf 'v2:generation-2\n' >"$LIVE_CACHE_DIR/.complete.next"
         mv "$LIVE_CACHE_DIR/.complete.next" "$LIVE_CACHE_DIR/complete"
     fi
 }

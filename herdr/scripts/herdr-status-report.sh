@@ -327,7 +327,10 @@ complete_generation_token() {
     local token
     [ -f "$COMPLETE_FILE" ] && [ ! -e "$CHECKING_FILE" ] || return 1
     IFS= read -r token <"$COMPLETE_FILE" || [ -n "$token" ] || return 1
-    [ -n "$token" ] || return 1
+    case "$token" in
+        v2:?*) ;;
+        *) return 1 ;;
+    esac
     printf '%s' "$token"
 }
 
