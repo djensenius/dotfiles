@@ -15,8 +15,9 @@ if [ -z "${TMPDIR:-}" ] && command -v getconf >/dev/null 2>&1; then
 fi
 
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-CACHE_DIR="${TMPDIR:-/tmp}/tmux-outdated-packages"
-STATUS_HELPER="$SCRIPT_DIR/herdr-status-report.sh"
+LIVE_CACHE_DIR="${TMPDIR:-/tmp}/tmux-outdated-packages"
+CACHE_DIR="$LIVE_CACHE_DIR"
+STATUS_HELPER="${HERDR_STATUS_HELPER:-$SCRIPT_DIR/herdr-status-report.sh}"
 MAX_AGE="${HERDR_STATUS_MAX_AGE:-3600}"
 
 case "$MAX_AGE" in
@@ -30,7 +31,115 @@ declare -a manager_names=()
 declare -a manager_counts=()
 declare -a manager_commands=()
 declare -a manager_lists=()
+declare -a expected_manager_ids=()
 cache_initialized=0
+snapshot_dir=''
+
+portable_stat() {
+    local bsd_format="$1" gnu_format="$2" file="$3" value
+    if value=$(stat -f "$bsd_format" "$file" 2>/dev/null); then
+        :
+    elif value=$(stat -c "$gnu_format" "$file" 2>/dev/null); then
+        :
+    else
+        return 1
+    fi
+    printf '%s' "$value"
+}
+
+cleanup_snapshot() {
+    if [ -n "$snapshot_dir" ] && [ -d "$snapshot_dir" ]; then
+        rm -rf "$snapshot_dir"
+    fi
+    snapshot_dir=''
+    CACHE_DIR="$LIVE_CACHE_DIR"
+}
+
+cache_generation_token() {
+    local complete_file="$LIVE_CACHE_DIR/complete"
+    local token
+    [ -f "$complete_file" ] && [ ! -e "$LIVE_CACHE_DIR/checking" ] || return 1
+
+    IFS= read -r token <"$complete_file" || [ -n "$token" ] || return 1
+    [ -n "$token" ] && [ ! -e "$LIVE_CACHE_DIR/checking" ] || return 1
+    printf '%s' "$token"
+}
+
+copy_cache_file() {
+    cp -p "$1" "$2"
+}
+
+load_expected_managers() {
+    local output manager
+    output=$("$STATUS_HELPER" --expected-managers) || return
+    expected_manager_ids=()
+    while IFS= read -r manager; do
+        [ -n "$manager" ] && expected_manager_ids+=("$manager")
+    done <<<"$output"
+    return 0
+}
+
+snapshot_cache() {
+    local attempt=0 before after final candidate manager suffix source
+    local copy_failed
+
+    while [ "$attempt" -lt 3 ]; do
+        "$STATUS_HELPER" --wait-poller || return
+        if ! "$STATUS_HELPER" --cache-ready; then
+            attempt=$((attempt + 1))
+            continue
+        fi
+
+        candidate=$(mktemp -d "${TMPDIR:-/tmp}/herdr-cli-update.XXXXXX") || return
+        if [ "${#expected_manager_ids[@]}" -eq 0 ]; then
+            cleanup_snapshot
+            snapshot_dir="$candidate"
+            CACHE_DIR="$snapshot_dir"
+            return 0
+        fi
+
+        before=$(cache_generation_token) || {
+            rm -rf "$candidate"
+            attempt=$((attempt + 1))
+            continue
+        }
+
+        copy_failed=0
+        for manager in "${expected_manager_ids[@]}"; do
+            for suffix in count list; do
+                source="$LIVE_CACHE_DIR/$manager.$suffix"
+                if [ ! -f "$source" ] ||
+                    ! copy_cache_file "$source" "$candidate/$manager.$suffix"; then
+                    copy_failed=1
+                    break 2
+                fi
+            done
+        done
+        if [ "$copy_failed" -ne 0 ]; then
+            rm -rf "$candidate"
+            attempt=$((attempt + 1))
+            continue
+        fi
+
+        after=$(cache_generation_token) || true
+        if [ "$before" = "$after" ] &&
+            "$STATUS_HELPER" --cache-ready; then
+            final=$(cache_generation_token) || true
+            if [ "$before" = "$final" ]; then
+                cleanup_snapshot
+                snapshot_dir="$candidate"
+                CACHE_DIR="$snapshot_dir"
+                return 0
+            fi
+        fi
+
+        rm -rf "$candidate"
+        attempt=$((attempt + 1))
+    done
+
+    printf 'cli-update: unable to snapshot a coherent package cache\n' >&2
+    return 1
+}
 
 manager_icon() {
     case "$1" in
@@ -53,7 +162,7 @@ cache_file_is_usable() {
     awk 'NR == 1 && /^[0-9]+$/ { found = 1 } END { exit !found }' "$file" || return 1
 
     [ "$MAX_AGE" -gt 0 ] || return 0
-    mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+    mtime=$(portable_stat %m %Y "$file")
     [ -n "$mtime" ] || return 1
     age=$(($(date +%s) - mtime))
     [ "$age" -le "$MAX_AGE" ]
@@ -247,6 +356,12 @@ update_all() {
     return "$failed"
 }
 
+if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+    return 0
+fi
+
+trap cleanup_snapshot EXIT
+
 list_only=0
 case "${1:-}" in
     --list)
@@ -263,14 +378,16 @@ esac
 if ! "$STATUS_HELPER" --cache-ready; then
     printf '%s\n' 'Checking package status...'
 fi
-if ! "$STATUS_HELPER" --wait-poller; then
+if ! load_expected_managers; then
+    printf 'cli-update: unable to determine package managers\n' >&2
+    exit 1
+fi
+if ! snapshot_cache; then
     printf 'cli-update: unable to refresh package status\n' >&2
     exit 1
 fi
 
-if "$STATUS_HELPER" --cache-ready; then
-    cache_initialized=1
-fi
+cache_initialized=1
 
 add_manager brew "Homebrew" brew.count "brew upgrade" brew.list
 add_manager npm "npm" npm.count "npm update -g" npm.list

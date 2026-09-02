@@ -280,12 +280,14 @@ shared `tmux-outdated-packages` cache every five seconds. This replaces the old
 dedicated `status` workspace and its custom sidebar metadata.
 
 The package checks themselves remain asynchronous. Before showing update
-actions, `cli-update` waits for a fresh result from every installed checker so
-a partially written cache cannot be mistaken for an all-clear. The tmux plugin
-owns an atomic startup lock, so tmux, the updater and the launch agent can all
-start the poller without creating competing workers. The plugin starts it
-whenever tmux runs; on macOS, the launch agent below directly supervises it
-when Herdr is used on its own:
+actions, `cli-update` waits for a fresh result from every installed checker,
+snapshots the validated cache generation, and uses only that snapshot for
+display and upgrades. A partially written or newer generation therefore cannot
+be mistaken for an all-clear or change the package list after it is shown. The
+tmux plugin owns an atomic startup lock, so tmux, the updater and the launch
+agent can all start the poller without creating competing workers. The plugin
+starts it whenever tmux runs; on macOS, the launch agent below directly
+supervises it when Herdr is used on its own:
 
   ```bash
   mkdir -p ~/Library/LaunchAgents

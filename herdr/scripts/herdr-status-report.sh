@@ -10,6 +10,7 @@
 #   herdr-status-report.sh --ensure-poller start the shared poller if needed
 #   herdr-status-report.sh --wait-poller   wait for a complete cache refresh
 #   herdr-status-report.sh --cache-ready   check for a complete, fresh cache
+#   herdr-status-report.sh --expected-managers print installed cache managers
 #   herdr-status-report.sh --refresh-poller refresh it, starting it if needed
 #   herdr-status-report.sh --run-poller    run the poller under a service manager
 #   herdr-status-report.sh                 same as --ensure-poller
@@ -46,6 +47,18 @@ LAUNCH_LABEL='dev.djensenius.herdr-status'
 MANAGERS=(brew npm pip cargo go mise)
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
+
+portable_stat() {
+    local bsd_format="$1" gnu_format="$2" file="$3" value
+    if value=$(stat -f "$bsd_format" "$file" 2>/dev/null); then
+        :
+    elif value=$(stat -c "$gnu_format" "$file" 2>/dev/null); then
+        :
+    else
+        return 1
+    fi
+    printf '%s' "$value"
+}
 
 bounded() {
     local name="$1" value="$2" min="$3" max="$4" fallback="$5"
@@ -87,7 +100,7 @@ manager_count() {
     [ -f "$file" ] || return 0
 
     if [ "$MAX_AGE" -gt 0 ]; then
-        mtime=$(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null)
+        mtime=$(portable_stat %m %Y "$file")
         if [ -n "$mtime" ]; then
             age=$(($(date +%s) - mtime))
             if [ "$age" -gt "$MAX_AGE" ]; then
@@ -286,6 +299,7 @@ expected_package_managers() {
     fi
     command -v dnf >/dev/null 2>&1 && printf '%s\n' dnf
     command -v mise >/dev/null 2>&1 && printf '%s\n' mise
+    return 0
 }
 
 count_file_is_usable() {
@@ -295,17 +309,23 @@ count_file_is_usable() {
         return 1
 }
 
+complete_generation_token() {
+    local token
+    [ -f "$COMPLETE_FILE" ] && [ ! -e "$CHECKING_FILE" ] || return 1
+    IFS= read -r token <"$COMPLETE_FILE" || [ -n "$token" ] || return 1
+    [ -n "$token" ] || return 1
+    printf '%s' "$token"
+}
+
 completion_is_usable() {
     local marker="${1:-}" mtime age
-    [ -f "$COMPLETE_FILE" ] && [ ! -e "$CHECKING_FILE" ] || return 1
+    complete_generation_token >/dev/null || return 1
     if [ -n "$marker" ]; then
         [ "$COMPLETE_FILE" -nt "$marker" ]
         return
     fi
-
     [ "$MAX_AGE" -gt 0 ] || return 0
-    mtime=$(stat -f %m "$COMPLETE_FILE" 2>/dev/null ||
-        stat -c %Y "$COMPLETE_FILE" 2>/dev/null)
+    mtime=$(portable_stat %m %Y "$COMPLETE_FILE")
     [ -n "$mtime" ] || return 1
     age=$(($(date +%s) - mtime))
     [ "$age" -le "$MAX_AGE" ]
@@ -386,6 +406,9 @@ case "${1:-}" in
         ;;
     --cache-ready)
         package_cache_is_ready
+        ;;
+    --expected-managers)
+        expected_package_managers
         ;;
     --refresh-poller)
         refresh_outdated_poller
