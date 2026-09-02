@@ -285,14 +285,17 @@ requires the poller's versioned successful-generation token, snapshots that
 validated cache generation, and uses only the snapshot for display and
 upgrades. Failed or timed-out checks do not advance the token, while a partially
 written or newer generation cannot be mistaken for an all-clear or change the
-package list after it is shown. The tmux plugin owns an atomic startup lock, so
-tmux, the updater and the launch agent can all start the poller without creating
-competing workers. The plugin starts it whenever tmux runs; on macOS, the launch
-agent below directly supervises it when Herdr is used on its own:
+package list after it is shown. Refresh requests remain pending until the poller
+acknowledges a post-request generation, so an in-flight older cycle cannot
+satisfy the updater. The tmux plugin owns an atomic startup lock, so tmux, the
+updater and the launch agent can all start the poller without creating competing
+workers. The plugin starts it whenever tmux runs; on macOS, the launch agent
+below directly supervises it when Herdr is used on its own:
 
   ```bash
   mkdir -p ~/Library/LaunchAgents
   ln -sf ~/.dotfiles/herdr/launchd/dev.djensenius.herdr-status.plist ~/Library/LaunchAgents/
+  launchctl bootout "gui/$(id -u)/dev.djensenius.herdr-status" 2>/dev/null || true
   launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/dev.djensenius.herdr-status.plist
   ```
 

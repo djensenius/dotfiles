@@ -42,6 +42,7 @@ OUTDATED_CACHE="${TMPDIR:-/tmp}/tmux-outdated-packages"
 OUTDATED_POLLER="${HERDR_STATUS_POLLER:-$HOME/.config/tmux/plugins/tmux-outdated-packages/scripts/poller.sh}"
 COMPLETE_FILE="$OUTDATED_CACHE/complete"
 CHECKING_FILE="$OUTDATED_CACHE/checking"
+REFRESH_REQUEST_FILE="$OUTDATED_CACHE/refresh-request"
 REFRESH_COMPLETE_FILE="$OUTDATED_CACHE/refresh-complete"
 LAUNCH_LABEL='dev.djensenius.herdr-status'
 MANAGERS=(brew npm pip cargo go mise)
@@ -236,8 +237,9 @@ start_poller_launch_agent() {
         case "$definition" in
             *'--run-poller'*) ;;
             *)
-                launchctl bootout "$domain" "$plist" 2>/dev/null || true
-                launchctl bootstrap "$domain" "$plist" || return
+                # The legacy job runs this helper with no argument. It remains
+                # compatible via the XPC dispatch below until reloaded externally.
+                log 'legacy launch agent detected; reload it externally to adopt direct poller supervision'
                 ;;
         esac
     else
@@ -274,9 +276,22 @@ request_outdated_poller_refresh() {
     return 1
 }
 
+publish_refresh_request() {
+    local temp="$OUTDATED_CACHE/.refresh-request.$$"
+    if ! printf '%s:%s:%s\n' "$$" "$(date +%s)" "${RANDOM:-0}" >"$temp"; then
+        rm -f "$temp"
+        return 1
+    fi
+    if ! mv -f "$temp" "$REFRESH_REQUEST_FILE"; then
+        rm -f "$temp"
+        return 1
+    fi
+}
+
 refresh_outdated_poller() {
     mkdir -p "$OUTDATED_CACHE"
-    rm -f "$COMPLETE_FILE" "$REFRESH_COMPLETE_FILE"
+    publish_refresh_request || return
+    rm -f "$COMPLETE_FILE" "$REFRESH_COMPLETE_FILE" || return
     request_outdated_poller_refresh
 }
 
@@ -350,14 +365,24 @@ completion_is_usable() {
 
 refresh_is_acknowledged() {
     local marker="$1"
-    [ -f "$REFRESH_COMPLETE_FILE" ] &&
+    [ -f "$marker" ] &&
+        [ -f "$REFRESH_COMPLETE_FILE" ] &&
         [ "$REFRESH_COMPLETE_FILE" -nt "$marker" ]
+}
+
+refresh_request_is_pending() {
+    [ -f "$REFRESH_REQUEST_FILE" ] || return 1
+    refresh_is_acknowledged "$REFRESH_REQUEST_FILE" && return 1
+    return 0
 }
 
 package_cache_is_ready() {
     local marker="${1:-}" manager count_file list_file expected
     expected=$(expected_package_managers)
     [ -n "$expected" ] || return 0
+    if [ -z "$marker" ] && refresh_request_is_pending; then
+        return 1
+    fi
 
     completion_is_usable "$marker" || return
     while IFS= read -r manager; do
@@ -373,8 +398,7 @@ package_cache_is_ready() {
     completion_is_usable "$marker"
 }
 
-remove_refresh_marker() {
-    rm -f "$1"
+clear_wait_traps() {
     trap - INT TERM
 }
 
@@ -384,36 +408,43 @@ wait_for_outdated_poller() {
     [ -n "$expected" ] || return 0
 
     ensure_outdated_poller || return
-    package_cache_is_ready && return 0
-
-    marker="$OUTDATED_CACHE/herdr-refresh.$$"
-    : >"$marker"
-    trap 'rm -f "$marker"; exit 130' INT TERM
-    if ! refresh_outdated_poller; then
-        remove_refresh_marker "$marker"
-        return 1
+    if refresh_request_is_pending; then
+        marker="$REFRESH_REQUEST_FILE"
+        request_outdated_poller_refresh || return
+    elif package_cache_is_ready; then
+        return 0
+    else
+        refresh_outdated_poller || return
+        marker="$REFRESH_REQUEST_FILE"
     fi
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
     deadline=$(($(date +%s) + WAIT_TIMEOUT))
 
     until refresh_is_acknowledged "$marker" &&
         package_cache_is_ready "$marker"; do
         if ! running_poller_pid >/dev/null; then
-            remove_refresh_marker "$marker"
+            clear_wait_traps
             log 'outdated-package poller exited before completing a check'
             return 1
         fi
         if [ "$(date +%s)" -ge "$deadline" ]; then
-            remove_refresh_marker "$marker"
+            clear_wait_traps
             log 'timed out waiting for outdated-package checks'
             return 1
         fi
         sleep 1
     done
-    remove_refresh_marker "$marker"
+    clear_wait_traps
 }
 
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
     return 0
+fi
+
+if [ "${XPC_SERVICE_NAME:-}" = "$LAUNCH_LABEL" ] && [ -z "${1:-}" ]; then
+    run_outdated_poller
+    exit $?
 fi
 
 case "${1:-}" in
