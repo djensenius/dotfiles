@@ -232,7 +232,7 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 ### [herdr](https://herdr.dev)
 Herdr is a terminal workspace manager for AI coding agents. Its config is a deliberate mirror of `tmux/tmux.conf` — same `Ctrl+a` prefix, same Catppuccin Mocha palette, and the same muscle memory — so switching between the two costs nothing.
 - **Directory**: `herdr/`
-- **Files**: `herdr/config.toml`, popup helpers in `herdr/scripts/`
+- **Files**: `herdr/config.toml`, status and popup helpers in `herdr/scripts/`
 - **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. `install.sh` links `config.toml` and `scripts/` individually.
 
 #### tmux → herdr keymap
@@ -241,7 +241,7 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 | --- | --- | --- |
 | `prefix` = `^a` | `prefix` = `ctrl+a` | config |
 | `prefix h/j/k/l` focus pane | same | config |
-| `prefix ^h/^j/^k/^l` resize 10 | same | `[[keys.command]]` → `herdr pane resize --amount 0.05` (Herdr takes a split-ratio delta, not a cell count) |
+| `prefix ^h/^j/^k/^l` resize 10 | same | native `resize_pane_*` bindings (0.05 split-ratio delta) |
 | `prefix ^u` / `^d` swap pane | same | `[[keys.command]]` → `herdr pane swap` |
 | `prefix \|` / `\` / `%` split side by side | same, plus `prefix v` | `split_vertical` — Herdr names splits after the divider, so this is "vertical" where tmux calls it `-h` |
 | `prefix -` / `_` / `"` split stacked | same | `split_horizontal` |
@@ -266,26 +266,46 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 | tmux-yank, `set-clipboard on` | `copy_on_select` | config |
 | catppuccin/tmux | `[theme] name = "catppuccin"` | config |
 
-#### Status modules
+#### Desktop tab bar and status
 
-Herdr has no status bar, and its sidebar sections (`spaces` and `agents`) are hardcoded in `src/ui/sidebar.rs` — there is no third section to claim and no plugin drawing surface ([herdr#1608](https://github.com/ogulcancelik/herdr/issues/1608) proposed one and was closed). Two of the tmux `status-right` modules are ported anyway, using the only persistent surface Herdr exposes: `$custom` metadata tokens.
+The **desktop tab bar** is Herdr's own top row of tabs inside the full-width
+terminal UI (as opposed to its narrow/mobile layout or the native tabs of
+Ghostty, Rio or WezTerm). Since 0.8.2, its unused right edge can hold
+right-aligned status entries.
 
-A spaces row built **only** from `$custom` tokens is dropped for any workspace that does not report them (`(!resolved.is_empty()).then_some(resolved)` in `src/ui/sidebar/tokens.rs`), so pushing tokens to one workspace turns that single card into a de-facto status section, leaving every other card untouched.
+`ui.tab_bar_right` shows Herdr's built-in `ZOOM` indicator plus
+`herdr/scripts/herdr-status-report.sh --tab-bar`. The helper renders
+`battery_hearts` and non-zero brew/npm/pip/cargo/go/mise update counts from the
+shared `tmux-outdated-packages` cache every five seconds. This replaces the old
+dedicated `status` workspace and its custom sidebar metadata.
 
-- **Workspace**: create one labelled `status` (`herdr workspace create --label status --no-focus`). Override the label with `HERDR_STATUS_WORKSPACE`.
-- **Reporter**: `herdr/scripts/herdr-status-report.sh` — `battery_hearts` (5 hearts) plus outdated packages as icon + count, **three entries per row** (brew, npm, pip, cargo, go, mise), pushed with `herdr workspace report-metadata`. Managers with nothing outdated are skipped and the surviving entries are repacked, so the card shrinks to as few rows as it needs rather than showing zeros. Tune with `HERDR_STATUS_PER_ROW` and `HERDR_STATUS_HEARTS`; the numeric overrides are range-checked and clamped, since Herdr rejects a metadata report whose `ttl_ms` exceeds 86,400,000 (capping the interval at 8h). The reporter starts the `tmux-outdated-packages` poller when it is not already running, so the shared cache stays current even when no tmux server is active; override its location with `HERDR_STATUS_POLLER`. Counts older than `HERDR_STATUS_MAX_AGE` (default 1h, vs the poller's 300s cadence) are skipped. The per-manager `*.count` files are read directly because the plugin's `counts-only.sh` misses cargo, go, mise and pip.
-- **Pinned to top**: each pass moves the card to index 0 via the socket API's `workspace.move`, which has no CLI wrapper in 0.7.5 (see [herdr#323](https://github.com/ogulcancelik/herdr/issues/323)). The write is skipped when the card is already first. Set `HERDR_STATUS_PIN=0` to leave ordering alone.
-- **Refresh**: `herdr/launchd/dev.djensenius.herdr-status.plist`, every 300s. Tokens are display-only and never persisted, so they are restated on each pass and carry a TTL of three intervals — if the reporter dies, the readings expire instead of freezing.
+The package checks themselves remain asynchronous. Before showing update
+actions, `cli-update` waits for a fresh result from every installed checker,
+requires the poller's versioned successful-generation token, snapshots that
+validated cache generation, and uses only the snapshot for display and
+upgrades. Failed or timed-out checks do not advance the token, while a partially
+written or newer generation cannot be mistaken for an all-clear or change the
+package list after it is shown. Refresh requests remain pending until the poller
+acknowledges a post-request generation, so an in-flight older cycle cannot
+satisfy the updater. The tmux plugin owns an atomic startup lock, so tmux, the
+updater and the launch agent can all start the poller without creating competing
+workers. The plugin starts it whenever tmux runs; on macOS, the launch agent
+below directly supervises it when Herdr is used on its own:
 
   ```bash
   mkdir -p ~/Library/LaunchAgents
   ln -sf ~/.dotfiles/herdr/launchd/dev.djensenius.herdr-status.plist ~/Library/LaunchAgents/
+  launchctl bootout "gui/$(id -u)/dev.djensenius.herdr-status" 2>/dev/null || true
   launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/dev.djensenius.herdr-status.plist
   ```
 
-Run the reporter bare for a single pass, `--watch` to loop without launchd, or `--clear` to strip the tokens.
+Tune the display with `HERDR_STATUS_HEARTS` and `HERDR_STATUS_MAX_AGE`; override
+the shared poller path with `HERDR_STATUS_POLLER`. Run the helper with
+`--tab-bar` to preview its exact output or `--ensure-poller` to repair a stopped
+poller.
 
-tmux-speedtest stays tmux-only: it is on-demand rather than ambient, so a status card is the wrong shape for it.
+tmux-speedtest stays tmux-only: it is on-demand rather than ambient, so it is
+not polled into the Herdr tab bar.
 
 #### Kitty graphics
 

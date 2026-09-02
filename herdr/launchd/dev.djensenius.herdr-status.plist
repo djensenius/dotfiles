@@ -10,12 +10,11 @@
     <array>
         <string>/bin/bash</string>
         <string>-lc</string>
-        <string>$HOME/.config/herdr/scripts/herdr-status-report.sh</string>
+        <string>exec "$HOME/.config/herdr/scripts/herdr-status-report.sh" --run-poller</string>
     </array>
 
-    <!-- Herdr metadata tokens are display-only and never persisted, so the
-         reporter restates them on a timer. The tokens carry a TTL of three
-         intervals, so a dead reporter leaves no frozen readings behind. -->
+    <!-- Herdr's tab-bar command only reads the shared package cache. Keep the
+         tmux-outdated-packages poller alive when no tmux server is running. -->
     <key>StartInterval</key>
     <integer>300</integer>
 

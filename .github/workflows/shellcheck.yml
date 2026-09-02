@@ -11,3 +11,5 @@ jobs:
         uses: actions/checkout@v4
       - name: 'Shellcheck'
         uses: ludeeus/action-shellcheck@master
+      - name: 'Test Herdr cache snapshot'
+        run: herdr/tests/herdr-cli-update-test.sh
