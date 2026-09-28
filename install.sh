@@ -204,7 +204,14 @@ function link_files() {
     mkdir -p ~/.config/herdr ~/.local/bin
     ln -sf "$(pwd)/herdr/config.toml" ~/.config/herdr/config.toml
     ln -sfn "$(pwd)/herdr/scripts" ~/.config/herdr/scripts
-    ln -sf "$(pwd)/herdr/scripts/herdr-fish.sh" ~/.local/bin/herdr-fish
+
+    local legacy_herdr_fish_link="$HOME/.local/bin/herdr-fish"
+    local legacy_herdr_fish_target
+    legacy_herdr_fish_target="$(pwd)/herdr/scripts/herdr-fish.sh"
+    if [ -L "$legacy_herdr_fish_link" ] && [ "$(readlink "$legacy_herdr_fish_link")" = "$legacy_herdr_fish_target" ]; then
+        rm -f "$legacy_herdr_fish_link"
+        echo "Removed legacy Herdr fish wrapper link: $legacy_herdr_fish_link"
+    fi
     
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza
