@@ -121,20 +121,22 @@ parse_args() {
                 CHECK_MODE=true
                 ;;
             --only)
-                [ "$#" -gt 1 ] || usage_error "--only needs a comma-separated list"
+                [ "$#" -gt 1 ] && [ -n "$2" ] || usage_error "--only needs a comma-separated list"
                 ONLY_SECTIONS="$2"
                 shift
                 ;;
             --only=*)
                 ONLY_SECTIONS="${1#--only=}"
+                [ -n "$ONLY_SECTIONS" ] || usage_error "--only needs a comma-separated list"
                 ;;
             --skip)
-                [ "$#" -gt 1 ] || usage_error "--skip needs a comma-separated list"
+                [ "$#" -gt 1 ] && [ -n "$2" ] || usage_error "--skip needs a comma-separated list"
                 SKIP_SECTIONS="$2"
                 shift
                 ;;
             --skip=*)
                 SKIP_SECTIONS="${1#--skip=}"
+                [ -n "$SKIP_SECTIONS" ] || usage_error "--skip needs a comma-separated list"
                 ;;
             --apps)
                 INSTALL_APPS=true
@@ -292,6 +294,12 @@ ensure_real_dir() {
 
     if [ -d "$dir" ] && [ ! -L "$dir" ]; then
         ok "real directory: $(pretty_path "$dir")"
+        return 0
+    fi
+    # A link to a directory outside this repo is the user's choice; keep it.
+    # Only links into the repo (e.g. ~/.config/herdr -> repo/herdr) are replaced.
+    if [ -L "$dir" ] && [ -d "$dir" ] && ! points_into_dotfiles "$dir"; then
+        ok "directory link kept: $(pretty_path "$dir") -> $(readlink "$dir")"
         return 0
     fi
 
@@ -558,7 +566,19 @@ install_gitconfig() {
         return 0
     fi
 
-    warn "gitconfig drift: $(pretty_path "$target") is not the expected link; leaving it unchanged"
+    if [ -L "$target" ]; then
+        # A wrong or dangling link holds no settings of its own: back it up and relink.
+        plan_or_backup "$target" || return 1
+        if $DRY_RUN || $CHECK_MODE; then
+            change "would link $(pretty_path "$target") -> gitconfig"
+            return 0
+        fi
+        ln -s "$source" "$target" || { fail "failed to link $(pretty_path "$target") -> gitconfig"; return 1; }
+        change "replaced wrong link $(pretty_path "$target") -> gitconfig"
+        return 0
+    fi
+
+    warn "gitconfig drift: $(pretty_path "$target") is not a file or link; leaving it unchanged"
     if $CHECK_MODE; then
         DRIFT=1
     fi

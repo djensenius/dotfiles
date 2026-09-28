@@ -789,13 +789,20 @@ test_usage_errors_and_clean_full_check() {
     cp "$ROOT/herdr/plugins.txt" "$repo/herdr/plugins.txt"
     write_fake_bin "$bin"
 
-    for args in '--bogus' '--only nope' '--dry-run --check'; do
+    for args in '--bogus' '--only nope' '--dry-run --check' '--only=' '--skip='; do
         set +e
         # shellcheck disable=SC2086 # intentional test of shell-style argument splitting
         HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" $args >/dev/null 2>&1
         status=$?
         set -e
         [ "$status" -eq 64 ] || fail_test "usage error '$args' should exit 64, got $status"
+    done
+    for flag in --only --skip; do
+        set +e
+        HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" "$flag" '' >/dev/null 2>&1
+        status=$?
+        set -e
+        [ "$status" -eq 64 ] || fail_test "empty $flag value should exit 64, got $status"
     done
 
     set +e
@@ -891,6 +898,39 @@ test_legacy_herdr_plugin_and_invalid_tpm() {
     rm -rf "$tmp"
 }
 
+test_gitconfig_wrong_links_and_external_dir_links() {
+    local tmp repo home manifest external
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    external="$tmp/external-bin"
+    mkdir -p "$home/.config" "$external"
+    : >"$manifest"
+    printf '[local]\n  value = true\n' >"$home/.gitconfig.local"
+    printf 'mine\n' >"$external/tool"
+
+    # ~/.local/bin as a link to a directory outside the repo is kept as-is.
+    mkdir -p "$home/.local"
+    ln -s "$external" "$home/.local/bin"
+
+    # A wrong ~/.gitconfig link is backed up and relinked.
+    printf 'other\n' >"$tmp/other-gitconfig"
+    ln -s "$tmp/other-gitconfig" "$home/.gitconfig"
+    run_install "$repo" "$home" "$manifest" >/dev/null
+    assert_symlink_to "$home/.gitconfig" "$repo/gitconfig"
+    [ -n "$(find "$home/.dotfiles-backup" -name .gitconfig -type l)" ] || fail_test 'wrong gitconfig link was not backed up'
+    assert_symlink_to "$home/.local/bin" "$external"
+    assert_file_contains "$external/tool" 'mine'
+
+    # A dangling ~/.gitconfig link is repaired too.
+    rm "$home/.gitconfig"
+    ln -s "$tmp/missing-gitconfig" "$home/.gitconfig"
+    run_install "$repo" "$home" "$manifest" >/dev/null
+    assert_symlink_to "$home/.gitconfig" "$repo/gitconfig"
+    rm -rf "$tmp"
+}
+
 test_real_home_guard() {
     local before="$1" after="$2"
     [ -n "$ORIGINAL_HOME" ] || return 0
@@ -930,6 +970,7 @@ main() {
     test_usage_errors_and_clean_full_check
     test_check_exit_precedence_and_mise_probe
     test_legacy_herdr_plugin_and_invalid_tpm
+    test_gitconfig_wrong_links_and_external_dir_links
     real_home_after="$(snapshot_real_home)"
     test_real_home_guard "$real_home_before" "$real_home_after"
     printf 'ok install-mac tests passed\n'
