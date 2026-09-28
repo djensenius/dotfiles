@@ -115,9 +115,10 @@ For local installation, most configurations can be symlinked to your `~/.config`
    Herdr keeps sockets, logs and its own managed plugin checkouts inside
    `~/.config/herdr`, so link the individual pieces rather than the directory.
    ```bash
-   mkdir -p ~/.config/herdr
+   mkdir -p ~/.config/herdr ~/.local/bin
    ln -sf ~/.dotfiles/herdr/config.toml ~/.config/herdr/config.toml
    ln -sfn ~/.dotfiles/herdr/scripts ~/.config/herdr/scripts
+   ln -sf ~/.dotfiles/herdr/scripts/herdr-fish.sh ~/.local/bin/herdr-fish
    ```
    Then install the plugins listed in the [herdr](#herdr) section below.
 

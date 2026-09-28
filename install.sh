@@ -200,9 +200,10 @@ function link_files() {
     # Herdr keeps live sockets, logs and session state in ~/.config/herdr, and
     # owns ~/.config/herdr/plugins for its own managed plugin checkouts, so the
     # directory itself must not be replaced by a symlink. Link the pieces we own.
-    mkdir -p ~/.config/herdr
+    mkdir -p ~/.config/herdr ~/.local/bin
     ln -sf "$(pwd)/herdr/config.toml" ~/.config/herdr/config.toml
     ln -sfn "$(pwd)/herdr/scripts" ~/.config/herdr/scripts
+    ln -sf "$(pwd)/herdr/scripts/herdr-fish.sh" ~/.local/bin/herdr-fish
     
     ln -sf "$(pwd)/delta" ~/.config/delta
     ln -sf "$(pwd)/eza" ~/.config/eza

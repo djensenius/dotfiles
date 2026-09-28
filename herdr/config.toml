@@ -18,8 +18,11 @@ name = "catppuccin"
 
 # ==================== Terminal ===================
 [terminal]
-# macOS login shells so mise/homebrew PATH setup runs, matching a tmux pane.
-shell_mode = "auto"
+# Herdr 0.8.2 corrupts Rio's negotiated keyboard events (herdrdev/herdr#3340).
+# Launch Fish with terminal capability queries disabled until upstream fixes it.
+default_shell = "herdr-fish"
+# The wrapper explicitly preserves macOS login-shell behavior.
+shell_mode = "login"
 new_cwd = "follow"
 
 # ==================== UI =========================
@@ -58,6 +61,7 @@ agent_panel_sort = "spaces"
 
 # ==================== Keys =======================
 # tmux: `set -g prefix ^a` / `unbind ^b`.
+status_indicators = "symbols"
 [keys]
 prefix = "ctrl+a"
 
@@ -293,7 +297,7 @@ enabled = true
 position = "bottom-center"
 
 [ui.sound]
-enabled = true
+enabled = false
 
 # ================ Sidebar =========================
 [ui.sidebar.spaces]
