@@ -115,9 +115,10 @@ For local installation, most configurations can be symlinked to your `~/.config`
    Herdr keeps sockets, logs and its own managed plugin checkouts inside
    `~/.config/herdr`, so link the individual pieces rather than the directory.
    ```bash
-   mkdir -p ~/.config/herdr
+   mkdir -p ~/.config/herdr ~/.local/bin
    ln -sf ~/.dotfiles/herdr/config.toml ~/.config/herdr/config.toml
    ln -sfn ~/.dotfiles/herdr/scripts ~/.config/herdr/scripts
+   ln -sf ~/.dotfiles/herdr/scripts/herdr-fish.sh ~/.local/bin/herdr-fish
    ```
    Then install the plugins listed in the [herdr](#herdr) section below.
 
@@ -233,7 +234,7 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 Herdr is a terminal workspace manager for AI coding agents. Its config is a deliberate mirror of `tmux/tmux.conf` — same `Ctrl+a` prefix, same Catppuccin Mocha palette, and the same muscle memory — so switching between the two costs nothing.
 - **Directory**: `herdr/`
 - **Files**: `herdr/config.toml`, status and popup helpers in `herdr/scripts/`
-- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. `install.sh` links `config.toml` and `scripts/` individually.
+- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. The installers link `config.toml` and `scripts/` individually, then expose `herdr-fish` through `~/.local/bin`.
 
 #### tmux → herdr keymap
 

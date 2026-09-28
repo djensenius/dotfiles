@@ -526,6 +526,7 @@ link_configs() {
     ensure_real_dir "$HOME/.config/herdr"
     link_config herdr/config.toml "$HOME/.config/herdr/config.toml"
     link_config herdr/scripts "$HOME/.config/herdr/scripts"
+    link_config herdr/scripts/herdr-fish.sh "$HOME/.local/bin/herdr-fish"
 
     # tmux.conf references this by name, so it has to resolve on PATH.
     link_config scripts/tmux-background-install-indicator.sh \
