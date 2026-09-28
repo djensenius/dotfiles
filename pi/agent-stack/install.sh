@@ -14,7 +14,15 @@ REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 AGENTS_DIR="$PI_AGENT_DIR/agents"
 LEGACY_PROFILE_DIR="$PI_AGENT_DIR/herdr-subagents/agents"
+SUBAGENT_CONFIG_DIR="$PI_AGENT_DIR/extensions/subagent"
+SUBAGENT_CONFIG_PATH="$SUBAGENT_CONFIG_DIR/config.json"
+MCP_ADAPTER_CONFIG_PATH="$PI_AGENT_DIR/mcp-adapter.json"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
+PACKAGES_FILE="$DIR/packages.txt"
+SETTINGS_FILE="$DIR/settings.json"
+SUBAGENT_CONFIG_FILE="$DIR/subagent-config.json"
+MCP_ADAPTER_CONFIG_FILE="$DIR/mcp-adapter.json"
+FOOTER_FILE="$DIR/catppuccin-footer.json"
 # nicobailon/pi-subagents, deliberately unpinned: Pi and Herdr float at latest
 # through mise, so the extension tracks latest too and is updated on every run.
 SUBAGENTS_PACKAGE="pi-subagents"
@@ -44,6 +52,18 @@ package_sources() {
     /^[^[:space:]]/ { user = 0; next }
     user && /^  [^[:space:]]/ { print $1 }
   ' <<<"$1"
+}
+
+managed_package_sources() {
+  awk '
+    /^[[:space:]]*#/ { next }
+    {
+      sub(/[[:space:]]+#.*$/, "")
+      sub(/^[[:space:]]+/, "")
+      sub(/[[:space:]]+$/, "")
+    }
+    $0 != "" { print }
+  ' "$PACKAGES_FILE"
 }
 
 mise_exec() {
@@ -98,9 +118,18 @@ sync_file() {
   ok "installed $(basename "$dst") -> $dst"
 }
 
+merge_json_file() {
+  local src="$1" dst="$2" label="$3" result
+
+  if ! result="$(mise_exec node "$DIR/bin/merge-json.mjs" "$dst" "$src")"; then
+    die "failed to merge $label"
+  fi
+  ok "$label $result"
+}
+
 main() {
   local node_version pi_version herdr_version packages sources
-  local current_subagents stale_sources stale_source profile
+  local current_subagents stale_sources stale_source profile package_source
 
   log "Checking prerequisites"
   require_git_version
@@ -137,6 +166,22 @@ main() {
   # Version-pinned pi-subagents entries and the legacy maxedapps extension are
   # replaced by the unpinned package.
   stale_sources="$(grep -E "^npm:$SUBAGENTS_PACKAGE@|$LEGACY_SOURCE_PATTERN" <<<"$sources" || true)"
+
+  log "Installing shared Pi configuration"
+  merge_json_file "$SETTINGS_FILE" "$PI_AGENT_DIR/settings.json" "settings.json"
+  merge_json_file "$SUBAGENT_CONFIG_FILE" "$SUBAGENT_CONFIG_PATH" "subagent config.json"
+  merge_json_file "$MCP_ADAPTER_CONFIG_FILE" "$MCP_ADAPTER_CONFIG_PATH" "mcp-adapter.json"
+  sync_file "$FOOTER_FILE" "$PI_AGENT_DIR/catppuccin-footer.json"
+
+  log "Installing repository-managed Pi packages"
+  while IFS= read -r package_source; do
+    if grep -Fxq "$package_source" <<<"$sources"; then
+      ok "$package_source is already installed"
+    else
+      mise_exec pi install "$package_source"
+      ok "installed $package_source"
+    fi
+  done < <(managed_package_sources)
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"

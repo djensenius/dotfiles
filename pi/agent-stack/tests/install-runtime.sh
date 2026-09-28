@@ -6,6 +6,16 @@ INSTALLER="$DIR/../install.sh"
 REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
 SUBAGENTS_SOURCE="npm:pi-subagents"
 LEGACY_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
+MANAGED_PACKAGE_SOURCES=(
+  "npm:pi-catppuccin-footer"
+  "npm:@plannotator/pi-extension"
+  "npm:pi-web-access"
+  "npm:pi-browser-harness"
+  "npm:pi-memctx"
+  "npm:pi-mcp-adapter"
+)
+PREINSTALLED_MANAGED_PACKAGE="npm:pi-web-access"
+UNMANAGED_PACKAGE_SOURCE="npm:some-local-tool"
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/install-runtime.XXXXXX")"
 cleanup() {
@@ -38,10 +48,31 @@ assert_not_contains() {
   fi
 }
 
+sanitize_source() {
+  printf '%s' "$1" | sed 's/[^A-Za-z0-9_.-]/_/g'
+}
+
+mark_package_installed() {
+  local root="$1" source="$2"
+  : > "$root/state/package-$(sanitize_source "$source")"
+}
+
+assert_json() {
+  local file="$1" expression="$2" message="$3"
+  # shellcheck disable=SC2016
+  node -e '
+    const fs = require("fs");
+    const file = process.argv[1];
+    const expression = process.argv[2];
+    const value = JSON.parse(fs.readFileSync(file, "utf8"));
+    if (!Function("value", `return (${expression});`)(value)) process.exit(1);
+  ' "$file" "$expression" || fail "$message"
+}
+
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in awk basename cat chmod cmp dirname grep head install mkdir rm rmdir; do
+  for utility in awk basename cat chmod cmp dirname grep head install mkdir rm rmdir sed; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -56,6 +87,14 @@ set -euo pipefail
 fail() {
   printf 'mock mise failed: %s\n' "$*" >&2
   exit 1
+}
+
+sanitize_source() {
+  printf '%s' "$1" | sed 's/[^A-Za-z0-9_.-]/_/g'
+}
+
+is_managed_package_source() {
+  grep -Fxq "$1" <<<"${RUNTIME_TEST_MANAGED_PACKAGE_SOURCES:?}"
 }
 
 [ "${1:-}" = "-C" ] || fail "missing -C: $*"
@@ -101,6 +140,13 @@ case "$action" in
               fail "unexpected node -e arguments"
             printf 'exec:node -e\n' >> "$RUNTIME_TEST_LOG"
             ;;
+          "$RUNTIME_TEST_REPO_ROOT/pi/agent-stack/bin/merge-json.mjs")
+            [ -x "${RUNTIME_TEST_REAL_NODE:?}" ] ||
+              fail "real node is unavailable for merge-json helper"
+            [ "$#" -ge 3 ] || fail "unexpected merge-json arguments: $*"
+            printf 'exec:node merge-json:%s\n' "$(basename "$2")" >> "$RUNTIME_TEST_LOG"
+            "$RUNTIME_TEST_REAL_NODE" "$@"
+            ;;
           *)
             fail "unexpected node arguments: $*"
             ;;
@@ -136,10 +182,17 @@ case "$action" in
             # " (filtered)" display suffix, and a project scope the installer
             # must ignore.
             printf '\033[1mUser packages:\033[22m\n'
+            printf '  %s\n    /mock/unmanaged\n' "$RUNTIME_TEST_UNMANAGED_PACKAGE_SOURCE"
             if [ -n "${RUNTIME_TEST_PI_LIST_SOURCE:-}" ] &&
               [ ! -f "$RUNTIME_TEST_STATE/listed-source-removed" ]; then
               printf '  %s\n    /mock/listed\n' "$RUNTIME_TEST_PI_LIST_SOURCE"
             fi
+            while IFS= read -r managed_source; do
+              [ -n "$managed_source" ] || continue
+              if [ -f "$RUNTIME_TEST_STATE/package-$(sanitize_source "$managed_source")" ]; then
+                printf '  %s\n    /mock/managed\n' "$managed_source"
+              fi
+            done <<<"$RUNTIME_TEST_MANAGED_PACKAGE_SOURCES"
             if [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
               printf '  %s%s\n    /mock/installed\n' \
                 "$RUNTIME_TEST_SOURCE" "${RUNTIME_TEST_PI_LIST_SUFFIX:-}"
@@ -165,10 +218,15 @@ case "$action" in
             : > "$RUNTIME_TEST_STATE/listed-source-removed"
             ;;
           install)
-            [ "$#" -eq 1 ] && [ "$1" = "$RUNTIME_TEST_SOURCE" ] ||
+            [ "$#" -eq 1 ] || fail "unexpected pi install arguments: $*"
+            if [ "$1" = "$RUNTIME_TEST_SOURCE" ]; then
+              : > "$RUNTIME_TEST_STATE/pi-installed"
+            elif is_managed_package_source "$1"; then
+              : > "$RUNTIME_TEST_STATE/package-$(sanitize_source "$1")"
+            else
               fail "unexpected pi install arguments: $*"
+            fi
             printf 'exec:pi install:%s\n' "$1" >> "$RUNTIME_TEST_LOG"
-            : > "$RUNTIME_TEST_STATE/pi-installed"
             ;;
           *)
             fail "unexpected pi arguments: $subcommand $*"
@@ -285,6 +343,7 @@ setup_fixture() {
     "$root/state" \
     "$root/markers"
   : > "$root/mise.log"
+  mark_package_installed "$root" "$PREINSTALLED_MANAGED_PACKAGE"
   link_installer_utilities "$root/common-bin"
   write_prerequisite_mocks "$root/system-bin"
   write_mise_mock "$root/system-bin/mise"
@@ -300,6 +359,10 @@ setup_fixture() {
 run_installer() {
   local root="$1" system_name="$2" pi_list_failure="$3" pi_list_source="${4:-}"
   local pi_agent_dir="${RUNTIME_TEST_PI_AGENT_DIR:-$root/pi-agent}"
+  local managed_package_sources real_node
+
+  managed_package_sources="$(printf '%s\n' "${MANAGED_PACKAGE_SOURCES[@]}")"
+  real_node="$(command -v node || true)"
 
   env -i \
     HOME="$root/home" \
@@ -308,12 +371,15 @@ run_installer() {
     PI_CODING_AGENT_DIR="$pi_agent_dir" \
     BIN_DIR="$root/local-bin" \
     RUNTIME_TEST_LOG="$root/mise.log" \
+    RUNTIME_TEST_MANAGED_PACKAGE_SOURCES="$managed_package_sources" \
     RUNTIME_TEST_MARKERS="$root/markers" \
     RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
     RUNTIME_TEST_PI_LIST_SOURCE="$pi_list_source" \
     RUNTIME_TEST_PI_LIST_SUFFIX="${RUNTIME_TEST_PI_LIST_SUFFIX:-}" \
+    RUNTIME_TEST_REAL_NODE="$real_node" \
     RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
     RUNTIME_TEST_SOURCE="$SUBAGENTS_SOURCE" \
+    RUNTIME_TEST_UNMANAGED_PACKAGE_SOURCE="$UNMANAGED_PACKAGE_SOURCE" \
     RUNTIME_TEST_STATE="$root/state" \
     RUNTIME_TEST_UNAME="$system_name" \
     /bin/bash "$INSTALLER"
@@ -329,16 +395,25 @@ assert_no_runtime_markers() {
 }
 
 assert_no_agent_stack_mutations() {
-  local name="$1" root="$2"
+  local name="$1" root="$2" package_source
 
   assert_count 0 "exec:pi install:$SUBAGENTS_SOURCE" "$root/mise.log"
   assert_count 0 "exec:pi update:$SUBAGENTS_SOURCE" "$root/mise.log"
+  for package_source in "${MANAGED_PACKAGE_SOURCES[@]}"; do
+    assert_count 0 "exec:pi install:$package_source" "$root/mise.log"
+  done
   if grep -q '^exec:pi remove:' "$root/mise.log"; then
     fail "$name removed Pi packages before validating package state"
   fi
   assert_count 0 "exec:npx skills" "$root/mise.log"
   assert_count 0 "exec:herdr integration pi" "$root/mise.log"
   assert_count 0 "exec:herdr integration copilot" "$root/mise.log"
+  [ ! -e "$root/pi-agent/settings.json" ] ||
+    fail "$name installed shared settings before validating package state"
+  [ ! -e "$root/pi-agent/mcp-adapter.json" ] ||
+    fail "$name installed MCP config before validating package state"
+  [ ! -e "$root/pi-agent/catppuccin-footer.json" ] ||
+    fail "$name installed footer config before validating package state"
   [ ! -e "$root/pi-agent/extensions/reviewer-git.ts" ] ||
     fail "$name installed the repository-owned extension before validating package state"
   [ ! -e "$root/pi-agent/agents/reviewer.md" ] ||
@@ -364,6 +439,34 @@ assert_reviewer_profile() {
     fail "$name reviewer-git.ts is not where the profile resolves it"
 }
 
+assert_shared_config() {
+  local name="$1" agent_dir="$2" profile
+
+  assert_json "$agent_dir/settings.json" \
+    'value.localOnly === true && value.lastChangelogVersion === "0.1.0" && value.packages[0] === "keep"' \
+    "$name settings merge dropped local keys"
+  assert_json "$agent_dir/settings.json" \
+    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-5.5" && value.defaultThinkingLevel === "medium" && value.theme === "dark" && value.tuiMode === "fullscreen"' \
+    "$name settings merge did not apply shared top-level values"
+  assert_json "$agent_dir/settings.json" \
+    'value.subagents.localSetting === "preserved" && value.subagents.agentOverrides.worker.model === "github-copilot/gpt-5.5" && value.subagents.agentOverrides.scout.model === "github-copilot/gpt-5.4-mini" && value.subagents.agentOverrides.researcher.model === "github-copilot/gemini-3.8-flash" && value.subagents.agentOverrides.reviewer.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.oracle.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.localOnly.description === "preserved"' \
+    "$name settings merge did not preserve or override nested subagent values"
+  assert_json "$agent_dir/extensions/subagent/config.json" \
+    'value.fleetView === true && value.asyncWidget === true && value.authorityPolicy.inspectorOpen === "auto" && value.authorityPolicy.projectOpen === "confirm"' \
+    "$name subagent config merge did not preserve local policy and apply shared rich-view defaults"
+  assert_json "$agent_dir/mcp-adapter.json" \
+    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
+    "$name MCP adapter merge did not preserve other servers and configure shared servers"
+  cmp -s "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+    "$agent_dir/catppuccin-footer.json" ||
+    fail "$name did not install catppuccin-footer.json"
+  for profile in council-gpt.md council-claude.md council-gemini.md; do
+    cmp -s "$REPO_ROOT/pi/agent-stack/profiles/$profile" \
+      "$agent_dir/agents/$profile" ||
+      fail "$name did not install $profile"
+  done
+}
+
 run_success_scenario() {
   local name="$1" system_runtimes="$2" system_name="$3" with_lockf="$4"
   local RUNTIME_TEST_PI_LIST_SUFFIX="${5:-}"
@@ -371,8 +474,46 @@ run_success_scenario() {
   local log="$root/mise.log"
   local first_output="$root/first.out"
   local second_output="$root/second.out"
+  local package_source
 
   setup_fixture "$root" "$system_runtimes" "$with_lockf"
+  mkdir -p "$root/pi-agent/extensions/subagent"
+  cat > "$root/pi-agent/settings.json" <<'JSON'
+{
+  "lastChangelogVersion": "0.1.0",
+  "defaultProvider": "old-provider",
+  "packages": ["keep"],
+  "localOnly": true,
+  "subagents": {
+    "localSetting": "preserved",
+    "agentOverrides": {
+      "worker": { "model": "old-provider/old-model" },
+      "localOnly": { "description": "preserved" }
+    }
+  }
+}
+JSON
+  cat > "$root/pi-agent/extensions/subagent/config.json" <<'JSON'
+{
+  "fleetView": false,
+  "asyncWidget": false,
+  "authorityPolicy": {
+    "projectOpen": "confirm"
+  }
+}
+JSON
+  cat > "$root/pi-agent/mcp-adapter.json" <<'JSON'
+{
+  "mcpServers": {
+    "other": {
+      "command": "other"
+    },
+    "playwright": {
+      "command": "old-playwright"
+    }
+  }
+}
+JSON
 
   if ! run_installer "$root" "$system_name" 0 >"$first_output" 2>&1; then
     cat "$first_output" >&2
@@ -395,6 +536,16 @@ run_success_scenario() {
   assert_count 2 "exec:pi list" "$log"
   assert_count 1 "exec:pi install:$SUBAGENTS_SOURCE" "$log"
   assert_count 1 "exec:pi update:$SUBAGENTS_SOURCE" "$log"
+  for package_source in "${MANAGED_PACKAGE_SOURCES[@]}"; do
+    if [ "$package_source" = "$PREINSTALLED_MANAGED_PACKAGE" ]; then
+      assert_count 0 "exec:pi install:$package_source" "$log"
+      assert_contains "$package_source is already installed" "$first_output"
+    else
+      assert_count 1 "exec:pi install:$package_source" "$log"
+      assert_contains "$package_source is already installed" "$second_output"
+    fi
+  done
+  assert_count 0 "exec:pi remove:$UNMANAGED_PACKAGE_SOURCE" "$log"
   assert_contains "updated $SUBAGENTS_SOURCE" "$second_output"
   if grep -q '^exec:pi remove:' "$log"; then
     fail "$name removed a Pi package without a superseded source"
@@ -410,11 +561,18 @@ run_success_scenario() {
     "$root/pi-agent/extensions/reviewer-git.ts" ||
     fail "$name did not install the repository-owned extension"
   assert_reviewer_profile "$name" "$root/pi-agent"
+  assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
   assert_contains "installed reviewer-git.ts" "$first_output"
   assert_contains "reviewer-git.ts is up to date" "$second_output"
+  assert_contains "settings.json is up to date" "$second_output"
+  assert_contains "mcp-adapter.json is up to date" "$second_output"
+  assert_contains "catppuccin-footer.json is up to date" "$second_output"
   assert_contains "reviewer.md is up to date" "$second_output"
+  assert_contains "council-gpt.md is up to date" "$second_output"
+  assert_contains "council-claude.md is up to date" "$second_output"
+  assert_contains "council-gemini.md is up to date" "$second_output"
 
   if [ "$system_name" = "Darwin" ]; then
     cmp -s "$REPO_ROOT/pi/agent-stack/bin/xbuild" "$root/local-bin/xbuild" ||
@@ -480,6 +638,41 @@ run_pi_list_failure() {
   assert_no_runtime_markers "$name" "$root"
 }
 
+run_invalid_settings_json() {
+  local name="invalid-settings-json"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local status
+
+  setup_fixture "$root" "no" "no"
+  mkdir -p "$root/pi-agent"
+  printf '{ invalid settings json\n' > "$root/pi-agent/settings.json"
+
+  set +e
+  run_installer "$root" "Linux" 0 >"$output" 2>&1
+  status=$?
+  set -e
+
+  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
+  assert_contains "invalid JSON in $root/pi-agent/settings.json" "$output"
+  assert_contains "failed to merge settings.json" "$output"
+  grep -Fxq '{ invalid settings json' "$root/pi-agent/settings.json" ||
+    fail "$name changed invalid settings before aborting"
+  assert_count 1 "exec:node merge-json:settings.json" "$root/mise.log"
+  assert_count 0 "exec:node merge-json:config.json" "$root/mise.log"
+  assert_count 0 "exec:pi install:$SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:pi update:$SUBAGENTS_SOURCE" "$root/mise.log"
+  [ ! -e "$root/pi-agent/mcp-adapter.json" ] ||
+    fail "$name installed MCP config after invalid settings"
+  [ ! -e "$root/pi-agent/catppuccin-footer.json" ] ||
+    fail "$name installed footer config after invalid settings"
+  [ ! -e "$root/pi-agent/extensions/reviewer-git.ts" ] ||
+    fail "$name installed extension after invalid settings"
+  [ ! -e "$root/pi-agent/agents/reviewer.md" ] ||
+    fail "$name installed profiles after invalid settings"
+  assert_no_runtime_markers "$name" "$root"
+}
+
 run_migration() {
   local name="$1" listed_source="$2"
   local root="$tmp/$name"
@@ -519,6 +712,8 @@ run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
 run_darwin_no_lockf
 run_pi_list_failure
+run_invalid_settings_json
+
 run_special_agent_dir() {
   local name="special-agent-dir"
   local root="$tmp/$name"

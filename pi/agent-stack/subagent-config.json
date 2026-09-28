@@ -1,0 +1,7 @@
+{
+  "fleetView": true,
+  "asyncWidget": true,
+  "authorityPolicy": {
+    "inspectorOpen": "auto"
+  }
+}
