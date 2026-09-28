@@ -39,7 +39,7 @@ Runs, in order:
   preflight       Darwin, Xcode Command Line Tools, Homebrew present
   brew            Homebrew bundle from mac/Brewfile (and apps with --apps)
   links           Dotfile links from mac/links.txt plus gh/herdr/gitconfig rules
-  mise            mise trust, then mise install (never upgrade)
+  mise            mise trust, then mise install (never upgrade); --check probes missing tools
   herdr-plugins   Install only missing Herdr plugins from herdr/plugins.txt
   tmux            Clone TPM if missing, then run TPM install_plugins
   nvim            nvim --headless '+Lazy! sync' +qa
@@ -191,19 +191,22 @@ backup_dir() {
             candidate="$base-$suffix"
             suffix=$((suffix + 1))
         done
-        mkdir -p "$candidate"
+        mkdir -p "$candidate" || return 1
         BACKUP_DIR="$candidate"
     fi
     printf '%s\n' "$BACKUP_DIR"
 }
 
 backup_path() {
-    local target="$1" rel dest root suffix base_dest
+    local target="$1" rel dest root suffix base_dest dest_parent
     rel="${target#"$HOME"/}"
     if [ "$rel" = "$target" ]; then
         rel="$(basename "$target")"
     fi
-    root="$(backup_dir)"
+    if ! root="$(backup_dir)"; then
+        fail "failed to create backup directory under $(pretty_path "$HOME/.dotfiles-backup")"
+        return 1
+    fi
     dest="$root/$rel"
     base_dest="$dest"
     suffix=1
@@ -211,8 +214,15 @@ backup_path() {
         dest="$base_dest.$suffix"
         suffix=$((suffix + 1))
     done
-    mkdir -p "$(dirname "$dest")"
-    mv "$target" "$dest"
+    dest_parent="$(dirname "$dest")"
+    if ! mkdir -p "$dest_parent"; then
+        fail "failed to create backup parent $(pretty_path "$dest_parent")"
+        return 1
+    fi
+    if ! mv "$target" "$dest"; then
+        fail "failed to back up $(pretty_path "$target") to $(pretty_path "$dest")"
+        return 1
+    fi
     warn "backed up $(pretty_path "$target") to $(pretty_path "$dest")"
 }
 
@@ -231,7 +241,10 @@ plan_or_remove() {
         change "would remove $description"
         return 0
     fi
-    rm -f "$target"
+    if ! rm -f "$target"; then
+        fail "failed to remove $description"
+        return 1
+    fi
     change "removed $description"
 }
 
@@ -241,7 +254,7 @@ ensure_real_parent_dirs() {
     case "$parent" in
         "$HOME"|"$HOME"/*) ;;
         *)
-            mkdir -p "$parent"
+            mkdir -p "$parent" || { fail "failed to create directory $(pretty_path "$parent")"; return 1; }
             return 0
             ;;
     esac
@@ -256,20 +269,20 @@ ensure_real_parent_dirs() {
                 change "would convert repo symlink parent $(pretty_path "$current") to a real directory"
                 return 0
             fi
-            backup_path "$current"
-            mkdir -p "$current"
+            backup_path "$current" || return 1
+            mkdir -p "$current" || { fail "failed to create directory $(pretty_path "$current")"; return 1; }
             change "converted repo symlink parent $(pretty_path "$current") to a real directory"
         elif [ ! -e "$current" ]; then
             if $DRY_RUN || $CHECK_MODE; then
                 change "would create directory $(pretty_path "$current")"
                 return 0
             fi
-            mkdir -p "$current"
+            mkdir -p "$current" || { fail "failed to create directory $(pretty_path "$current")"; return 1; }
             change "created directory $(pretty_path "$current")"
         elif [ ! -d "$current" ]; then
-            plan_or_backup "$current"
+            plan_or_backup "$current" || return 1
             if ! $DRY_RUN && ! $CHECK_MODE; then
-                mkdir -p "$current"
+                mkdir -p "$current" || { fail "failed to create directory $(pretty_path "$current")"; return 1; }
                 change "created directory $(pretty_path "$current")"
             fi
         fi
@@ -284,7 +297,7 @@ ensure_real_parent_dirs() {
 
 ensure_real_dir() {
     local dir="$1"
-    ensure_real_parent_dirs "$dir"
+    ensure_real_parent_dirs "$dir" || return 1
 
     if [ -d "$dir" ] && [ ! -L "$dir" ]; then
         ok "real directory: $(pretty_path "$dir")"
@@ -292,7 +305,7 @@ ensure_real_dir() {
     fi
 
     if [ -e "$dir" ] || [ -L "$dir" ]; then
-        plan_or_backup "$dir"
+        plan_or_backup "$dir" || return 1
     fi
 
     if $DRY_RUN || $CHECK_MODE; then
@@ -300,7 +313,7 @@ ensure_real_dir() {
         return 0
     fi
 
-    mkdir -p "$dir"
+    mkdir -p "$dir" || { fail "failed to create real directory $(pretty_path "$dir")"; return 1; }
     change "created real directory $(pretty_path "$dir")"
 }
 
@@ -326,7 +339,7 @@ link_config() {
 
     if [ "$mode" = "realdir" ]; then
         ensure_real_dir "$target"
-        return 0
+        return $?
     fi
 
     source="$DOTFILES_DIR/$source_rel"
@@ -339,7 +352,7 @@ link_config() {
         return 1
     fi
 
-    ensure_real_parent_dirs "$target"
+    ensure_real_parent_dirs "$target" || return 1
 
     if [ "$mode" = "link-if-absent" ] && { [ -e "$target" ] || [ -L "$target" ]; }; then
         if is_correct_link "$source" "$target"; then
@@ -356,7 +369,7 @@ link_config() {
     fi
 
     if [ -e "$target" ] || [ -L "$target" ]; then
-        plan_or_backup "$target"
+        plan_or_backup "$target" || return 1
     fi
 
     if $DRY_RUN || $CHECK_MODE; then
@@ -364,22 +377,30 @@ link_config() {
         return 0
     fi
 
-    mkdir -p "$(dirname "$target")"
-    ln -s "$source" "$target"
+    mkdir -p "$(dirname "$target")" || { fail "failed to create directory $(pretty_path "$(dirname "$target")")"; return 1; }
+    ln -s "$source" "$target" || { fail "failed to link $(pretty_path "$target") -> $source_rel"; return 1; }
     change "linked $(pretty_path "$target") -> $source_rel"
 }
 
 process_links_manifest() {
-    local line source target mode
+    local line source target mode status old_flags
     [ -f "$LINKS_FILE" ] || { fail "missing links manifest: $LINKS_FILE"; return 1; }
+    status=0
 
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line%%#*}"
+        old_flags="$-"
+        set -f
         # shellcheck disable=SC2086 # manifest fields are intentionally whitespace-separated
         set -- $line
+        case "$old_flags" in
+            *f*) ;;
+            *) set +f ;;
+        esac
         [ "$#" -eq 0 ] && continue
         if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
             fail "invalid links manifest line: $line"
+            status=1
             continue
         fi
         source="$1"
@@ -389,11 +410,15 @@ process_links_manifest() {
             link|realdir|link-if-absent|optional) ;;
             *)
                 fail "invalid link mode '$mode' for $target"
+                status=1
                 continue
                 ;;
         esac
-        link_config "$source" "$target" "$mode" || true
+        if ! link_config "$source" "$target" "$mode"; then
+            status=1
+        fi
     done <"$LINKS_FILE"
+    return "$status"
 }
 
 herdr_server_running() {
@@ -410,6 +435,9 @@ repair_herdr_symlink_dir() {
         if herdr_server_running; then
             warn "Herdr socket files found and a herdr process is running; stop Herdr and re-run to convert $(pretty_path "$dir") safely"
             HERDR_REPAIR_DEFERRED=true
+            if $CHECK_MODE; then
+                DRIFT=1
+            fi
             return 0
         fi
         warn "Herdr socket files found in repo copy; treating them as stale because no herdr process is running"
@@ -420,25 +448,28 @@ repair_herdr_symlink_dir() {
         return 0
     fi
 
-    backup_path "$dir"
-    mkdir -p "$dir"
-    for runtime_file in session.json release-notes.json .plugins.lock; do
+    backup_path "$dir" || return 1
+    mkdir -p "$dir" || { fail "failed to create real Herdr config directory $(pretty_path "$dir")"; return 1; }
+    for runtime_file in session.json release-notes.json .plugins.lock plugins.json sessions; do
         if [ -e "$source_dir/$runtime_file" ]; then
-            mv "$source_dir/$runtime_file" "$dir/$runtime_file"
-            change "moved Herdr runtime file $runtime_file into real config dir"
+            mv "$source_dir/$runtime_file" "$dir/$runtime_file" || { fail "failed to move Herdr runtime path $runtime_file into real config dir"; return 1; }
+            change "moved Herdr runtime path $runtime_file into real config dir"
         fi
     done
     plugins_dir="$source_dir/plugins"
     if [ -e "$plugins_dir" ]; then
-        mv "$plugins_dir" "$dir/plugins"
+        mv "$plugins_dir" "$dir/plugins" || { fail "failed to move Herdr plugins directory into real config dir"; return 1; }
         change "moved Herdr plugins directory into real config dir"
     fi
     for runtime_file in "$source_dir"/*.log; do
         [ -e "$runtime_file" ] || continue
-        mv "$runtime_file" "$dir/$(basename "$runtime_file")"
+        mv "$runtime_file" "$dir/$(basename "$runtime_file")" || { fail "failed to move Herdr runtime file $(basename "$runtime_file") into real config dir"; return 1; }
         change "moved Herdr runtime file $(basename "$runtime_file") into real config dir"
     done
-    find "$source_dir" -maxdepth 1 \( -type s -o -name '*.sock' \) -exec rm -f {} + 2>/dev/null || true
+    if ! find "$source_dir" -maxdepth 1 \( -type s -o -name '*.sock' \) -exec rm -f {} + 2>/dev/null; then
+        fail "failed to remove stale Herdr socket files from repo copy"
+        return 1
+    fi
     change "converted $(pretty_path "$dir") to a real Herdr config directory"
 }
 
@@ -453,7 +484,7 @@ recover_gh_hosts_from_history() {
         rm -f "$tmp_destination"
         return 1
     fi
-    mv "$tmp_destination" "$destination"
+    mv "$tmp_destination" "$destination" || { rm -f "$tmp_destination"; return 1; }
     chmod 600 "$destination" 2>/dev/null || true
 }
 
@@ -467,11 +498,11 @@ repair_gh_symlink_dir() {
         return 0
     fi
 
-    backup_path "$dir"
-    mkdir -p "$dir"
+    backup_path "$dir" || return 1
+    mkdir -p "$dir" || { fail "failed to create real gh config directory $(pretty_path "$dir")"; return 1; }
     if [ -e "$source_dir/hosts.yml" ]; then
-        cp -p "$source_dir/hosts.yml" "$dir/hosts.yml"
-        chmod 600 "$dir/hosts.yml" 2>/dev/null || true
+        cp -p "$source_dir/hosts.yml" "$dir/hosts.yml" || { fail "failed to copy gh hosts.yml into real config dir"; return 1; }
+        chmod 600 "$dir/hosts.yml" 2>/dev/null || warn "failed to chmod gh hosts.yml to 600"
         change "copied gh hosts.yml into real config dir"
     elif recover_gh_hosts_from_history "$dir/hosts.yml"; then
         change "recovered gh hosts.yml from git history into real config dir"
@@ -496,6 +527,9 @@ install_gitconfig() {
 
     if is_correct_link "$source" "$target"; then
         ok "already linked: $(pretty_path "$target") -> gitconfig"
+        if [ ! -e "$local_config" ] && [ ! -L "$local_config" ]; then
+            warn "$(pretty_path "$local_config") is missing; machine-local git settings such as signing keys and credential helpers will not override repo defaults"
+        fi
         return 0
     fi
 
@@ -504,7 +538,7 @@ install_gitconfig() {
             change "would link $(pretty_path "$target") -> gitconfig"
             return 0
         fi
-        ln -s "$source" "$target"
+        ln -s "$source" "$target" || { fail "failed to link $(pretty_path "$target") -> gitconfig"; return 1; }
         change "linked $(pretty_path "$target") -> gitconfig"
         return 0
     fi
@@ -524,10 +558,10 @@ install_gitconfig() {
         fi
 
         if [ -e "$local_config" ] || [ -L "$local_config" ]; then
-            backup_path "$local_config"
+            backup_path "$local_config" || return 1
         fi
-        mv "$target" "$local_config"
-        ln -s "$source" "$target"
+        mv "$target" "$local_config" || { fail "failed to move $(pretty_path "$target") to $(pretty_path "$local_config")"; return 1; }
+        ln -s "$source" "$target" || { fail "failed to link $(pretty_path "$target") -> gitconfig"; return 1; }
         change "adopted existing gitconfig as $(pretty_path "$local_config") and linked repo gitconfig"
         return 0
     fi
@@ -579,7 +613,7 @@ brew_bundle_env() {
 
 brew_bundle() {
     local file="$1" label="$2"
-    if brew_bundle_env bundle check --file="$file" >/dev/null 2>&1; then
+    if brew_bundle_env bundle check --no-upgrade --file="$file" >/dev/null 2>&1; then
         ok "brew bundle satisfied: $label"
         return 0
     fi
@@ -681,7 +715,17 @@ install_mise_tools() {
         return 0
     fi
     if $CHECK_MODE; then
-        ok "mise trust/install not run under --check; run the mise section to apply missing tools from mise/config.toml"
+        local missing
+        if missing="$(mise ls --missing --no-header -C "$HOME" 2>/dev/null)"; then
+            if [ -n "$missing" ]; then
+                change "mise tool drift: missing tools from mise/config.toml"
+                printf '%s\n' "$missing" | sed 's/^/  /'
+            else
+                ok "mise tools satisfied"
+            fi
+        else
+            warn "mise missing-tool probe failed; run the mise section to apply tools from mise/config.toml"
+        fi
         return 0
     fi
     if mise trust "$DOTFILES_DIR/mise/config.toml" && mise install -C "$HOME"; then
@@ -763,7 +807,7 @@ install_tmux_plugins() {
             change "would clone TPM into $(pretty_path "$tpm_dir")"
             return 0
         fi
-        mkdir -p "$(dirname "$tpm_dir")"
+        mkdir -p "$(dirname "$tpm_dir")" || { fail "failed to create directory $(pretty_path "$(dirname "$tpm_dir")")"; return 1; }
         if git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm_dir"; then
             change "cloned TPM"
         else
@@ -774,13 +818,17 @@ install_tmux_plugins() {
         ok "TPM present"
     fi
 
-    if [ ! -e "$legacy_dir" ]; then
+    if [ -L "$legacy_dir" ] && [ ! -e "$legacy_dir" ]; then
+        plan_or_backup "$legacy_dir" || return 1
+    fi
+
+    if [ ! -e "$legacy_dir" ] && [ ! -L "$legacy_dir" ]; then
         if $DRY_RUN || $CHECK_MODE; then
             change "would link legacy TPM path $(pretty_path "$legacy_dir") -> $(pretty_path "$tpm_dir")"
             return 0
         fi
-        mkdir -p "$(dirname "$legacy_dir")"
-        ln -s "$tpm_dir" "$legacy_dir"
+        mkdir -p "$(dirname "$legacy_dir")" || { fail "failed to create directory $(pretty_path "$(dirname "$legacy_dir")")"; return 1; }
+        ln -s "$tpm_dir" "$legacy_dir" || { fail "failed to link legacy TPM path"; return 1; }
         change "linked legacy TPM path"
     fi
 
@@ -871,8 +919,12 @@ configure_fish_shell() {
         if $DRY_RUN || $CHECK_MODE; then
             change "would add $fish_path to /etc/shells"
         elif confirm "Add $fish_path to /etc/shells with sudo?"; then
-            printf '%s\n' "$fish_path" | sudo tee -a /etc/shells >/dev/null
-            change "added $fish_path to /etc/shells"
+            if printf '%s\n' "$fish_path" | sudo tee -a /etc/shells >/dev/null; then
+                change "added $fish_path to /etc/shells"
+            else
+                fail "failed to add $fish_path to /etc/shells"
+                return 1
+            fi
         else
             warn "fish shell change declined"
             return 0
@@ -888,8 +940,12 @@ configure_fish_shell() {
     if $DRY_RUN || $CHECK_MODE; then
         change "would run chsh -s $fish_path"
     elif confirm "Change login shell to $fish_path?"; then
-        chsh -s "$fish_path"
-        change "changed login shell to $fish_path"
+        if chsh -s "$fish_path"; then
+            change "changed login shell to $fish_path"
+        else
+            fail "failed to change login shell to $fish_path"
+            return 1
+        fi
     else
         warn "fish shell change declined"
     fi
@@ -913,16 +969,24 @@ run_section() {
 }
 
 main() {
-    local section_name
+    local section_name section_status
     parse_args "$@"
 
     if $DRIFT_MODE; then
-        brew_drift || true
+        set +e
+        brew_drift
+        section_status=$?
+        set -e
+        [ "$section_status" -eq 0 ] || FAILED=1
         summary_and_exit
     fi
 
     for section_name in "${ALL_SECTIONS[@]}"; do
-        run_section "$section_name" || true
+        set +e
+        run_section "$section_name"
+        section_status=$?
+        set -e
+        [ "$section_status" -eq 0 ] || FAILED=1
         if [ "$section_name" = preflight ] && selected_section preflight && [ "$FAILED" -ne 0 ]; then
             summary_and_exit
         fi

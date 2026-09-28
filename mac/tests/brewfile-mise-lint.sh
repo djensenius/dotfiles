@@ -11,7 +11,9 @@ mise_tools() {
             key=$0
             sub(/=.*/, "", key)
             gsub(/^[[:space:]\"]+|[[:space:]\"]+$/, "", key)
-            if (key ~ /:/) next
+            if (key == "npm:neovim") next # Node.js provider package, not the Neovim editor
+            sub(/^[^:]+:/, "", key)
+            sub(/^@[^\/]+\//, "", key)
             sub(/@.*/, "", key)
             print key
         }

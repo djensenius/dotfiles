@@ -8,8 +8,11 @@ gh/hosts.yml
 herdr/.plugins.lock
 herdr/herdr-client.log
 herdr/herdr-server.log
+herdr/plugins
+herdr/plugins.json
 herdr/release-notes.json
 herdr/session.json
+herdr/sessions
 actionlint
 stylua
 stylua.zip

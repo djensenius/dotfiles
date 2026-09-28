@@ -53,7 +53,9 @@ snapshot_real_home() {
         .config/herdr/scripts \
         .config/herdr/.plugins.lock \
         .config/herdr/plugins \
-        .local/bin/switch-theme.fish \
+        .config/herdr/plugins.json \
+        .config/herdr/sessions \
+        .tmux/plugins/tpm \
         .local/bin/tmux-background-install-indicator.sh \
         .local/bin/herdr-fish; do
         path="$ORIGINAL_HOME/$rel"
@@ -91,11 +93,12 @@ EOF
     cp "$ROOT/gitconfig" "$repo/gitconfig"
     cp "$ROOT/gitignore_local" "$repo/gitignore_local"
     cp "$ROOT/vale.ini" "$repo/vale.ini"
-    mkdir -p "$repo/herdr" "$repo/gh" "$repo/scripts" "$repo/mise"
+    mkdir -p "$repo/herdr" "$repo/gh" "$repo/gh-dash" "$repo/gopod" "$repo/scripts" "$repo/mise"
     printf 'repo gh config\n' >"$repo/gh/config.yml"
+    printf 'repo gh-dash config\n' >"$repo/gh-dash/config.yml"
+    printf 'repo gopod config\n' >"$repo/gopod/config.json"
     printf 'repo herdr config\n' >"$repo/herdr/config.toml"
     mkdir -p "$repo/herdr/scripts"
-    printf 'switch\n' >"$repo/scripts/switch-theme.fish"
     printf 'indicator\n' >"$repo/scripts/tmux-background-install-indicator.sh"
     printf 'mise\n' >"$repo/mise/config.toml"
     printf '%s\n' "$repo"
@@ -117,6 +120,7 @@ test_link_states() {
     printf 'correct\n' >"$repo/src/correct"
     printf 'missing\n' >"$repo/src/missing"
     printf 'wrong\n' >"$repo/src/wrong"
+    printf 'wrong-old\n' >"$repo/src/wrong-old"
     printf 'dangling\n' >"$repo/src/dangling"
     printf 'realfile\n' >"$repo/src/realfile"
     mkdir -p "$repo/src/realdir"
@@ -176,6 +180,53 @@ EOF
     rm -rf "$tmp"
 }
 
+test_links_manifest_sources_exist() {
+    local line source target mode old_flags missing=0
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%%#*}"
+        old_flags="$-"
+        set -f
+        # shellcheck disable=SC2086 # manifest fields are intentionally whitespace-separated
+        set -- $line
+        case "$old_flags" in
+            *f*) ;;
+            *) set +f ;;
+        esac
+        [ "$#" -eq 0 ] && continue
+        source="$1"
+        target="$2"
+        mode="${3:-link}"
+        [ "$source" != - ] || continue
+        [ "$mode" != optional ] || continue
+        if [ ! -e "$ROOT/$source" ]; then
+            printf 'missing non-optional source for %s: %s\n' "$target" "$source" >&2
+            missing=1
+        fi
+    done <"$ROOT/mac/links.txt"
+    [ "$missing" -eq 0 ] || fail_test 'mac/links.txt has non-optional sources missing from repo'
+}
+
+test_ghostty_cleanup_negative_cases() {
+    local tmp repo home manifest
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    mkdir -p "$home/.config" "$repo/ghostty"
+    : >"$manifest"
+    ln -s "$repo/ghostty" "$home/.config/ghostty"
+
+    run_install "$repo" "$home" "$manifest" >/dev/null
+    assert_symlink_to "$home/.config/ghostty" "$repo/ghostty"
+
+    rm "$home/.config/ghostty"
+    ln -s "$tmp/outside/missing-ghostty" "$home/.config/ghostty"
+    run_install "$repo" "$home" "$manifest" >/dev/null
+    [ -L "$home/.config/ghostty" ] || fail_test 'dangling Ghostty link outside repo was removed'
+    [ "$(readlink "$home/.config/ghostty")" = "$tmp/outside/missing-ghostty" ] || fail_test 'dangling Ghostty link outside repo was changed'
+    rm -rf "$tmp"
+}
+
 test_dry_run_and_check_are_read_only() {
     local tmp repo home manifest before after status
     tmp="$(mktemp -d)"
@@ -189,6 +240,9 @@ test_dry_run_and_check_are_read_only() {
     printf 'hosts secret\n' >"$repo/gh/hosts.yml"
     printf 'session\n' >"$repo/herdr/session.json"
     printf 'lock\n' >"$repo/herdr/.plugins.lock"
+    printf 'plugins registry\n' >"$repo/herdr/plugins.json"
+    mkdir -p "$repo/herdr/sessions"
+    printf 'saved session\n' >"$repo/herdr/sessions/session-one.json"
     printf 'plugin checkout\n' >"$repo/herdr/plugins/plugin"
     printf 'sock\n' >"$repo/herdr/stale.sock"
     ln -s "$repo/gh" "$home/.config/gh"
@@ -230,6 +284,9 @@ test_gh_and_herdr_symlink_repairs() {
     printf 'session\n' >"$repo/herdr/session.json"
     printf 'release\n' >"$repo/herdr/release-notes.json"
     printf 'lock\n' >"$repo/herdr/.plugins.lock"
+    printf 'plugins registry\n' >"$repo/herdr/plugins.json"
+    mkdir -p "$repo/herdr/sessions"
+    printf 'saved session\n' >"$repo/herdr/sessions/session-one.json"
     printf 'log\n' >"$repo/herdr/herdr-server.log"
     printf 'plugin checkout\n' >"$repo/herdr/plugins/plugin"
     printf 'sock\n' >"$repo/herdr/stale.sock"
@@ -251,6 +308,8 @@ EOF
     assert_file_contains "$home/.config/herdr/session.json" 'session'
     assert_file_contains "$home/.config/herdr/release-notes.json" 'release'
     assert_file_contains "$home/.config/herdr/.plugins.lock" 'lock'
+    assert_file_contains "$home/.config/herdr/plugins.json" 'plugins registry'
+    assert_file_contains "$home/.config/herdr/sessions/session-one.json" 'saved session'
     assert_file_contains "$home/.config/herdr/herdr-server.log" 'log'
     assert_file_contains "$home/.config/herdr/plugins/plugin" 'plugin checkout'
     assert_not_exists "$repo/herdr/stale.sock"
@@ -260,7 +319,7 @@ EOF
 }
 
 test_live_herdr_socket_skips_repair() {
-    local tmp repo home manifest bin out
+    local tmp repo home manifest bin out status
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
@@ -279,6 +338,13 @@ EOF
     [ -L "$home/.config/herdr" ] || fail_test 'live Herdr socket repair should leave symlink in place'
     assert_file_contains "$repo/herdr/live.sock" 'sock'
     printf '%s\n' "$out" | grep -F -q 'stop Herdr and re-run' || fail_test 'live Herdr warning missing'
+
+    set +e
+    FAKE_LOG="$tmp/fake.log" FAKE_PGREP_STATUS=0 PATH="$bin:$PATH" HOME="$home" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only links --check >/dev/null
+    status=$?
+    set -e
+    [ "$status" -eq 2 ] || fail_test "live Herdr socket --check should report drift with exit 2, got $status"
     rm -rf "$tmp"
 }
 
@@ -395,6 +461,11 @@ if [ "${1:-}" = bundle ]; then
     [ "${HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:-}" = 1 ] || { echo 'missing HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK' >&2; exit 9; }
 fi
 if [ "${1:-}" = bundle ] && [ "${2:-}" = check ]; then
+    saw_no_upgrade=0
+    for arg in "$@"; do
+        [ "$arg" = --no-upgrade ] && saw_no_upgrade=1
+    done
+    [ "$saw_no_upgrade" -eq 1 ] || { echo 'brew bundle check missing --no-upgrade' >&2; exit 9; }
     [ "${FAKE_BREW_CHECK:-missing}" = satisfied ] && exit 0
     exit 1
 fi
@@ -465,6 +536,21 @@ EOF
     chmod +x "$bin/chsh"
 }
 
+test_gitconfig_linked_without_local_warns() {
+    local tmp repo home manifest out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    mkdir -p "$home/.config" "$home/.local/bin"
+    : >"$manifest"
+    ln -s "$repo/gitconfig" "$home/.gitconfig"
+
+    out="$(run_install "$repo" "$home" "$manifest")"
+    printf '%s\n' "$out" | grep -F -q '.gitconfig.local is missing' || fail_test 'linked gitconfig without .gitconfig.local did not warn'
+    rm -rf "$tmp"
+}
+
 test_herdr_plugins_only_missing_and_section_selection() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
@@ -499,24 +585,109 @@ test_herdr_plugins_only_missing_and_section_selection() {
     rm -rf "$tmp"
 }
 
-test_gh_hosts_history_recovery() {
-    local tmp repo home manifest
+test_failed_link_command_marks_section_failed() {
+    local tmp repo home manifest bin status out
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
     manifest="$tmp/links.txt"
-    mkdir -p "$home/.config"
+    bin="$tmp/bin"
+    mkdir -p "$home/.config" "$home/.local/bin" "$bin" "$repo/src"
+    printf 'source\n' >"$repo/src/file"
+    ln -s "$repo/gitconfig" "$home/.gitconfig"
+    printf '[local]\n  value = true\n' >"$home/.gitconfig.local"
+    cat >"$manifest" <<EOF
+src/file ~/.config/file
+EOF
+    cat >"$bin/ln" <<'EOF'
+#!/usr/bin/env bash
+exit 7
+EOF
+    chmod +x "$bin/ln"
+
+    set +e
+    out="$(HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only links 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "failed ln should make install-mac exit 1, got $status: $out"
+    printf '%s\n' "$out" | grep -F -q 'failed to link ~/.config/file' || fail_test 'failed ln did not report link failure'
+    ! printf '%s\n' "$out" | grep -F -q 'linked ~/.config/file' || fail_test 'failed ln was reported as a successful link'
+    rm -rf "$tmp"
+}
+
+test_brewfile_mise_lint_backend_prefixed_overlap() {
+    local tmp repo status output
+    tmp="$(mktemp -d)"
+    repo="$tmp/repo"
+    mkdir -p "$repo/mac/tests" "$repo/mise"
+    cp "$ROOT/mac/tests/brewfile-mise-lint.sh" "$repo/mac/tests/brewfile-mise-lint.sh"
+    chmod +x "$repo/mac/tests/brewfile-mise-lint.sh"
+    cat >"$repo/mac/Brewfile" <<'EOF'
+brew "tmuxinator"
+brew "shellcheck"
+EOF
+    : >"$repo/mac/Brewfile.apps"
+    cat >"$repo/mise/config.toml" <<'EOF'
+[tools]
+"gem:tmuxinator" = "latest"
+"npm:@scope/shellcheck" = "latest"
+EOF
+
+    set +e
+    output="$("$repo/mac/tests/brewfile-mise-lint.sh" 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -ne 0 ] || fail_test 'Brewfile/mise lint allowed backend-prefixed overlaps'
+    printf '%s\n' "$output" | grep -F -q 'tmuxinator' || fail_test 'Brewfile/mise lint did not report gem-prefixed overlap'
+    printf '%s\n' "$output" | grep -F -q 'shellcheck' || fail_test 'Brewfile/mise lint did not report scoped npm-prefixed overlap'
+    rm -rf "$tmp"
+}
+
+test_brew_check_uses_no_upgrade_and_noop() {
+    local tmp repo home manifest bin log out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    FAKE_LOG="$log" FAKE_BREW_CHECK=missing HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only brew >/dev/null
+    grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'brew check did not use --no-upgrade before install'
+    grep -F -q 'brew bundle install' "$log" || fail_test 'brew install was not run when check reported missing items'
+
+    : >"$log"
+    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only brew --apps)"
+    grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'satisfied brew check did not use --no-upgrade'
+    ! grep -F -q 'brew bundle install' "$log" || fail_test 'satisfied brew bundle should be a no-op without install'
+    ! printf '%s\n' "$out" | grep -q '^change installed missing Homebrew items' || fail_test "satisfied brew run reported install change: $out"
+    rm -rf "$tmp"
+}
+
+test_gh_hosts_history_recovery() {
+    local tmp repo home manifest git_home
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/links.txt"
+    git_home="$tmp/git-home"
+    mkdir -p "$home/.config" "$git_home"
     printf 'historical hosts secret\n' >"$repo/gh/hosts.yml"
     (
         cd "$repo"
-        git init -q
-        git config user.name 'Test User'
-        git config user.email test@example.test
-        git add gh/hosts.yml
-        git commit -q -m 'track gh hosts'
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git init -q
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git config user.name 'Test User'
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git config user.email test@example.test
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git add gh/hosts.yml
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c commit.gpgsign=false commit -q -m 'track gh hosts'
         rm gh/hosts.yml
-        git add -u gh/hosts.yml
-        git commit -q -m 'remove gh hosts'
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git add -u gh/hosts.yml
+        HOME="$git_home" GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c commit.gpgsign=false commit -q -m 'remove gh hosts'
     )
     ln -s "$repo/gh" "$home/.config/gh"
     cat >"$manifest" <<EOF
@@ -549,6 +720,13 @@ test_tmux_fish_agent_stack_and_drift() {
         "$repo/install-mac" --only tmux >/dev/null
     grep -F -q "git clone --depth 1 https://github.com/tmux-plugins/tpm $home/.config/tmux/plugins/tpm" "$log" || fail_test 'tmux did not clone TPM into ~/.config/tmux/plugins/tpm'
     grep -F -q 'tpm install_plugins' "$log" || fail_test 'TPM install_plugins did not run'
+    assert_symlink_to "$home/.tmux/plugins/tpm" "$home/.config/tmux/plugins/tpm"
+
+    rm "$home/.tmux/plugins/tpm"
+    ln -s "$home/.config/tmux/plugins/missing-tpm" "$home/.tmux/plugins/tpm"
+    : >"$log"
+    FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only tmux >/dev/null
     assert_symlink_to "$home/.tmux/plugins/tpm" "$home/.config/tmux/plugins/tpm"
 
     : >"$log"
@@ -616,15 +794,24 @@ test_real_home_guard() {
 }
 
 main() {
-    local real_home_before real_home_after
+    local real_home_before real_home_after harness_home
     real_home_before="$(snapshot_real_home)"
+    harness_home="$(mktemp -d)"
+    export HOME="$harness_home"
+    trap 'rm -rf "$HOME"' EXIT
+    test_links_manifest_sources_exist
     test_link_states
+    test_ghostty_cleanup_negative_cases
     test_dry_run_and_check_are_read_only
     test_gh_and_herdr_symlink_repairs
     test_live_herdr_socket_skips_repair
     test_gitconfig_adoption_preserves_local_values
     test_gitconfig_real_file_without_adopt_reports_drift
+    test_gitconfig_linked_without_local_warns
     test_herdr_plugins_only_missing_and_section_selection
+    test_failed_link_command_marks_section_failed
+    test_brewfile_mise_lint_backend_prefixed_overlap
+    test_brew_check_uses_no_upgrade_and_noop
     test_gh_hosts_history_recovery
     test_tmux_fish_agent_stack_and_drift
     test_usage_errors_and_clean_full_check
