@@ -25,7 +25,9 @@ brew_names() {
             sub(/^[[:space:]]*brew[[:space:]]+"/, "", line)
             sub(/".*/, "", line)
             n=split(line, parts, "/")
-            print parts[n]
+            name=parts[n]
+            sub(/@.*/, "", name)
+            print name
         }
         /^[[:space:]]*cask[[:space:]]+"/ {
             line=$0

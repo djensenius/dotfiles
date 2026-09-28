@@ -21,6 +21,7 @@ DRIFT=0
 CHANGES=0
 WARNINGS=0
 BACKUP_DIR=""
+HERDR_REPAIR_DEFERRED=false
 LINKS_FILE="${INSTALL_MAC_LINKS_FILE:-$MAC_DIR/links.txt}"
 
 # shellcheck source=mac/lib/common.sh
@@ -181,21 +182,35 @@ summary_and_exit() {
 }
 
 backup_dir() {
+    local base suffix candidate
     if [ -z "$BACKUP_DIR" ]; then
-        BACKUP_DIR="$HOME/.dotfiles-backup/$(date '+%Y%m%d-%H%M%S')"
-        mkdir -p "$BACKUP_DIR"
+        base="$HOME/.dotfiles-backup/$(date '+%Y%m%d-%H%M%S')"
+        candidate="$base"
+        suffix=1
+        while [ -e "$candidate" ]; do
+            candidate="$base-$suffix"
+            suffix=$((suffix + 1))
+        done
+        mkdir -p "$candidate"
+        BACKUP_DIR="$candidate"
     fi
     printf '%s\n' "$BACKUP_DIR"
 }
 
 backup_path() {
-    local target="$1" rel dest root
+    local target="$1" rel dest root suffix base_dest
     rel="${target#"$HOME"/}"
     if [ "$rel" = "$target" ]; then
         rel="$(basename "$target")"
     fi
     root="$(backup_dir)"
     dest="$root/$rel"
+    base_dest="$dest"
+    suffix=1
+    while [ -e "$dest" ] || [ -L "$dest" ]; do
+        dest="$base_dest.$suffix"
+        suffix=$((suffix + 1))
+    done
     mkdir -p "$(dirname "$dest")"
     mv "$target" "$dest"
     warn "backed up $(pretty_path "$target") to $(pretty_path "$dest")"
@@ -300,6 +315,15 @@ link_config() {
     local source_rel="$1" target_raw="$2" mode="${3:-link}" source target
     target="$(expand_home_path "$target_raw")"
 
+    if $HERDR_REPAIR_DEFERRED; then
+        case "$target" in
+            "$HOME/.config/herdr"|"$HOME/.config/herdr"/*)
+                ok "skipping Herdr link while server is running: $(pretty_path "$target")"
+                return 0
+                ;;
+        esac
+    fi
+
     if [ "$mode" = "realdir" ]; then
         ensure_real_dir "$target"
         return 0
@@ -372,14 +396,23 @@ process_links_manifest() {
     done <"$LINKS_FILE"
 }
 
+herdr_server_running() {
+    pgrep -u "$(id -u)" -x herdr >/dev/null 2>&1
+}
+
 repair_herdr_symlink_dir() {
-    local dir="$HOME/.config/herdr" source_dir socket_count runtime_file
+    local dir="$HOME/.config/herdr" source_dir socket_count runtime_file plugins_dir
     [ -L "$dir" ] && points_into_dotfiles "$dir" || return 0
     source_dir="$(link_target_path "$dir")"
 
     socket_count="$(find "$source_dir" -maxdepth 1 \( -type s -o -name '*.sock' \) -print 2>/dev/null | wc -l | tr -d ' ')"
     if [ "$socket_count" != "0" ]; then
-        warn "Herdr socket files found in repo copy; stop the Herdr server before repair if any socket is live"
+        if herdr_server_running; then
+            warn "Herdr socket files found and a herdr process is running; stop Herdr and re-run to convert $(pretty_path "$dir") safely"
+            HERDR_REPAIR_DEFERRED=true
+            return 0
+        fi
+        warn "Herdr socket files found in repo copy; treating them as stale because no herdr process is running"
     fi
 
     if $DRY_RUN || $CHECK_MODE; then
@@ -395,6 +428,11 @@ repair_herdr_symlink_dir() {
             change "moved Herdr runtime file $runtime_file into real config dir"
         fi
     done
+    plugins_dir="$source_dir/plugins"
+    if [ -e "$plugins_dir" ]; then
+        mv "$plugins_dir" "$dir/plugins"
+        change "moved Herdr plugins directory into real config dir"
+    fi
     for runtime_file in "$source_dir"/*.log; do
         [ -e "$runtime_file" ] || continue
         mv "$runtime_file" "$dir/$(basename "$runtime_file")"
@@ -402,6 +440,21 @@ repair_herdr_symlink_dir() {
     done
     find "$source_dir" -maxdepth 1 \( -type s -o -name '*.sock' \) -exec rm -f {} + 2>/dev/null || true
     change "converted $(pretty_path "$dir") to a real Herdr config directory"
+}
+
+recover_gh_hosts_from_history() {
+    local destination="$1" delete_commit tmp_destination
+    have git || return 1
+    git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
+    delete_commit="$(git -C "$DOTFILES_DIR" log -n 1 --diff-filter=D --format=%H -- gh/hosts.yml 2>/dev/null || true)"
+    [ -n "$delete_commit" ] || return 1
+    tmp_destination="$destination.tmp.$$"
+    if ! (umask 077 && git -C "$DOTFILES_DIR" show "$delete_commit^:gh/hosts.yml" >"$tmp_destination" 2>/dev/null); then
+        rm -f "$tmp_destination"
+        return 1
+    fi
+    mv "$tmp_destination" "$destination"
+    chmod 600 "$destination" 2>/dev/null || true
 }
 
 repair_gh_symlink_dir() {
@@ -418,7 +471,12 @@ repair_gh_symlink_dir() {
     mkdir -p "$dir"
     if [ -e "$source_dir/hosts.yml" ]; then
         cp -p "$source_dir/hosts.yml" "$dir/hosts.yml"
+        chmod 600 "$dir/hosts.yml" 2>/dev/null || true
         change "copied gh hosts.yml into real config dir"
+    elif recover_gh_hosts_from_history "$dir/hosts.yml"; then
+        change "recovered gh hosts.yml from git history into real config dir"
+    else
+        warn "gh hosts.yml was not found in the repo copy or git history; run 'gh auth login' if gh is logged out"
     fi
     change "converted $(pretty_path "$dir") to a real gh config directory"
 }
@@ -482,9 +540,8 @@ install_gitconfig() {
 
 install_links() {
     section "links"
-    if ! $DRY_RUN && ! $CHECK_MODE; then
-        mkdir -p "$HOME/.config" "$HOME/.local/bin"
-    fi
+    ensure_real_dir "$HOME/.config"
+    ensure_real_dir "$HOME/.local/bin"
     repair_herdr_symlink_dir
     repair_gh_symlink_dir
     cleanup_ghostty_dangling_link
@@ -513,9 +570,16 @@ preflight() {
     ok "Homebrew present: $(command -v brew)"
 }
 
+brew_bundle_env() {
+    HOMEBREW_NO_AUTO_UPDATE=1 \
+    HOMEBREW_NO_INSTALL_CLEANUP=1 \
+    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
+        brew "$@"
+}
+
 brew_bundle() {
     local file="$1" label="$2"
-    if brew bundle check --file="$file" >/dev/null 2>&1; then
+    if brew_bundle_env bundle check --file="$file" >/dev/null 2>&1; then
         ok "brew bundle satisfied: $label"
         return 0
     fi
@@ -529,7 +593,7 @@ brew_bundle() {
         return 0
     fi
 
-    if brew bundle install --file="$file" --no-upgrade; then
+    if brew_bundle_env bundle install --file="$file" --no-upgrade; then
         change "installed missing Homebrew items from $label"
     else
         fail "brew bundle install failed: $label"
@@ -572,7 +636,7 @@ brew_drift() {
         brewfile_items "$MAC_DIR/Brewfile.apps"
     } | sort -u >"$desired_file"
 
-    if current="$(brew bundle dump --file=- --force 2>/dev/null)"; then
+    if current="$(brew_bundle_env bundle dump --file=- --force 2>/dev/null)"; then
         printf '%s\n' "$current" | awk '
             /^[[:space:]]*(tap|brew|cask)[[:space:]]+"/ {
                 line=$0
@@ -583,9 +647,9 @@ brew_drift() {
         ' | sort -u >"$current_file"
     else
         {
-            brew tap 2>/dev/null || true
-            brew leaves 2>/dev/null || true
-            brew list --cask 2>/dev/null || true
+            brew_bundle_env tap 2>/dev/null || true
+            brew_bundle_env leaves 2>/dev/null || true
+            brew_bundle_env list --cask 2>/dev/null || true
         } | sort -u >"$current_file"
     fi
 
@@ -597,15 +661,31 @@ brew_drift() {
     rm -rf "$tmp"
 }
 
+add_mise_shims_to_path() {
+    local shims="$HOME/.local/share/mise/shims"
+    case ":$PATH:" in
+        *":$shims:"*) ;;
+        *)
+            PATH="$shims:$PATH"
+            export PATH
+            ;;
+    esac
+}
+
 install_mise_tools() {
     section "mise"
     have mise || { fail "mise not found on PATH after Homebrew section"; return 1; }
-    if $DRY_RUN || $CHECK_MODE; then
+    if $DRY_RUN; then
         change "would run mise trust $DOTFILES_DIR/mise/config.toml"
-        change "would run mise install"
+        change "would run mise install -C $HOME"
         return 0
     fi
-    if mise trust "$DOTFILES_DIR/mise/config.toml" && mise install; then
+    if $CHECK_MODE; then
+        ok "mise trust/install not run under --check; run the mise section to apply missing tools from mise/config.toml"
+        return 0
+    fi
+    if mise trust "$DOTFILES_DIR/mise/config.toml" && mise install -C "$HOME"; then
+        add_mise_shims_to_path
         change "mise tools installed from trusted config"
     else
         fail "mise install failed"
@@ -613,8 +693,24 @@ install_mise_tools() {
     fi
 }
 
+herdr_plugin_id() {
+    case "$1" in
+        paulbkim-dev/vim-herdr-navigation) printf 'vim-herdr-navigation\n' ;;
+        JanTvrdik/herdr-command-palette) printf 'jt.command-palette\n' ;;
+        rmarganti/herdr-pluck) printf 'rmarganti.herdr-pluck\n' ;;
+        Tyru5/herdr-floax) printf 'herdr-floax\n' ;;
+        thanhdat77/herdr-navigator) printf 'herdr-navigator\n' ;;
+        iurysza/termscope) printf 'termscope\n' ;;
+        *) printf '%s\n' "${1##*/}" ;;
+    esac
+}
+
+herdr_installed_plugin_ids() {
+    awk '/^- / { print $2 }'
+}
+
 install_herdr_plugins() {
-    local plugin installed plugins_file="$DOTFILES_DIR/herdr/plugins.txt"
+    local plugin plugin_id installed installed_ids plugins_file="$DOTFILES_DIR/herdr/plugins.txt"
     section "herdr-plugins"
     [ -f "$plugins_file" ] || { fail "missing Herdr plugin manifest: herdr/plugins.txt"; return 1; }
     have herdr || { warn "herdr not found on PATH; skipping Herdr plugins"; return 0; }
@@ -623,6 +719,18 @@ install_herdr_plugins() {
         fail "herdr plugin list failed"
         return 1
     fi
+    installed_ids="$(printf '%s\n' "$installed" | herdr_installed_plugin_ids)"
+
+    if printf '%s\n' "$installed_ids" | grep -Fx -q herdr-picker-plus; then
+        if $DRY_RUN || $CHECK_MODE; then
+            change "would uninstall legacy Herdr plugin herdr-picker-plus"
+        elif herdr plugin uninstall herdr-picker-plus; then
+            change "uninstalled legacy Herdr plugin herdr-picker-plus"
+            installed_ids="$(printf '%s\n' "$installed_ids" | grep -Fx -v herdr-picker-plus || true)"
+        else
+            warn "failed to uninstall legacy Herdr plugin herdr-picker-plus"
+        fi
+    fi
 
     while IFS= read -r plugin || [ -n "$plugin" ]; do
         plugin="${plugin%%#*}"
@@ -630,8 +738,9 @@ install_herdr_plugins() {
         set -- $plugin
         [ "$#" -eq 0 ] && continue
         plugin="$1"
-        if printf '%s\n' "$installed" | grep -F -q "$plugin"; then
-            ok "Herdr plugin present: $plugin"
+        plugin_id="$(herdr_plugin_id "$plugin")"
+        if printf '%s\n' "$installed_ids" | grep -Fx -q "$plugin_id"; then
+            ok "Herdr plugin present: $plugin_id ($plugin)"
             continue
         fi
         if $DRY_RUN || $CHECK_MODE; then
@@ -647,7 +756,7 @@ install_herdr_plugins() {
 }
 
 install_tmux_plugins() {
-    local tpm_dir="$HOME/.tmux/plugins/tpm" install_script="$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh"
+    local tpm_dir="$HOME/.config/tmux/plugins/tpm" legacy_dir="$HOME/.tmux/plugins/tpm" install_script="$HOME/.config/tmux/plugins/tpm/bin/install_plugins"
     section "tmux"
     if [ ! -d "$tpm_dir" ]; then
         if $DRY_RUN || $CHECK_MODE; then
@@ -655,7 +764,7 @@ install_tmux_plugins() {
             return 0
         fi
         mkdir -p "$(dirname "$tpm_dir")"
-        if git clone https://github.com/tmux-plugins/tpm "$tpm_dir"; then
+        if git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm_dir"; then
             change "cloned TPM"
         else
             fail "failed to clone TPM"
@@ -665,12 +774,26 @@ install_tmux_plugins() {
         ok "TPM present"
     fi
 
+    if [ ! -e "$legacy_dir" ]; then
+        if $DRY_RUN || $CHECK_MODE; then
+            change "would link legacy TPM path $(pretty_path "$legacy_dir") -> $(pretty_path "$tpm_dir")"
+            return 0
+        fi
+        mkdir -p "$(dirname "$legacy_dir")"
+        ln -s "$tpm_dir" "$legacy_dir"
+        change "linked legacy TPM path"
+    fi
+
     if [ ! -x "$install_script" ]; then
         warn "TPM install script missing or not executable: $(pretty_path "$install_script")"
         return 0
     fi
-    if $DRY_RUN || $CHECK_MODE; then
+    if $DRY_RUN; then
         change "would run TPM install_plugins"
+        return 0
+    fi
+    if $CHECK_MODE; then
+        ok "TPM install_plugins not run under --check"
         return 0
     fi
     if "$install_script"; then
@@ -684,8 +807,12 @@ install_tmux_plugins() {
 sync_nvim() {
     section "nvim"
     have nvim || { warn "nvim not found on PATH; skipping Lazy sync"; return 0; }
-    if $DRY_RUN || $CHECK_MODE; then
+    if $DRY_RUN; then
         change "would run nvim --headless '+Lazy! sync' +qa"
+        return 0
+    fi
+    if $CHECK_MODE; then
+        ok "Neovim Lazy sync not run under --check"
         return 0
     fi
     if nvim --headless '+Lazy! sync' +qa; then
@@ -702,8 +829,12 @@ install_agent_stack() {
         warn "install-agent-stack entry point not executable; skipping"
         return 0
     fi
-    if $DRY_RUN || $CHECK_MODE; then
+    if $DRY_RUN; then
         change "would run ./install-agent-stack"
+        return 0
+    fi
+    if $CHECK_MODE; then
+        ok "install-agent-stack not run under --check"
         return 0
     fi
     if "$DOTFILES_DIR/install-agent-stack"; then

@@ -1,4 +1,4 @@
-# Herdr marketplace plugins installed by install-mac and install-pi.
+# Herdr marketplace plugins installed by install-mac.
 paulbkim-dev/vim-herdr-navigation
 JanTvrdik/herdr-command-palette
 rmarganti/herdr-pluck

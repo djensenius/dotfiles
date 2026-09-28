@@ -38,12 +38,49 @@ snapshot_tree() {
     )
 }
 
+snapshot_real_home() {
+    local rel path
+    [ -n "$ORIGINAL_HOME" ] || return 0
+    for rel in \
+        .gitconfig \
+        .gitconfig.local \
+        .dotfiles-backup \
+        .config/gh \
+        .config/gh/config.yml \
+        .config/gh/hosts.yml \
+        .config/herdr \
+        .config/herdr/config.toml \
+        .config/herdr/scripts \
+        .config/herdr/.plugins.lock \
+        .config/herdr/plugins \
+        .local/bin/switch-theme.fish \
+        .local/bin/tmux-background-install-indicator.sh \
+        .local/bin/herdr-fish; do
+        path="$ORIGINAL_HOME/$rel"
+        if [ -L "$path" ]; then
+            printf 'L %s -> %s\n' "$rel" "$(readlink "$path")"
+        elif [ -f "$path" ]; then
+            printf 'F %s %s\n' "$rel" "$(shasum -a 256 "$path" | awk '{print $1}')"
+        elif [ -d "$path" ]; then
+            printf 'D %s\n' "$rel"
+        else
+            printf 'A %s\n' "$rel"
+        fi
+    done
+}
+
 setup_repo() {
     local tmp="$1" repo
     repo="$tmp/repo"
     mkdir -p "$repo"
     cp "$ROOT/install-mac" "$repo/install-mac"
     chmod +x "$repo/install-mac"
+    cat >"$repo/install-agent-stack" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'agent-stack\n' >>"$FAKE_LOG"
+EOF
+    chmod +x "$repo/install-agent-stack"
     mkdir -p "$repo/mac"
     cp "$ROOT/mac/install.sh" "$repo/mac/install.sh"
     chmod +x "$repo/mac/install.sh"
@@ -71,7 +108,7 @@ run_install() {
 }
 
 test_link_states() {
-    local tmp repo home manifest out backup_count
+    local tmp repo home manifest out backup_count status
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
@@ -130,6 +167,12 @@ EOF
 
     out="$(run_install "$repo" "$home" "$manifest")"
     ! printf '%s\n' "$out" | grep -q '^change ' || fail_test "second run should be a no-op, got: $out"
+
+    set +e
+    HOME="$home" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only links --check >/dev/null
+    status=$?
+    set -e
+    [ "$status" -eq 0 ] || fail_test "clean links --check should exit 0, got $status"
     rm -rf "$tmp"
 }
 
@@ -139,18 +182,33 @@ test_dry_run_and_check_are_read_only() {
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
     manifest="$tmp/links.txt"
-    mkdir -p "$home/.config" "$repo/src"
+    mkdir -p "$home/.config" "$repo/src" "$repo/herdr/plugins"
     printf 'source\n' >"$repo/src/file"
     printf 'old\n' >"$home/.config/file"
-    printf 'src/file ~/.config/file\n' >"$manifest"
+    printf 'local gitconfig\n' >"$home/.gitconfig"
+    printf 'hosts secret\n' >"$repo/gh/hosts.yml"
+    printf 'session\n' >"$repo/herdr/session.json"
+    printf 'lock\n' >"$repo/herdr/.plugins.lock"
+    printf 'plugin checkout\n' >"$repo/herdr/plugins/plugin"
+    printf 'sock\n' >"$repo/herdr/stale.sock"
+    ln -s "$repo/gh" "$home/.config/gh"
+    ln -s "$repo/herdr" "$home/.config/herdr"
+    cat >"$manifest" <<EOF
+src/file ~/.config/file
+- ~/.config/gh realdir
+gh/config.yml ~/.config/gh/config.yml
+- ~/.config/herdr realdir
+herdr/config.toml ~/.config/herdr/config.toml
+herdr/scripts ~/.config/herdr/scripts
+EOF
 
     before="$(snapshot_tree "$home")"
-    run_install "$repo" "$home" "$manifest" --dry-run >/dev/null
+    run_install "$repo" "$home" "$manifest" --dry-run --adopt-gitconfig >/dev/null
     after="$(snapshot_tree "$home")"
     [ "$before" = "$after" ] || fail_test '--dry-run changed HOME'
 
     set +e
-    HOME="$home" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only links --check >/dev/null
+    HOME="$home" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only links --check --adopt-gitconfig >/dev/null
     status=$?
     set -e
     [ "$status" -eq 2 ] || fail_test "--check with drift should exit 2, got $status"
@@ -160,17 +218,20 @@ test_dry_run_and_check_are_read_only() {
 }
 
 test_gh_and_herdr_symlink_repairs() {
-    local tmp repo home manifest
+    local tmp repo home manifest bin
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
     manifest="$tmp/links.txt"
-    mkdir -p "$home/.config"
+    bin="$tmp/bin"
+    write_fake_bin "$bin"
+    mkdir -p "$home/.config" "$repo/herdr/plugins"
     printf 'hosts secret\n' >"$repo/gh/hosts.yml"
     printf 'session\n' >"$repo/herdr/session.json"
     printf 'release\n' >"$repo/herdr/release-notes.json"
     printf 'lock\n' >"$repo/herdr/.plugins.lock"
     printf 'log\n' >"$repo/herdr/herdr-server.log"
+    printf 'plugin checkout\n' >"$repo/herdr/plugins/plugin"
     printf 'sock\n' >"$repo/herdr/stale.sock"
     ln -s "$repo/gh" "$home/.config/gh"
     ln -s "$repo/herdr" "$home/.config/herdr"
@@ -182,7 +243,7 @@ herdr/config.toml ~/.config/herdr/config.toml
 herdr/scripts ~/.config/herdr/scripts
 EOF
 
-    run_install "$repo" "$home" "$manifest" >/dev/null
+    FAKE_LOG="$tmp/fake.log" PATH="$bin:$PATH" run_install "$repo" "$home" "$manifest" >/dev/null
     [ -d "$home/.config/gh" ] && [ ! -L "$home/.config/gh" ] || fail_test 'gh was not converted to a real dir'
     assert_file_contains "$home/.config/gh/hosts.yml" 'hosts secret'
     assert_symlink_to "$home/.config/gh/config.yml" "$repo/gh/config.yml"
@@ -191,14 +252,38 @@ EOF
     assert_file_contains "$home/.config/herdr/release-notes.json" 'release'
     assert_file_contains "$home/.config/herdr/.plugins.lock" 'lock'
     assert_file_contains "$home/.config/herdr/herdr-server.log" 'log'
+    assert_file_contains "$home/.config/herdr/plugins/plugin" 'plugin checkout'
     assert_not_exists "$repo/herdr/stale.sock"
     assert_symlink_to "$home/.config/herdr/config.toml" "$repo/herdr/config.toml"
     assert_symlink_to "$home/.config/herdr/scripts" "$repo/herdr/scripts"
     rm -rf "$tmp"
 }
 
+test_live_herdr_socket_skips_repair() {
+    local tmp repo home manifest bin out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/links.txt"
+    bin="$tmp/bin"
+    write_fake_bin "$bin"
+    mkdir -p "$home/.config"
+    printf 'sock\n' >"$repo/herdr/live.sock"
+    ln -s "$repo/herdr" "$home/.config/herdr"
+    cat >"$manifest" <<EOF
+- ~/.config/herdr realdir
+herdr/config.toml ~/.config/herdr/config.toml
+EOF
+
+    out="$(FAKE_LOG="$tmp/fake.log" FAKE_PGREP_STATUS=0 PATH="$bin:$PATH" run_install "$repo" "$home" "$manifest")"
+    [ -L "$home/.config/herdr" ] || fail_test 'live Herdr socket repair should leave symlink in place'
+    assert_file_contains "$repo/herdr/live.sock" 'sock'
+    printf '%s\n' "$out" | grep -F -q 'stop Herdr and re-run' || fail_test 'live Herdr warning missing'
+    rm -rf "$tmp"
+}
+
 test_gitconfig_adoption_preserves_local_values() {
-    local tmp repo home manifest
+    local tmp repo home manifest before_helpers after_helpers full_config
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
@@ -212,16 +297,47 @@ test_gitconfig_adoption_preserves_local_values() {
   signingkey = ~/.ssh/local.pub
 [credential]
   helper = osxkeychain
+  helper = store --file ~/.git-credentials-local
 EOF
     printf '[old]\n  value = true\n' >"$home/.gitconfig.local"
 
+    before_helpers="$(HOME="$home" git config --global --includes --get-all credential.helper)"
     run_install "$repo" "$home" "$manifest" --adopt-gitconfig >/dev/null
     assert_symlink_to "$home/.gitconfig" "$repo/gitconfig"
     assert_file_contains "$home/.gitconfig.local" 'Local User'
     assert_file_contains "$home/.gitconfig.local" 'osxkeychain'
     find "$home/.dotfiles-backup" -name .gitconfig.local -type f | grep -q . || fail_test 'existing .gitconfig.local was not backed up'
     [ "$(HOME="$home" git config --global --includes --get user.name)" = 'Local User' ] || fail_test 'effective git user.name was not preserved'
-    [ "$(HOME="$home" git config --global --includes --get credential.helper)" = 'osxkeychain' ] || fail_test 'effective credential.helper was not preserved'
+    after_helpers="$(HOME="$home" git config --global --includes --get-all credential.helper)"
+    [ "$before_helpers" = "$after_helpers" ] || fail_test 'effective multi-valued credential.helper was not preserved'
+    full_config="$(HOME="$home" git config --global --includes --list)"
+    printf '%s\n' "$full_config" | grep -Fx -q 'user.name=Local User' || fail_test 'git config --list did not include local user.name'
+    printf '%s\n' "$full_config" | grep -Fx -q 'credential.helper=osxkeychain' || fail_test 'git config --list did not include osxkeychain helper'
+    printf '%s\n' "$full_config" | grep -Fx -q 'credential.helper=store --file ~/.git-credentials-local' || fail_test 'git config --list did not include second credential.helper'
+    rm -rf "$tmp"
+}
+
+test_gitconfig_real_file_without_adopt_reports_drift() {
+    local tmp repo home manifest status before after out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    mkdir -p "$home/.config" "$home/.local/bin"
+    : >"$manifest"
+    printf '[user]\n  name = Keep Me\n' >"$home/.gitconfig"
+
+    before="$(snapshot_tree "$home")"
+    out="$(run_install "$repo" "$home" "$manifest")"
+    after="$(snapshot_tree "$home")"
+    [ "$before" = "$after" ] || fail_test 'gitconfig real file changed without --adopt-gitconfig'
+    printf '%s\n' "$out" | grep -F -q 'gitconfig drift' || fail_test 'gitconfig drift warning missing'
+
+    set +e
+    HOME="$home" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only links --check >/dev/null
+    status=$?
+    set -e
+    [ "$status" -eq 2 ] || fail_test "gitconfig drift --check should exit 2, got $status"
     rm -rf "$tmp"
 }
 
@@ -232,9 +348,27 @@ write_fake_bin() {
 #!/usr/bin/env bash
 set -euo pipefail
 if [ "$1" = plugin ] && [ "$2" = list ]; then
-    printf 'paulbkim-dev/vim-herdr-navigation\nrmarganti/herdr-pluck\n'
+    if [ "${FAKE_HERDR_ALL_PLUGINS:-0}" = 1 ]; then
+        cat <<'LIST'
+6 plugins installed:
+- herdr-floax (herdr-floax) enabled [github:Tyru5/herdr-floax@abc]
+- herdr-navigator (Herdr Navigator) enabled [github:thanhdat77/herdr-navigator@abc]
+- jt.command-palette (Command Palette) enabled [github:JanTvrdik/herdr-command-palette@abc]
+- rmarganti.herdr-pluck (Herdr Pluck) enabled [github:rmarganti/herdr-pluck@abc]
+- termscope (Termscope) enabled [github:iurysza/termscope@abc]
+- vim-herdr-navigation (Vim Herdr Navigation) enabled [github:paulbkim-dev/vim-herdr-navigation@abc]
+LIST
+    else
+        cat <<'LIST'
+2 plugins installed:
+- vim-herdr-navigation (Vim Herdr Navigation) enabled [github:paulbkim-dev/vim-herdr-navigation@abc]
+- rmarganti.herdr-pluck (Herdr Pluck) enabled [github:rmarganti/herdr-pluck@abc]
+LIST
+    fi
 elif [ "$1" = plugin ] && [ "$2" = install ]; then
     printf 'herdr install %s %s\n' "$3" "$4" >>"$FAKE_LOG"
+elif [ "$1" = plugin ] && [ "$2" = uninstall ]; then
+    printf 'herdr uninstall %s\n' "$3" >>"$FAKE_LOG"
 else
     printf 'unexpected herdr args: %s\n' "$*" >&2
     exit 1
@@ -255,19 +389,80 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 printf 'brew %s\n' "$*" >>"$FAKE_LOG"
+if [ "${1:-}" = bundle ]; then
+    [ "${HOMEBREW_NO_AUTO_UPDATE:-}" = 1 ] || { echo 'missing HOMEBREW_NO_AUTO_UPDATE' >&2; exit 9; }
+    [ "${HOMEBREW_NO_INSTALL_CLEANUP:-}" = 1 ] || { echo 'missing HOMEBREW_NO_INSTALL_CLEANUP' >&2; exit 9; }
+    [ "${HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:-}" = 1 ] || { echo 'missing HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK' >&2; exit 9; }
+fi
 if [ "${1:-}" = bundle ] && [ "${2:-}" = check ]; then
+    [ "${FAKE_BREW_CHECK:-missing}" = satisfied ] && exit 0
     exit 1
 fi
 if [ "${1:-}" = bundle ] && [ "${2:-}" = install ]; then
     exit 0
 fi
+if [ "${1:-}" = bundle ] && [ "${2:-}" = dump ]; then
+    printf 'brew "tmux"\n'
+    exit 0
+fi
 if [ "${1:-}" = --prefix ]; then
-    printf '/opt/homebrew/opt/%s\n' "${2:-fish}"
+    if [ -n "${FAKE_FISH_PREFIX:-}" ]; then
+        printf '%s\n' "$FAKE_FISH_PREFIX"
+    else
+        printf '/opt/homebrew/opt/%s\n' "${2:-fish}"
+    fi
     exit 0
 fi
 exit 0
 EOF
     chmod +x "$bin/brew"
+    cat >"$bin/git" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'git %s\n' "$*" >>"$FAKE_LOG"
+if [ "${1:-}" = clone ]; then
+    dest="${*: -1}"
+    mkdir -p "$dest/bin"
+    cat >"$dest/bin/install_plugins" <<'SCRIPT'
+#!/usr/bin/env bash
+printf 'tpm install_plugins\n' >>"$FAKE_LOG"
+SCRIPT
+    chmod +x "$dest/bin/install_plugins"
+    exit 0
+fi
+printf 'unexpected git args: %s\n' "$*" >&2
+exit 1
+EOF
+    chmod +x "$bin/git"
+    cat >"$bin/pgrep" <<'EOF'
+#!/usr/bin/env bash
+exit "${FAKE_PGREP_STATUS:-1}"
+EOF
+    chmod +x "$bin/pgrep"
+    cat >"$bin/uname" <<'EOF'
+#!/usr/bin/env bash
+printf 'Darwin\n'
+EOF
+    chmod +x "$bin/uname"
+    cat >"$bin/xcode-select" <<'EOF'
+#!/usr/bin/env bash
+[ "${1:-}" = -p ] && { printf '/Library/Developer/CommandLineTools\n'; exit 0; }
+exit 1
+EOF
+    chmod +x "$bin/xcode-select"
+    cat >"$bin/sudo" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'sudo %s\n' "$*" >>"$FAKE_LOG"
+cat >/dev/null
+exit 0
+EOF
+    chmod +x "$bin/sudo"
+    cat >"$bin/chsh" <<'EOF'
+#!/usr/bin/env bash
+printf 'chsh %s\n' "$*" >>"$FAKE_LOG"
+EOF
+    chmod +x "$bin/chsh"
 }
 
 test_herdr_plugins_only_missing_and_section_selection() {
@@ -304,21 +499,137 @@ test_herdr_plugins_only_missing_and_section_selection() {
     rm -rf "$tmp"
 }
 
+test_gh_hosts_history_recovery() {
+    local tmp repo home manifest
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/links.txt"
+    mkdir -p "$home/.config"
+    printf 'historical hosts secret\n' >"$repo/gh/hosts.yml"
+    (
+        cd "$repo"
+        git init -q
+        git config user.name 'Test User'
+        git config user.email test@example.test
+        git add gh/hosts.yml
+        git commit -q -m 'track gh hosts'
+        rm gh/hosts.yml
+        git add -u gh/hosts.yml
+        git commit -q -m 'remove gh hosts'
+    )
+    ln -s "$repo/gh" "$home/.config/gh"
+    cat >"$manifest" <<EOF
+- ~/.config/gh realdir
+gh/config.yml ~/.config/gh/config.yml
+EOF
+
+    run_install "$repo" "$home" "$manifest" >/dev/null
+    assert_file_contains "$home/.config/gh/hosts.yml" 'historical hosts secret'
+    assert_symlink_to "$home/.config/gh/config.yml" "$repo/gh/config.yml"
+    rm -rf "$tmp"
+}
+
+test_tmux_fish_agent_stack_and_drift() {
+    local tmp repo home manifest bin log fish_prefix status
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    fish_prefix="$tmp/fish-prefix"
+    mkdir -p "$home" "$fish_prefix/bin"
+    : >"$manifest"
+    printf '#!/usr/bin/env bash\n' >"$fish_prefix/bin/fish"
+    chmod +x "$fish_prefix/bin/fish"
+    write_fake_bin "$bin"
+
+    FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only tmux >/dev/null
+    grep -F -q "git clone --depth 1 https://github.com/tmux-plugins/tpm $home/.config/tmux/plugins/tpm" "$log" || fail_test 'tmux did not clone TPM into ~/.config/tmux/plugins/tpm'
+    grep -F -q 'tpm install_plugins' "$log" || fail_test 'TPM install_plugins did not run'
+    assert_symlink_to "$home/.tmux/plugins/tpm" "$home/.config/tmux/plugins/tpm"
+
+    : >"$log"
+    FAKE_LOG="$log" FAKE_FISH_PREFIX="$fish_prefix" HOME="$home" PATH="$bin:$PATH" SHELL=/bin/bash INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only shell --fish-shell --yes >/dev/null
+    grep -F -q 'sudo tee -a /etc/shells' "$log" || fail_test 'fish shell did not request sudo tee for /etc/shells'
+    grep -F -q "chsh -s $fish_prefix/bin/fish" "$log" || fail_test 'fish shell did not run chsh'
+
+    : >"$log"
+    FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only agent-stack >/dev/null
+    grep -F -q 'agent-stack' "$log" || fail_test 'agent-stack section did not run installer'
+
+    : >"$log"
+    set +e
+    FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --drift >/dev/null
+    status=$?
+    set -e
+    [ "$status" -eq 0 ] || fail_test "--drift should exit 0, got $status"
+    grep -F -q 'brew bundle dump --file=- --force' "$log" || fail_test '--drift did not inspect brew bundle dump'
+    rm -rf "$tmp"
+}
+
+test_usage_errors_and_clean_full_check() {
+    local tmp repo home manifest bin log status tpm
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    tpm="$home/.config/tmux/plugins/tpm"
+    mkdir -p "$home/.config" "$home/.local/bin" "$tpm/bin" "$home/.tmux/plugins"
+    : >"$manifest"
+    ln -s "$repo/gitconfig" "$home/.gitconfig"
+    ln -s "$tpm" "$home/.tmux/plugins/tpm"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$tpm/bin/install_plugins"
+    chmod +x "$tpm/bin/install_plugins"
+    cp "$ROOT/herdr/plugins.txt" "$repo/herdr/plugins.txt"
+    write_fake_bin "$bin"
+
+    for args in '--bogus' '--only nope' '--dry-run --check'; do
+        set +e
+        # shellcheck disable=SC2086 # intentional test of shell-style argument splitting
+        HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" $args >/dev/null 2>&1
+        status=$?
+        set -e
+        [ "$status" -eq 64 ] || fail_test "usage error '$args' should exit 64, got $status"
+    done
+
+    set +e
+    FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied FAKE_HERDR_ALL_PLUGINS=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --check >/dev/null
+    status=$?
+    set -e
+    [ "$status" -eq 0 ] || fail_test "clean full --check should exit 0, got $status"
+    rm -rf "$tmp"
+}
+
 test_real_home_guard() {
-    local sentry
+    local before="$1" after="$2"
     [ -n "$ORIGINAL_HOME" ] || return 0
-    sentry="$ORIGINAL_HOME/.install-mac-test-real-home-touched"
-    [ ! -e "$sentry" ] || fail_test "real HOME sentry exists before test: $sentry"
-    [ ! -e "$sentry" ] || fail_test 'real HOME was touched'
+    [ "$before" = "$after" ] || fail_test 'real HOME guard detected changes to relevant real paths'
 }
 
 main() {
+    local real_home_before real_home_after
+    real_home_before="$(snapshot_real_home)"
     test_link_states
     test_dry_run_and_check_are_read_only
     test_gh_and_herdr_symlink_repairs
+    test_live_herdr_socket_skips_repair
     test_gitconfig_adoption_preserves_local_values
+    test_gitconfig_real_file_without_adopt_reports_drift
     test_herdr_plugins_only_missing_and_section_selection
-    test_real_home_guard
+    test_gh_hosts_history_recovery
+    test_tmux_fish_agent_stack_and_drift
+    test_usage_errors_and_clean_full_check
+    real_home_after="$(snapshot_real_home)"
+    test_real_home_guard "$real_home_before" "$real_home_after"
     printf 'ok install-mac tests passed\n'
 }
 

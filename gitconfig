@@ -13,6 +13,10 @@
   features = side-by-side line-numbers decorations Catppuccin-mocha
   navigate = true
 
+[user]
+  email = david@jensenius.com
+  name = David Jensenius
+
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
