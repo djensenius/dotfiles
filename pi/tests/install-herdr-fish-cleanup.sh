@@ -5,6 +5,14 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 INSTALLER="$REPO_ROOT/pi/install.sh"
 
+# pi/install.sh resets HOME from the account database when run as root, which
+# would point this test at a real home directory.
+if [ "$(id -u)" -eq 0 ]; then
+    printf 'install-pi herdr-fish cleanup test skipped: must not run as root\n'
+    exit 0
+fi
+unset INSTALL_PI_LOG
+
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/install-pi-herdr-fish.XXXXXX")"
 cleanup() {
     rm -rf -- "$tmp"
