@@ -24,7 +24,8 @@ BACKUP_DIR=""
 HERDR_REPAIR_DEFERRED=false
 LINKS_FILE="${INSTALL_MAC_LINKS_FILE:-$MAC_DIR/links.txt}"
 
-# shellcheck source=mac/lib/common.sh
+# common.sh is shellchecked on its own; CI runs shellcheck without -x.
+# shellcheck source=mac/lib/common.sh disable=SC1091
 . "$MAC_DIR/lib/common.sh"
 
 ALL_SECTIONS=(preflight brew links mise herdr-plugins tmux nvim agent-stack shell)
@@ -172,11 +173,12 @@ parse_args() {
 summary_and_exit() {
     printf '\nsummary changes=%s warnings=%s failed=%s drift=%s\n' \
         "$CHANGES" "$WARNINGS" "$FAILED" "$DRIFT"
-    if $CHECK_MODE && [ "$DRIFT" -ne 0 ]; then
-        exit 2
-    fi
+    # A failure is more important than drift, even under --check.
     if [ "$FAILED" -ne 0 ]; then
         exit 1
+    fi
+    if $CHECK_MODE && [ "$DRIFT" -ne 0 ]; then
+        exit 2
     fi
     exit 0
 }
@@ -194,7 +196,6 @@ backup_dir() {
         mkdir -p "$candidate" || return 1
         BACKUP_DIR="$candidate"
     fi
-    printf '%s\n' "$BACKUP_DIR"
 }
 
 backup_path() {
@@ -203,7 +204,10 @@ backup_path() {
     if [ "$rel" = "$target" ]; then
         rel="$(basename "$target")"
     fi
-    if ! root="$(backup_dir)"; then
+    # Not in a subshell: backup_dir sets BACKUP_DIR once for the whole run.
+    if backup_dir; then
+        root="$BACKUP_DIR"
+    else
         fail "failed to create backup directory under $(pretty_path "$HOME/.dotfiles-backup")"
         return 1
     fi
@@ -724,7 +728,8 @@ install_mise_tools() {
                 ok "mise tools satisfied"
             fi
         else
-            warn "mise missing-tool probe failed; run the mise section to apply tools from mise/config.toml"
+            fail "mise missing-tool probe failed (is mise/config.toml trusted?)"
+            return 1
         fi
         return 0
     fi

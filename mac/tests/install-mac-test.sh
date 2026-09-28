@@ -168,6 +168,8 @@ EOF
     assert_not_exists "$home/.config/ghostty"
     backup_count="$(find "$home/.dotfiles-backup" -type l -o -type f -o -type d | wc -l | tr -d ' ')"
     [ "$backup_count" -gt 0 ] || fail_test 'expected backups for replaced paths'
+    [ "$(find "$home/.dotfiles-backup" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')" -eq 1 ] ||
+        fail_test 'all backups in one run should share a single timestamped directory'
 
     out="$(run_install "$repo" "$home" "$manifest")"
     ! printf '%s\n' "$out" | grep -q '^change ' || fail_test "second run should be a no-op, got: $out"
@@ -444,6 +446,12 @@ EOF
     cat >"$bin/mise" <<'EOF'
 #!/usr/bin/env bash
 printf 'mise %s\n' "$*" >>"$FAKE_LOG"
+if [ "${1:-}" = ls ] && [ "${2:-}" = --missing ]; then
+    case "${FAKE_MISE_LS:-clean}" in
+        fail) exit 1 ;;
+        missing) printf 'node  26.10.0\n' ;;
+    esac
+fi
 EOF
     chmod +x "$bin/mise"
     cat >"$bin/nvim" <<'EOF'
@@ -787,6 +795,44 @@ test_usage_errors_and_clean_full_check() {
     rm -rf "$tmp"
 }
 
+test_check_exit_precedence_and_mise_probe() {
+    local tmp repo home manifest bin log status
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home/.config" "$home/.local/bin" "$repo/src"
+    ln -s "$repo/gitconfig" "$home/.gitconfig"
+    printf '[local]\n  value = true\n' >"$home/.gitconfig.local"
+    printf 'drift\n' >"$repo/src/drift"
+    write_fake_bin "$bin"
+
+    # Drift (a missing link) plus a failure (a missing source): failure wins.
+    cat >"$manifest" <<EOF
+src/drift ~/.config/drift
+src/does-not-exist ~/.config/broken
+EOF
+    set +e
+    HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only links --check >/dev/null 2>&1
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "failure plus drift under --check should exit 1, got $status"
+
+    : >"$manifest"
+    for mode_status in clean:0 missing:2 fail:1; do
+        set +e
+        FAKE_LOG="$log" FAKE_MISE_LS="${mode_status%%:*}" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+            "$repo/install-mac" --only mise --check >/dev/null 2>&1
+        status=$?
+        set -e
+        [ "$status" -eq "${mode_status##*:}" ] ||
+            fail_test "mise probe '${mode_status%%:*}' under --check should exit ${mode_status##*:}, got $status"
+    done
+    rm -rf "$tmp"
+}
+
 test_real_home_guard() {
     local before="$1" after="$2"
     [ -n "$ORIGINAL_HOME" ] || return 0
@@ -824,6 +870,7 @@ main() {
     test_gh_hosts_history_recovery
     test_tmux_fish_agent_stack_and_drift
     test_usage_errors_and_clean_full_check
+    test_check_exit_precedence_and_mise_probe
     real_home_after="$(snapshot_real_home)"
     test_real_home_guard "$real_home_before" "$real_home_after"
     printf 'ok install-mac tests passed\n'
