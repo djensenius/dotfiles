@@ -83,6 +83,13 @@ load_expected_managers() {
     return 0
 }
 
+optional_package_manager() {
+    case "$1" in
+        pi | herdr) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 snapshot_cache() {
     local attempt=0 before after final candidate manager suffix source
     local copy_failed
@@ -110,6 +117,11 @@ snapshot_cache() {
 
         copy_failed=0
         for manager in "${expected_manager_ids[@]}"; do
+            if optional_package_manager "$manager" &&
+                [ ! -f "$LIVE_CACHE_DIR/$manager.count" ] &&
+                [ ! -f "$LIVE_CACHE_DIR/$manager.list" ]; then
+                continue
+            fi
             for suffix in count list; do
                 source="$LIVE_CACHE_DIR/$manager.$suffix"
                 if [ ! -f "$source" ] ||
@@ -283,8 +295,13 @@ herdr_update_outdated_plugins() {
     while IFS= read -r plugin; do
         [ -n "$plugin" ] || continue
         found=1
+        if [[ ! "$plugin" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
+            printf 'cli-update: skipping invalid Herdr plugin name: %s\n' "$plugin" >&2
+            failed=1
+            continue
+        fi
         printf '%sReinstalling %s...%s\n' "$BOLD" "$plugin" "$RESET"
-        herdr plugin install "$plugin" --yes || failed=1
+        herdr plugin install "$plugin" --yes </dev/null || failed=1
     done < <(awk '{ print $1 }' "$list_file")
     if [ "$found" -eq 0 ]; then
         printf 'cli-update: Herdr plugin list is empty\n' >&2

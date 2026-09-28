@@ -305,12 +305,20 @@ poller_supports_manager() {
     grep -Eq "^[[:space:]]*check_${manager}\\(\\)" "$OUTDATED_POLLER"
 }
 
+optional_package_manager() {
+    case "$1" in
+        pi | herdr) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 expected_package_managers() {
     command -v brew >/dev/null 2>&1 && printf '%s\n' brew
     command -v npm >/dev/null 2>&1 && printf '%s\n' npm
     if poller_supports_manager pi &&
         command -v pi >/dev/null 2>&1 &&
         command -v npm >/dev/null 2>&1 &&
+        command -v node >/dev/null 2>&1 &&
         [ -d "$PI_NPM_PREFIX" ]; then
         printf '%s\n' pi
     fi
@@ -410,6 +418,11 @@ package_cache_is_ready() {
         [ -n "$manager" ] || continue
         count_file="$OUTDATED_CACHE/$manager.count"
         list_file="$OUTDATED_CACHE/$manager.list"
+        if optional_package_manager "$manager" &&
+            [ ! -f "$count_file" ] &&
+            [ ! -f "$list_file" ]; then
+            continue
+        fi
         count_file_is_usable "$count_file" || return 1
         cache_file_is_current "$count_file" "$marker" || return 1
         cache_file_is_current "$list_file" "$marker" || return 1
