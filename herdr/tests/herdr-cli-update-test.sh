@@ -325,6 +325,9 @@ fi
 printf '%s\n' \
     'owner/old-plugin aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -> cccccccccccccccccccccccccccccccccccccccc' \
     'bad;name aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -> cccccccccccccccccccccccccccccccccccccccc' \
+    '../escape aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -> cccccccccccccccccccccccccccccccccccccccc' \
+    'owner/.. aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -> cccccccccccccccccccccccccccccccccccccccc' \
+    '-flag/repo aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -> cccccccccccccccccccccccccccccccccccccccc' \
     'owner/fail-plugin dddddddddddddddddddddddddddddddddddddddd -> eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' \
     'owner/new-plugin ffffffffffffffffffffffffffffffffffffffff -> 1111111111111111111111111111111111111111' \
     >"$CACHE_DIR/herdr.list"
@@ -337,7 +340,7 @@ grep -q '^pi update --extensions$' "$upgrade_log"
 grep -q '^herdr plugin install owner/old-plugin --yes$' "$upgrade_log"
 grep -q '^herdr plugin install owner/fail-plugin --yes$' "$upgrade_log"
 grep -q '^herdr plugin install owner/new-plugin --yes$' "$upgrade_log"
-if grep -q 'bad;name' "$upgrade_log"; then
+if grep -q -e 'bad;name' -e 'install \.\./escape' -e 'install owner/\.\. ' -e 'install -flag' "$upgrade_log"; then
     printf '%s\n' 'invalid Herdr plugin name was installed' >&2
     exit 1
 fi
