@@ -367,6 +367,12 @@ herdr plugin install iurysza/termscope --yes
 K9s is a terminal UI to interact with your Kubernetes clusters.
 - **Directory**: `k9s/`
 
+### [Kitty](https://sw.kovidgoyal.net/kitty) ([repo](https://github.com/kovidgoyal/kitty))
+Kitty is a GPU-accelerated terminal emulator, configured to match Rio and WezTerm with Monaspace fonts and the OLED Catppuccin Mocha theme.
+- **Directory**: `kitty/`
+- **Option key**: Left Option acts as Alt so herdr's `prefix alt+1..9` agent-focus shortcuts work, while right Option keeps macOS Unicode composition.
+- **macOS icon**: `kitty.app.icns`, adapted from the MIT-licensed Icon Composer design in [sodapopcan/kitty-icon](https://github.com/sodapopcan/kitty-icon) with an optical inset for Golden Gate's Dock and app switcher; its license is in `kitty-icon.LICENSE`
+
 ### [lazygit](https://github.com/jesseduffield/lazygit)
 Lazygit is a simple terminal UI for git commands with keyboard shortcuts.
 - **Installation**: Downloaded binary to `/usr/local/bin`
@@ -463,6 +469,8 @@ The `install.sh` script is designed to set up and configure a development enviro
   - `atuin`
   - `yazi`
   - `bottom`
+  - `kitty`
+  - `rio`
   - `herdr/config.toml`, `herdr/scripts`
 
 - If running within a GitHub Codespace, it links executables (e.g., `rubocop`, `srb`, `bundle`, `solargraph`, `safe-ruby`) to `/usr/local/bin` and updates locale settings.
