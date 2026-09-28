@@ -41,7 +41,7 @@ assert_not_contains() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in awk basename cat chmod cmp dirname grep head install mkdir mktemp rm rmdir sed; do
+  for utility in awk basename cat chmod cmp dirname grep head install mkdir rm rmdir; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -350,17 +350,18 @@ assert_no_agent_stack_mutations() {
 }
 
 assert_reviewer_profile() {
-  local name="$1" root="$2"
-  local expected="$root/expected-reviewer.md"
+  local name="$1" agent_dir="$2"
 
-  REVIEWER_GIT_EXTENSION="$root/pi-agent/extensions/reviewer-git.ts" awk '
-    BEGIN { value = ENVIRON["REVIEWER_GIT_EXTENSION"] }
-    $0 == "extensions: @REVIEWER_GIT_EXTENSION@" { print "extensions: " value; next }
-    { print }
-  ' "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" > "$expected"
-  cmp -s "$expected" "$root/pi-agent/agents/reviewer.md" ||
-    fail "$name did not install the rendered reviewer profile"
-  assert_not_contains "@REVIEWER_GIT_EXTENSION@" "$root/pi-agent/agents/reviewer.md"
+  cmp -s "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$agent_dir/agents/reviewer.md" ||
+    fail "$name did not install the reviewer profile"
+  grep -Fxq "extensions: ../extensions/reviewer-git.ts" \
+    "$agent_dir/agents/reviewer.md" ||
+    fail "$name reviewer profile does not load reviewer-git.ts relatively"
+  # pi-subagents resolves ../ entries from the agent file's directory.
+  cmp -s "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$agent_dir/agents/../extensions/reviewer-git.ts" ||
+    fail "$name reviewer-git.ts is not where the profile resolves it"
 }
 
 run_success_scenario() {
@@ -409,7 +410,7 @@ run_success_scenario() {
     "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts" ||
     fail "$name did not install the repository-owned extension"
-  assert_reviewer_profile "$name" "$root"
+  assert_reviewer_profile "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
   assert_contains "installed reviewer-git.ts" "$first_output"
@@ -510,7 +511,7 @@ run_migration() {
   assert_contains "updated $SUBAGENTS_SOURCE" "$second_output"
   [ ! -e "$root/pi-agent/herdr-subagents" ] ||
     fail "$name left the legacy profile directory behind"
-  assert_reviewer_profile "$name" "$root"
+  assert_reviewer_profile "$name" "$root/pi-agent"
   assert_no_runtime_markers "$name" "$root"
 }
 
@@ -551,7 +552,7 @@ run_special_agent_dir() {
   local name="special-agent-dir"
   local root="$tmp/$name"
   local output="$root/install.out"
-  local agent_dir="$root/pi&agent|x\\y"
+  local agent_dir="$root/pi&agent|x,y\\z"
 
   setup_fixture "$root" "no" "no"
   if ! RUNTIME_TEST_PI_AGENT_DIR="$agent_dir" \
@@ -559,10 +560,7 @@ run_special_agent_dir() {
     cat "$output" >&2
     fail "$name installer run failed"
   fi
-  grep -Fxq -- "extensions: $agent_dir/extensions/reviewer-git.ts" \
-    "$agent_dir/agents/reviewer.md" ||
-    fail "$name rendered the wrong reviewer-git.ts path"
-  assert_not_contains "@REVIEWER_GIT_EXTENSION@" "$agent_dir/agents/reviewer.md"
+  assert_reviewer_profile "$name" "$agent_dir"
 }
 
 run_special_agent_dir

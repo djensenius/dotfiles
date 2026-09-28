@@ -360,7 +360,8 @@ system's package manager; Git is intentionally not managed by mise. The
 installer uses the mise-managed Node, Pi, and Herdr binaries, installs their
 Herdr integrations (including Copilot when available), installs the official
 Herdr skill, copies the repository-owned `review_git` extension into Pi's
-agent directory, renders the `reviewer` profile into `~/.pi/agent/agents/`, and
+agent directory, copies the `reviewer` profile into `~/.pi/agent/agents/` (it
+loads `../extensions/reviewer-git.ts` relative to itself), and
 installs `xbuild` into `~/.local/bin`. Like Pi and Herdr (both `latest` in
 mise), `pi-subagents` is deliberately unpinned: the installer installs
 `npm:pi-subagents` and runs `pi update --extension npm:pi-subagents` on every

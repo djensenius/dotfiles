@@ -2,7 +2,7 @@
 name: reviewer
 description: Reviews a worker's commit on its branch for bugs, missing tests, and risky changes. Read-only.
 tools: read, grep, find, ls, review_git
-extensions: @REVIEWER_GIT_EXTENSION@
+extensions: ../extensions/reviewer-git.ts
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true

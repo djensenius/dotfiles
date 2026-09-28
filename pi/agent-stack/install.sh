@@ -26,7 +26,6 @@ MIN_GIT="2.45.0"
 MIN_NODE="22.19.0"
 GIT_VERSION=""
 MISE_BIN=""
-PROFILE_TMP=""
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }
@@ -45,22 +44,6 @@ package_sources() {
     /^[^[:space:]]/ { user = 0; next }
     user && /^  [^[:space:]]/ { print $1 }
   ' <<<"$1"
-}
-
-# Replaces @REVIEWER_GIT_EXTENSION@ with $2 literally (no sed/regex escaping, so
-# paths containing &, |, or backslashes survive).
-render_profile() {
-  REVIEWER_GIT_EXTENSION="$2" awk '
-    BEGIN { placeholder = "@REVIEWER_GIT_EXTENSION@"; value = ENVIRON["REVIEWER_GIT_EXTENSION"] }
-    {
-      out = ""; rest = $0
-      while ((i = index(rest, placeholder)) > 0) {
-        out = out substr(rest, 1, i - 1) value
-        rest = substr(rest, i + length(placeholder))
-      }
-      print out rest
-    }
-  ' "$1"
 }
 
 mise_exec() {
@@ -191,13 +174,12 @@ main() {
   fi
 
   log "Installing Pi subagent profiles"
+  # Profiles reference extensions relative to the agent file
+  # (../extensions/...), which pi-subagents resolves after splitting its
+  # comma-separated lists, so any PI_CODING_AGENT_DIR works unmodified.
   mkdir -p "$AGENTS_DIR"
-  PROFILE_TMP="$(mktemp -d)"
-  trap 'rm -rf "$PROFILE_TMP"' EXIT
   for profile in "$DIR"/profiles/*.md; do
-    render_profile "$profile" "$PI_AGENT_DIR/extensions/reviewer-git.ts" \
-      > "$PROFILE_TMP/$(basename "$profile")"
-    sync_file "$PROFILE_TMP/$(basename "$profile")" "$AGENTS_DIR/$(basename "$profile")"
+    sync_file "$profile" "$AGENTS_DIR/$(basename "$profile")"
   done
   for profile in reviewer.md worker.md; do
     if [ -f "$LEGACY_PROFILE_DIR/$profile" ]; then
