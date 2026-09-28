@@ -342,8 +342,8 @@ The hook is not a state authority — Copilot's `idle`/`working`/`blocked` state
 The optional Pi agent stack uses
 [`pi-subagents`](https://github.com/nicobailon/pi-subagents) for delegation. A
 coordinator can delegate read-only investigation to `scout`, implementation to
-a `worker` (run as a workflow step with `worktree: true` to get a managed Git
-worktree), and commit
+a `worker` (launched with `cwd` set to a persistent Git worktree the
+coordinator creates, so its branch survives for review), and commit
 review to the custom read-only `reviewer` profile. Foreground children stream
 in the parent conversation; background children keep running in a detached
 runner and show up in the FleetView and `/subagents-fleet`. Inside Herdr, the

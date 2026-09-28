@@ -35,9 +35,16 @@ die()  { printf '\033[1;31m XX\033[0m %s\n' "$*" >&2; exit 1; }
 has()  { command -v "$1" >/dev/null 2>&1; }
 is_mac() { [ "$(uname -s)" = "Darwin" ]; }
 
-# Prints one installed package source per line from `pi list` output.
+# Prints one user-scope package source per line from `pi list` output. Only the
+# "User packages:" section is read (the installer manages global packages), ANSI
+# styling is stripped, and display suffixes such as " (filtered)" are dropped.
 package_sources() {
-  sed -nE 's/^[[:space:]]*((npm|git):[^[:space:]]+)[[:space:]]*$/\1/p' <<<"$1"
+  awk '
+    { gsub(/\033\[[0-9;]*m/, "") }
+    /^User packages:/ { user = 1; next }
+    /^[^[:space:]]/ { user = 0; next }
+    user && /^  [^[:space:]]/ { print $1 }
+  ' <<<"$1"
 }
 
 mise_exec() {
@@ -195,9 +202,10 @@ main() {
     has xcodebuild || warn "xcodebuild is unavailable; install Xcode before using xbuild"
   fi
 
-  # herdr/config.toml launches panes with the herdr-fish wrapper; without it
-  # Herdr cannot create a workspace. The dotfiles installers own this link.
-  if ! has herdr-fish && [ ! -x "$BIN_DIR/herdr-fish" ]; then
+  # herdr/config.toml launches panes with the herdr-fish wrapper, resolved by
+  # command name; without it on PATH Herdr cannot create a workspace. The
+  # dotfiles installers own this link.
+  if ! has herdr-fish; then
     warn "herdr-fish is not on PATH; Herdr panes will fail to start (see README: Special setup for Herdr)"
   fi
 

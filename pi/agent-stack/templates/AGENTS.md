@@ -5,15 +5,19 @@
 - Break work into small, independent tasks with clear acceptance criteria.
 - Keep the running plan in `tasks/PLAN.md`; update it as tasks complete.
 - Use a `scout` subagent to investigate before assigning implementation.
-- Use a `worker` subagent for implementation, one at a time, in a managed Git
-  worktree (a workflow step with `worktree: true`). Each worker commits to its
-  own branch and reports the branch, full 40-character commit SHA, files, and
-  checks run.
+- Use a `worker` subagent for implementation, one at a time. Before each
+  worker, create a persistent branch and worktree
+  (`git worktree add ../<repo>-<task> -b <branch>`) and launch the worker with
+  `cwd` set to that worktree. Do not use managed `worktree: true` runs here:
+  they return a patch and delete their branch, which breaks branch review.
+  Each worker commits to its branch and reports the branch, full 40-character
+  commit SHA, files, and checks run.
 - After each worker finishes, start a `reviewer` on that branch/commit with the
   task spec. Require it to fetch every `review_git` output page. Only integrate
   on APPROVE or APPROVE WITH NOTES.
 - After integrating: build and run tests on the main checkout before starting
-  any dependent worker.
+  any dependent worker, then remove the task worktree with
+  `git worktree remove`.
 - Push finished branches to the `origin` remote so work is not only in worktrees.
 
 ## Build and test rules (all agents)

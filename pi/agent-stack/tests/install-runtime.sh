@@ -41,7 +41,7 @@ assert_not_contains() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in basename cat chmod cmp dirname grep head install mkdir mktemp rm rmdir sed; do
+  for utility in awk basename cat chmod cmp dirname grep head install mkdir mktemp rm rmdir sed; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -132,14 +132,22 @@ case "$action" in
               printf 'mock pi list stderr\n' >&2
               exit 73
             fi
-            printf 'User packages:\n'
+            # Mirror real `pi list` output: styled section headers, a
+            # " (filtered)" display suffix, and a project scope the installer
+            # must ignore.
+            printf '\033[1mUser packages:\033[22m\n'
             if [ -n "${RUNTIME_TEST_PI_LIST_SOURCE:-}" ] &&
               [ ! -f "$RUNTIME_TEST_STATE/listed-source-removed" ]; then
               printf '  %s\n    /mock/listed\n' "$RUNTIME_TEST_PI_LIST_SOURCE"
             fi
             if [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
-              printf '  %s\n    /mock/installed\n' "$RUNTIME_TEST_SOURCE"
+              printf '  %s%s\n    /mock/installed\n' \
+                "$RUNTIME_TEST_SOURCE" "${RUNTIME_TEST_PI_LIST_SUFFIX:-}"
             fi
+            printf '\n\033[1mProject packages:\033[22m\n'
+            printf '  npm:pi-subagents@0.1.0\n    /mock/project-pinned\n'
+            printf '  git:github.com/maxedapps/pi-subagents-herdr@2222222222222222222222222222222222222222\n'
+            printf '    /mock/project-legacy\n'
             ;;
           update)
             [ "$#" -eq 2 ] && [ "$1" = "--extension" ] &&
@@ -302,6 +310,7 @@ run_installer() {
     RUNTIME_TEST_MARKERS="$root/markers" \
     RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
     RUNTIME_TEST_PI_LIST_SOURCE="$pi_list_source" \
+    RUNTIME_TEST_PI_LIST_SUFFIX="${RUNTIME_TEST_PI_LIST_SUFFIX:-}" \
     RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
     RUNTIME_TEST_SOURCE="$SUBAGENTS_SOURCE" \
     RUNTIME_TEST_STATE="$root/state" \
@@ -352,6 +361,7 @@ assert_reviewer_profile() {
 
 run_success_scenario() {
   local name="$1" system_runtimes="$2" system_name="$3" with_lockf="$4"
+  local RUNTIME_TEST_PI_LIST_SUFFIX="${5:-}"
   local root="$tmp/$name"
   local log="$root/mise.log"
   local first_output="$root/first.out"
@@ -384,6 +394,7 @@ run_success_scenario() {
   if grep -q '^exec:pi remove:' "$log"; then
     fail "$name removed a Pi package without a superseded source"
   fi
+  assert_contains "herdr-fish is not on PATH" "$first_output"
   assert_count 2 "exec:herdr --version" "$log"
   assert_count 2 "exec:herdr integration pi" "$log"
   assert_count 2 "exec:herdr integration copilot" "$log"
@@ -504,6 +515,36 @@ run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
 run_darwin_no_lockf
 run_pi_list_failure
+run_herdr_fish_resolution() {
+  local root output
+
+  # A wrapper in BIN_DIR does not help when BIN_DIR is not on PATH.
+  root="$tmp/herdr-fish-off-path"
+  output="$root/install.out"
+  setup_fixture "$root" "no" "no"
+  mkdir -p "$root/local-bin"
+  printf '#!/bin/bash\n' > "$root/local-bin/herdr-fish"
+  chmod 755 "$root/local-bin/herdr-fish"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "herdr-fish-off-path installer run failed"
+  fi
+  assert_contains "herdr-fish is not on PATH" "$output"
+
+  root="$tmp/herdr-fish-on-path"
+  output="$root/install.out"
+  setup_fixture "$root" "no" "no"
+  printf '#!/bin/bash\n' > "$root/system-bin/herdr-fish"
+  chmod 755 "$root/system-bin/herdr-fish"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "herdr-fish-on-path installer run failed"
+  fi
+  assert_not_contains "herdr-fish is not on PATH" "$output"
+}
+
+run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
+run_herdr_fish_resolution
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
 run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
 
