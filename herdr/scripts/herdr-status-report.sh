@@ -45,7 +45,9 @@ CHECKING_FILE="$OUTDATED_CACHE/checking"
 REFRESH_REQUEST_FILE="$OUTDATED_CACHE/refresh-request"
 REFRESH_COMPLETE_FILE="$OUTDATED_CACHE/refresh-complete"
 LAUNCH_LABEL='dev.djensenius.herdr-status'
-MANAGERS=(brew npm pip cargo go mise)
+MANAGERS=(brew npm pi pip cargo go mise herdr)
+PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
+PI_NPM_PREFIX="$PI_AGENT_DIR/npm"
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
 
@@ -88,10 +90,12 @@ manager_icon() {
     case "$1" in
         brew) printf '%s' '' ;;
         npm) printf '%s' '' ;;
+        pi) printf '%s' '' ;;
         pip) printf '%s' '' ;;
         cargo) printf '%s' '' ;;
         go) printf '%s' '' ;;
         mise) printf '%s' '' ;;
+        herdr) printf '%s' '' ;;
         *) printf '%s' '󰏖' ;;
     esac
 }
@@ -232,6 +236,9 @@ start_poller_launch_agent() {
     fi
 
     launchctl setenv HERDR_STATUS_POLLER "$OUTDATED_POLLER" || return
+    # The launchd poller is a separate job; give it the same Pi directory this
+    # helper uses so both agree on whether (and where) Pi packages are checked.
+    launchctl setenv PI_CODING_AGENT_DIR "$PI_AGENT_DIR" || return
 
     if definition=$(launchctl print "$job" 2>/dev/null); then
         case "$definition" in
@@ -295,9 +302,29 @@ refresh_outdated_poller() {
     request_outdated_poller_refresh
 }
 
+poller_supports_manager() {
+    local manager="$1"
+    [ -r "$OUTDATED_POLLER" ] || return 1
+    grep -Eq "^[[:space:]]*check_${manager}\\(\\)" "$OUTDATED_POLLER"
+}
+
+optional_package_manager() {
+    case "$1" in
+        pi | herdr) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 expected_package_managers() {
     command -v brew >/dev/null 2>&1 && printf '%s\n' brew
     command -v npm >/dev/null 2>&1 && printf '%s\n' npm
+    if poller_supports_manager pi &&
+        command -v pi >/dev/null 2>&1 &&
+        command -v npm >/dev/null 2>&1 &&
+        command -v node >/dev/null 2>&1 &&
+        [ -d "$PI_NPM_PREFIX" ]; then
+        printf '%s\n' pi
+    fi
     command -v pip3 >/dev/null 2>&1 && printf '%s\n' pip
     if command -v cargo >/dev/null 2>&1 &&
         command -v cargo-install-update >/dev/null 2>&1; then
@@ -314,6 +341,11 @@ expected_package_managers() {
     fi
     command -v dnf >/dev/null 2>&1 && printf '%s\n' dnf
     command -v mise >/dev/null 2>&1 && printf '%s\n' mise
+    if poller_supports_manager herdr &&
+        command -v herdr >/dev/null 2>&1 &&
+        command -v git >/dev/null 2>&1; then
+        printf '%s\n' herdr
+    fi
     return 0
 }
 
@@ -389,6 +421,11 @@ package_cache_is_ready() {
         [ -n "$manager" ] || continue
         count_file="$OUTDATED_CACHE/$manager.count"
         list_file="$OUTDATED_CACHE/$manager.list"
+        if optional_package_manager "$manager" &&
+            [ ! -f "$count_file" ] &&
+            [ ! -f "$list_file" ]; then
+            continue
+        fi
         count_file_is_usable "$count_file" || return 1
         cache_file_is_current "$count_file" "$marker" || return 1
         cache_file_is_current "$list_file" "$marker" || return 1
