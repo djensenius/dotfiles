@@ -17,7 +17,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-repo="$tmp/repo"
+repo="$tmp/repo "
 decoy="$tmp/decoy"
 origin="$tmp/origin.git"
 partial="$tmp/partial"

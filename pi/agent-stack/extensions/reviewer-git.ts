@@ -419,7 +419,7 @@ async function repositoryRoot(cwd: string, signal: AbortSignal | undefined): Pro
 		throw new Error(`Current working directory is not inside an accessible Git worktree: ${message}`);
 	}
 
-	const root = result.stdout.trim();
+	const root = result.stdout.replace(/\n$/, "");
 	if (!root || !isAbsolute(root) || root.includes("\0") || /[\r\n]/.test(root)) {
 		throw new Error("Git returned an invalid repository top-level path");
 	}

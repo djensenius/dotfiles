@@ -111,6 +111,19 @@ main() {
     die "mise-managed herdr is unavailable after installation"
   ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version"
 
+  log "Validating pinned Pi Herdr subagents package state"
+  if ! packages="$(mise_exec pi list)"; then
+    die "failed to inspect installed Pi packages"
+  fi
+  if grep -Fq "npm:@maxedapps/pi-subagents-herdr" <<<"$packages"; then
+    die "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
+  fi
+
+  installed_git_source="$(grep -E 'git:github\.com/maxedapps/pi-subagents-herdr(@|$)' <<<"$packages" | head -n1 || true)"
+  if [ -n "$installed_git_source" ] && [ "$installed_git_source" != "  $HERDR_SUBAGENTS_SOURCE" ] && [ "$installed_git_source" != "$HERDR_SUBAGENTS_SOURCE" ]; then
+    die "another Git source is configured for $HERDR_SUBAGENTS_REPO: $installed_git_source"
+  fi
+
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
   sync_file "$DIR/extensions/reviewer-git.ts" "$PI_AGENT_DIR/extensions/reviewer-git.ts"
@@ -125,18 +138,6 @@ main() {
   fi
 
   log "Installing pinned Pi Herdr subagents extension"
-  if ! packages="$(mise_exec pi list)"; then
-    die "failed to inspect installed Pi packages"
-  fi
-  if grep -Fq "npm:@maxedapps/pi-subagents-herdr" <<<"$packages"; then
-    die "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
-  fi
-
-  installed_git_source="$(grep -E 'git:github\.com/maxedapps/pi-subagents-herdr(@|$)' <<<"$packages" | head -n1 || true)"
-  if [ -n "$installed_git_source" ] && [ "$installed_git_source" != "  $HERDR_SUBAGENTS_SOURCE" ] && [ "$installed_git_source" != "$HERDR_SUBAGENTS_SOURCE" ]; then
-    die "another Git source is configured for $HERDR_SUBAGENTS_REPO: $installed_git_source"
-  fi
-
   if grep -Fq "$HERDR_SUBAGENTS_SOURCE" <<<"$packages"; then
     mise_exec pi update --extension "$HERDR_SUBAGENTS_SOURCE"
   else

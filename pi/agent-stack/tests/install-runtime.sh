@@ -131,7 +131,9 @@ case "$action" in
               printf 'mock pi list stderr\n' >&2
               exit 73
             fi
-            if [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
+            if [ -n "${RUNTIME_TEST_PI_LIST_SOURCE:-}" ]; then
+              printf '  %s\n' "$RUNTIME_TEST_PI_LIST_SOURCE"
+            elif [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
               printf '  %s\n' "$RUNTIME_TEST_SOURCE"
             fi
             ;;
@@ -277,7 +279,7 @@ setup_fixture() {
 }
 
 run_installer() {
-  local root="$1" system_name="$2" pi_list_failure="$3"
+  local root="$1" system_name="$2" pi_list_failure="$3" pi_list_source="${4:-}"
 
   env -i \
     HOME="$root/home" \
@@ -288,6 +290,7 @@ run_installer() {
     RUNTIME_TEST_LOG="$root/mise.log" \
     RUNTIME_TEST_MARKERS="$root/markers" \
     RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
+    RUNTIME_TEST_PI_LIST_SOURCE="$pi_list_source" \
     RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
     RUNTIME_TEST_SOURCE="$HERDR_SUBAGENTS_SOURCE" \
     RUNTIME_TEST_STATE="$root/state" \
@@ -302,6 +305,24 @@ assert_no_runtime_markers() {
     [ ! -e "$runtime_marker" ] ||
       fail "$name invoked unconfigured runtime marker $runtime_marker"
   done
+}
+
+assert_no_agent_stack_mutations() {
+  local name="$1" root="$2"
+
+  assert_count 0 "exec:pi install:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:pi update:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:npx skills" "$root/mise.log"
+  assert_count 0 "exec:herdr integration pi" "$root/mise.log"
+  assert_count 0 "exec:herdr integration copilot" "$root/mise.log"
+  [ ! -e "$root/pi-agent/extensions/reviewer-git.ts" ] ||
+    fail "$name installed the repository-owned extension before validating package state"
+  [ ! -e "$root/pi-agent/herdr-subagents/agents/reviewer.md" ] ||
+    fail "$name installed profiles before validating package state"
+  [ ! -e "$root/copilot-home" ] ||
+    fail "$name installed the Copilot integration before validating package state"
+  [ ! -e "$root/local-bin" ] ||
+    fail "$name installed wrappers before validating package state"
 }
 
 run_success_scenario() {
@@ -412,13 +433,31 @@ run_pi_list_failure() {
   assert_contains "failed to inspect installed Pi packages" "$output"
   assert_not_contains "pinned maxedapps/pi-subagents-herdr" "$output"
   assert_count 1 "exec:pi list" "$root/mise.log"
-  assert_count 0 "exec:pi install:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
-  assert_count 0 "exec:pi update:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
-  assert_count 0 "exec:npx skills" "$root/mise.log"
+  assert_no_agent_stack_mutations "$name" "$root"
   [ ! -e "$root/state/pi-installed" ] ||
     fail "$name changed Pi package state after inspection failed"
-  [ ! -e "$root/pi-agent/herdr-subagents/agents/reviewer.md" ] ||
-    fail "$name installed profiles after Pi package inspection failed"
+  assert_no_runtime_markers "$name" "$root"
+}
+
+run_rejected_source() {
+  local name="$1" source="$2" expected_error="$3"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local status
+
+  setup_fixture "$root" "no" "no"
+
+  set +e
+  run_installer "$root" "Linux" 0 "$source" >"$output" 2>&1
+  status=$?
+  set -e
+
+  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
+  assert_contains "$expected_error" "$output"
+  assert_count 1 "exec:pi list" "$root/mise.log"
+  assert_no_agent_stack_mutations "$name" "$root"
+  [ ! -e "$root/state/pi-installed" ] ||
+    fail "$name changed Pi package state after rejecting $source"
   assert_no_runtime_markers "$name" "$root"
 }
 
@@ -427,5 +466,13 @@ run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
 run_darwin_no_lockf
 run_pi_list_failure
+run_rejected_source \
+  "npm-source-conflict" \
+  "npm:@maxedapps/pi-subagents-herdr" \
+  "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
+run_rejected_source \
+  "git-source-conflict" \
+  "git:github.com/maxedapps/pi-subagents-herdr@1111111111111111111111111111111111111111" \
+  "another Git source is configured for maxedapps/pi-subagents-herdr"
 
 printf 'installer mise runtime tests passed\n'
