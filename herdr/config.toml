@@ -21,8 +21,8 @@ name = "catppuccin"
 # Herdr 0.8.2 corrupts Rio's negotiated keyboard events (herdrdev/herdr#3340).
 # Launch Fish with terminal capability queries disabled until upstream fixes it.
 default_shell = "herdr-fish"
-# The wrapper explicitly preserves macOS login-shell behavior.
-shell_mode = "login"
+# The wrapper preserves auto mode's macOS-only login-shell behavior.
+shell_mode = "auto"
 new_cwd = "follow"
 
 # ==================== UI =========================

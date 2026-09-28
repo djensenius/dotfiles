@@ -7,4 +7,8 @@ fish_path=$(command -v fish) || {
 }
 
 # Login state encoded in the wrapper's argv[0] is lost across the shebang.
-exec env fish_features=no-query-term "$fish_path" --login "$@"
+if [ "$(uname -s)" = "Darwin" ]; then
+    exec env fish_features=no-query-term "$fish_path" --login "$@"
+fi
+
+exec env fish_features=no-query-term "$fish_path" "$@"
