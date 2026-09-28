@@ -299,12 +299,13 @@ setup_fixture() {
 
 run_installer() {
   local root="$1" system_name="$2" pi_list_failure="$3" pi_list_source="${4:-}"
+  local pi_agent_dir="${RUNTIME_TEST_PI_AGENT_DIR:-$root/pi-agent}"
 
   env -i \
     HOME="$root/home" \
     PATH="$root/system-bin:$root/common-bin" \
     COPILOT_HOME="$root/copilot-home" \
-    PI_CODING_AGENT_DIR="$root/pi-agent" \
+    PI_CODING_AGENT_DIR="$pi_agent_dir" \
     BIN_DIR="$root/local-bin" \
     RUNTIME_TEST_LOG="$root/mise.log" \
     RUNTIME_TEST_MARKERS="$root/markers" \
@@ -352,8 +353,11 @@ assert_reviewer_profile() {
   local name="$1" root="$2"
   local expected="$root/expected-reviewer.md"
 
-  sed "s|@REVIEWER_GIT_EXTENSION@|$root/pi-agent/extensions/reviewer-git.ts|g" \
-    "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" > "$expected"
+  REVIEWER_GIT_EXTENSION="$root/pi-agent/extensions/reviewer-git.ts" awk '
+    BEGIN { value = ENVIRON["REVIEWER_GIT_EXTENSION"] }
+    $0 == "extensions: @REVIEWER_GIT_EXTENSION@" { print "extensions: " value; next }
+    { print }
+  ' "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" > "$expected"
   cmp -s "$expected" "$root/pi-agent/agents/reviewer.md" ||
     fail "$name did not install the rendered reviewer profile"
   assert_not_contains "@REVIEWER_GIT_EXTENSION@" "$root/pi-agent/agents/reviewer.md"
@@ -543,6 +547,25 @@ run_herdr_fish_resolution() {
   assert_not_contains "herdr-fish is not on PATH" "$output"
 }
 
+run_special_agent_dir() {
+  local name="special-agent-dir"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local agent_dir="$root/pi&agent|x\\y"
+
+  setup_fixture "$root" "no" "no"
+  if ! RUNTIME_TEST_PI_AGENT_DIR="$agent_dir" \
+    run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name installer run failed"
+  fi
+  grep -Fxq -- "extensions: $agent_dir/extensions/reviewer-git.ts" \
+    "$agent_dir/agents/reviewer.md" ||
+    fail "$name rendered the wrong reviewer-git.ts path"
+  assert_not_contains "@REVIEWER_GIT_EXTENSION@" "$agent_dir/agents/reviewer.md"
+}
+
+run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_herdr_fish_resolution
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"

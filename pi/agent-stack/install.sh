@@ -47,6 +47,22 @@ package_sources() {
   ' <<<"$1"
 }
 
+# Replaces @REVIEWER_GIT_EXTENSION@ with $2 literally (no sed/regex escaping, so
+# paths containing &, |, or backslashes survive).
+render_profile() {
+  REVIEWER_GIT_EXTENSION="$2" awk '
+    BEGIN { placeholder = "@REVIEWER_GIT_EXTENSION@"; value = ENVIRON["REVIEWER_GIT_EXTENSION"] }
+    {
+      out = ""; rest = $0
+      while ((i = index(rest, placeholder)) > 0) {
+        out = out substr(rest, 1, i - 1) value
+        rest = substr(rest, i + length(placeholder))
+      }
+      print out rest
+    }
+  ' "$1"
+}
+
 mise_exec() {
   "$MISE_BIN" -C "$REPO_ROOT" exec -- "$@"
 }
@@ -179,8 +195,8 @@ main() {
   PROFILE_TMP="$(mktemp -d)"
   trap 'rm -rf "$PROFILE_TMP"' EXIT
   for profile in "$DIR"/profiles/*.md; do
-    sed "s|@REVIEWER_GIT_EXTENSION@|$PI_AGENT_DIR/extensions/reviewer-git.ts|g" \
-      "$profile" > "$PROFILE_TMP/$(basename "$profile")"
+    render_profile "$profile" "$PI_AGENT_DIR/extensions/reviewer-git.ts" \
+      > "$PROFILE_TMP/$(basename "$profile")"
     sync_file "$PROFILE_TMP/$(basename "$profile")" "$AGENTS_DIR/$(basename "$profile")"
   done
   for profile in reviewer.md worker.md; do
