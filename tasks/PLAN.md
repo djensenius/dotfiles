@@ -7,5 +7,7 @@
 - [x] Address Copilot review comment 4118200679 with a constrained, repository-owned `review_git` tool.
 - [x] Restrict `review_git` to committed-object inspection and harden it against Git configuration injection.
 - [x] Validate hostile filters, diff drivers, pagers, fsmonitor, helpers, and `GIT_*` variables without side effects.
+- [x] Require Git 2.45.0, full commit IDs, and explicit no-lazy-fetch execution.
+- [x] Replace output truncation with bounded, complete pagination and adversarial regression coverage.
 - [ ] Push the follow-up commits and complete Copilot review.
-- [ ] Confirm CI passes for the follow-up commit.
+- [ ] Confirm CI passes for the follow-up commits.
