@@ -239,19 +239,6 @@ plan_or_backup() {
     backup_path "$target"
 }
 
-plan_or_remove() {
-    local target="$1" description="$2"
-    if $DRY_RUN || $CHECK_MODE; then
-        change "would remove $description"
-        return 0
-    fi
-    if ! rm -f "$target"; then
-        fail "failed to remove $description"
-        return 1
-    fi
-    change "removed $description"
-}
-
 ensure_real_parent_dirs() {
     local target="$1" parent current rel prefix
     parent="$(dirname "$target")"
@@ -521,7 +508,8 @@ cleanup_ghostty_dangling_link() {
     [ -L "$target" ] || return 0
     [ ! -e "$target" ] || return 0
     points_into_dotfiles "$target" || return 0
-    plan_or_remove "$target" "dangling Ghostty link $(pretty_path "$target")"
+    # Back up rather than delete: nothing the bootstrap replaces is lost.
+    plan_or_backup "$target"
 }
 
 install_gitconfig() {
@@ -770,15 +758,13 @@ install_herdr_plugins() {
     fi
     installed_ids="$(printf '%s\n' "$installed" | herdr_installed_plugin_ids)"
 
+    # herdr-navigator <= v0.3.1 used the plugin id herdr-picker-plus, which
+    # blocks the current plugin. The bootstrap never uninstalls, so report it.
+    local legacy_navigator=false
     if printf '%s\n' "$installed_ids" | grep -Fx -q herdr-picker-plus; then
-        if $DRY_RUN || $CHECK_MODE; then
-            change "would uninstall legacy Herdr plugin herdr-picker-plus"
-        elif herdr plugin uninstall herdr-picker-plus; then
-            change "uninstalled legacy Herdr plugin herdr-picker-plus"
-            installed_ids="$(printf '%s\n' "$installed_ids" | grep -Fx -v herdr-picker-plus || true)"
-        else
-            warn "failed to uninstall legacy Herdr plugin herdr-picker-plus"
-        fi
+        legacy_navigator=true
+        warn "legacy Herdr plugin herdr-picker-plus blocks herdr-navigator; remove it with: herdr plugin uninstall herdr-picker-plus"
+        $CHECK_MODE && DRIFT=1
     fi
 
     while IFS= read -r plugin || [ -n "$plugin" ]; do
@@ -792,6 +778,10 @@ install_herdr_plugins() {
         plugin_id="$(herdr_plugin_id "$plugin")"
         if printf '%s\n' "$installed_ids" | grep -Fx -q "$plugin_id"; then
             ok "Herdr plugin present: $plugin_id ($plugin)"
+            continue
+        fi
+        if [ "$plugin_id" = herdr-navigator ] && $legacy_navigator; then
+            warn "skipping $plugin until herdr-picker-plus is uninstalled"
             continue
         fi
         if $DRY_RUN || $CHECK_MODE; then
@@ -809,6 +799,17 @@ install_herdr_plugins() {
 install_tmux_plugins() {
     local tpm_dir="$HOME/.config/tmux/plugins/tpm" legacy_dir="$HOME/.tmux/plugins/tpm" install_script="$HOME/.config/tmux/plugins/tpm/bin/install_plugins"
     section "tmux"
+    # A directory alone is not enough: an empty or interrupted clone must be
+    # replaced. Match pi/install.sh (git checkout) and require both entry points.
+    if { [ -d "$tpm_dir" ] || [ -L "$tpm_dir" ]; } &&
+        ! { [ -d "$tpm_dir/.git" ] && [ -x "$tpm_dir/tpm" ] && [ -x "$install_script" ]; }; then
+        warn "TPM at $(pretty_path "$tpm_dir") is incomplete; it will be backed up and re-cloned"
+        plan_or_backup "$tpm_dir" || return 1
+        if $DRY_RUN || $CHECK_MODE; then
+            change "would clone TPM into $(pretty_path "$tpm_dir")"
+            return 0
+        fi
+    fi
     if [ ! -d "$tpm_dir" ]; then
         if $DRY_RUN || $CHECK_MODE; then
             change "would clone TPM into $(pretty_path "$tpm_dir")"

@@ -113,9 +113,13 @@ Useful flags:
 ```
 
 The macOS bootstrap never installs Homebrew for you, upgrades packages, cleans up
-or uninstalls packages, applies macOS defaults, creates secrets or SSH/GPG keys,
-logs in to services such as `gh`, 1Password or the App Store, or loads launchd
-agents. `~/.gitconfig` is linked only when missing or already correct; use
+or uninstalls packages or Herdr plugins, applies macOS defaults, creates secrets
+or SSH/GPG keys, logs in to services such as `gh`, 1Password or the App Store, or
+loads launchd agents. Anything it replaces (links, files, an incomplete TPM
+checkout) is moved to `~/.dotfiles-backup/<timestamp>/`. If the legacy Herdr
+plugin `herdr-picker-plus` is installed, it reports it (drift under `--check`)
+and skips `herdr-navigator` until you run
+`herdr plugin uninstall herdr-picker-plus`. `~/.gitconfig` is linked only when missing or already correct; use
 `--adopt-gitconfig` to move machine-local settings to `~/.gitconfig.local`,
 which the repo config includes last so local values win. Keep signing and
 machine-local Git settings there, for example:

@@ -166,6 +166,8 @@ EOF
     assert_file_contains "$home/.config/ifexists" 'keep me'
     [ -d "$home/.config/real-parent" ] && [ ! -L "$home/.config/real-parent" ] || fail_test 'realdir did not become real dir'
     assert_not_exists "$home/.config/ghostty"
+    [ -n "$(find "$home/.dotfiles-backup" -name ghostty -type l)" ] ||
+        fail_test 'dangling Ghostty link was deleted instead of backed up'
     backup_count="$(find "$home/.dotfiles-backup" -type l -o -type f -o -type d | wc -l | tr -d ' ')"
     [ "$backup_count" -gt 0 ] || fail_test 'expected backups for replaced paths'
     [ "$(find "$home/.dotfiles-backup" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')" -eq 1 ] ||
@@ -426,6 +428,12 @@ if [ "$1" = plugin ] && [ "$2" = list ]; then
 - termscope (Termscope) enabled [github:iurysza/termscope@abc]
 - vim-herdr-navigation (Vim Herdr Navigation) enabled [github:paulbkim-dev/vim-herdr-navigation@abc]
 LIST
+    elif [ "${FAKE_HERDR_LEGACY:-0}" = 1 ]; then
+        cat <<'LIST'
+2 plugins installed:
+- herdr-picker-plus (Herdr Picker Plus) enabled [github:thanhdat77/herdr-navigator@old]
+- vim-herdr-navigation (Vim Herdr Navigation) enabled [github:paulbkim-dev/vim-herdr-navigation@abc]
+LIST
     else
         cat <<'LIST'
 2 plugins installed:
@@ -501,7 +509,9 @@ set -euo pipefail
 printf 'git %s\n' "$*" >>"$FAKE_LOG"
 if [ "${1:-}" = clone ]; then
     dest="${*: -1}"
-    mkdir -p "$dest/bin"
+    mkdir -p "$dest/bin" "$dest/.git"
+    printf '#!/usr/bin/env bash\n' >"$dest/tpm"
+    chmod +x "$dest/tpm"
     cat >"$dest/bin/install_plugins" <<'SCRIPT'
 #!/usr/bin/env bash
 printf 'tpm install_plugins\n' >>"$FAKE_LOG"
@@ -768,7 +778,9 @@ test_usage_errors_and_clean_full_check() {
     bin="$tmp/bin"
     log="$tmp/fake.log"
     tpm="$home/.config/tmux/plugins/tpm"
-    mkdir -p "$home/.config" "$home/.local/bin" "$tpm/bin" "$home/.tmux/plugins"
+    mkdir -p "$home/.config" "$home/.local/bin" "$tpm/bin" "$tpm/.git" "$home/.tmux/plugins"
+    printf '#!/usr/bin/env bash\n' >"$tpm/tpm"
+    chmod +x "$tpm/tpm"
     : >"$manifest"
     ln -s "$repo/gitconfig" "$home/.gitconfig"
     ln -s "$tpm" "$home/.tmux/plugins/tpm"
@@ -833,6 +845,52 @@ EOF
     rm -rf "$tmp"
 }
 
+test_legacy_herdr_plugin_and_invalid_tpm() {
+    local tmp repo home manifest bin log out status tpm
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    tpm="$home/.config/tmux/plugins/tpm"
+    mkdir -p "$home" "$repo/herdr"
+    : >"$manifest"
+    cp "$ROOT/herdr/plugins.txt" "$repo/herdr/plugins.txt"
+    write_fake_bin "$bin"
+
+    # The legacy plugin is reported, never uninstalled, and blocks only herdr-navigator.
+    out="$(FAKE_LOG="$log" FAKE_HERDR_LEGACY=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only herdr-plugins 2>&1)"
+    ! grep -F -q 'herdr uninstall' "$log" || fail_test 'install-mac uninstalled a Herdr plugin'
+    printf '%s\n' "$out" | grep -F -q 'herdr plugin uninstall herdr-picker-plus' || fail_test 'legacy plugin warning missing'
+    ! grep -F -q 'herdr install thanhdat77/herdr-navigator' "$log" || fail_test 'herdr-navigator installed while legacy plugin present'
+    grep -F -q 'herdr install JanTvrdik/herdr-command-palette --yes' "$log" || fail_test 'other plugins were blocked by the legacy plugin'
+    set +e
+    FAKE_LOG="$log" FAKE_HERDR_LEGACY=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only herdr-plugins --check >/dev/null 2>&1
+    status=$?
+    set -e
+    [ "$status" -eq 2 ] || fail_test "legacy Herdr plugin under --check should exit 2, got $status"
+
+    # An empty or interrupted TPM directory is drift, and a real run backs it up and re-clones.
+    mkdir -p "$tpm"
+    printf 'partial\n' >"$tpm/README.md"
+    set +e
+    FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only tmux --check >/dev/null 2>&1
+    status=$?
+    set -e
+    [ "$status" -eq 2 ] || fail_test "incomplete TPM under --check should exit 2, got $status"
+    : >"$log"
+    FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only tmux >/dev/null 2>&1
+    grep -F -q "git clone --depth 1 https://github.com/tmux-plugins/tpm $tpm" "$log" || fail_test 'incomplete TPM was not re-cloned'
+    [ -x "$tpm/tpm" ] && [ -d "$tpm/.git" ] || fail_test 'TPM is still incomplete after repair'
+    [ -n "$(find "$home/.dotfiles-backup" -path '*tpm/README.md')" ] || fail_test 'incomplete TPM was not backed up'
+    rm -rf "$tmp"
+}
+
 test_real_home_guard() {
     local before="$1" after="$2"
     [ -n "$ORIGINAL_HOME" ] || return 0
@@ -871,6 +929,7 @@ main() {
     test_tmux_fish_agent_stack_and_drift
     test_usage_errors_and_clean_full_check
     test_check_exit_precedence_and_mise_probe
+    test_legacy_herdr_plugin_and_invalid_tpm
     real_home_after="$(snapshot_real_home)"
     test_real_home_guard "$real_home_before" "$real_home_after"
     printf 'ok install-mac tests passed\n'

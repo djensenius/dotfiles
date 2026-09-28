@@ -47,7 +47,7 @@ brew "neovim"
 brew "onefetch"
 brew "ripgrep"
 brew "television"
-brew "tldr"
+brew "tlrc" # official tldr client; Homebrew disabled the old tldr formula
 brew "tmux"
 brew "tree-sitter-cli"
 brew "yazi"
