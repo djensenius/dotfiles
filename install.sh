@@ -193,8 +193,9 @@ function link_files() {
     ln -sf "$(pwd)/bottom" ~/.config/bottom
     ln -sf "$(pwd)/tmux" ~/.config/tmux
     ln -sf "$(pwd)/zellij" ~/.config/zellij
-    # -n so a rerun replaces the existing symlink instead of dereferencing it
-    # and creating ~/.config/rio/rio.
+    # -n so reruns replace terminal config symlinks instead of dereferencing
+    # them and creating nested directories.
+    ln -sfn "$(pwd)/kitty" ~/.config/kitty
     ln -sfn "$(pwd)/rio" ~/.config/rio
 
     # Herdr keeps live sockets, logs and session state in ~/.config/herdr, and
