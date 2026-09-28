@@ -454,9 +454,9 @@ and installed only when absent from the `User packages:` section of `pi list`:
 
 The `pi-subagents` extension config lives at
 `~/.pi/agent/extensions/subagent/config.json`. The shared config keeps
-FleetView and the async widget explicitly enabled (`fleetView: true`,
-`asyncWidget: true`) and leaves inspector opening on the documented automatic
-policy (`authorityPolicy.inspectorOpen: "auto"`). The bundled inspector
+FleetView enabled (`fleetView: true`) as the single under-editor view of
+subagent work, turns off the duplicate async widget (`asyncWidget: false`), and
+leaves inspector opening on the documented automatic policy (`authorityPolicy.inspectorOpen: "auto"`). The bundled inspector
 dispatcher tries Herdr first, then Ghostty, then external providers, so Herdr is
 the default inspector surface when Pi is running inside Herdr.
 
@@ -466,6 +466,13 @@ The installer merges in two stdio servers and preserves any other servers:
 
 - `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
 - `context7`: `npx -y @upstash/context7-mcp@latest`
+
+The shared adapter settings keep MCP quiet in the footer: `mcpFooterStatus: "off"`
+removes the routine connection status and `notifyOnStartupConnect: false` skips
+"servers connected" notices, while connection errors and auth warnings still
+show. Run `/mcp-adapter status` to check servers. The shared footer config
+(`pi/agent-stack/catppuccin-footer.json`) also hides the `browser` and `memctx`
+status items and drops the `lastTokens` and `cost` sections.
 
 Playwright needs its own Firefox build. Because the server runs as
 `@latest`, a Playwright update can require a newer build, so re-run

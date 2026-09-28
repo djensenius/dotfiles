@@ -1,6 +1,6 @@
 {
   "fleetView": true,
-  "asyncWidget": true,
+  "asyncWidget": false,
   "authorityPolicy": {
     "inspectorOpen": "auto"
   }

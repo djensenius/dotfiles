@@ -14,8 +14,6 @@
     "state",
     "model",
     "tokens",
-    "lastTokens",
-    "cost",
     "time"
   ],
   "timeFormat": "HH:mm",
@@ -30,8 +28,6 @@
     "state": "pink",
     "model": "mauve",
     "tokens": "green",
-    "lastTokens": "blue",
-    "cost": "yellow",
     "time": "peach",
     "thinking": "pink"
   },
@@ -39,7 +35,8 @@
   "statusItems": {
     "include": [],
     "exclude": [
-      "browser"
+      "browser",
+      "memctx"
     ]
   }
 }
