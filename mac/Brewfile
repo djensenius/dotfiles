@@ -93,7 +93,7 @@ brew "minidlna"
 brew "mosh"
 brew "postgis"
 brew "postgresql@15"
-brew "postgresql@18"
+brew "postgresql@18", link: true # provides psql etc.; keep linked as on the source laptop
 brew "rclone"
 brew "redis"
 brew "telnet"
