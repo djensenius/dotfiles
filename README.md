@@ -472,7 +472,7 @@ removes the routine connection status and `notifyOnStartupConnect: false` skips
 "servers connected" notices, while connection errors and auth warnings still
 show. Run `/mcp-adapter status` to check servers. The shared footer config
 (`pi/agent-stack/catppuccin-footer.json`) also hides the `browser` and `memctx`
-status items and drops the `lastTokens` and `cost` sections.
+status items and drops the `lastTokens`, `cost` and `time` sections.
 
 Playwright needs its own Firefox build. Because the server runs as
 `@latest`, a Playwright update can require a newer build, so re-run

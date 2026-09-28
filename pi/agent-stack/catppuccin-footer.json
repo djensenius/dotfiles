@@ -13,10 +13,8 @@
     "status",
     "state",
     "model",
-    "tokens",
-    "time"
+    "tokens"
   ],
-  "timeFormat": "HH:mm",
   "moduleSpacing": 0,
   "autoReload": true,
   "colors": {
@@ -28,7 +26,6 @@
     "state": "pink",
     "model": "mauve",
     "tokens": "green",
-    "time": "peach",
     "thinking": "pink"
   },
   "aliases": {},
