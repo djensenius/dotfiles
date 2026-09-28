@@ -9,10 +9,9 @@ const GIT_TIMEOUT_MS = 10_000;
 const MAX_STDOUT_BYTES = 48 * 1024;
 const MAX_STDERR_BYTES = 8 * 1024;
 
-type ReviewGitOperation = "status" | "show" | "diff" | "log" | "rev-parse";
+type ReviewGitOperation = "show" | "diff" | "log" | "rev-parse";
 
 const ALLOWED_PARAMETER_KEYS: Record<ReviewGitOperation, ReadonlySet<string>> = {
-	status: new Set(["operation", "path"]),
 	show: new Set(["operation", "commit", "path"]),
 	diff: new Set(["operation", "base", "commit", "path"]),
 	log: new Set(["operation", "base", "commit", "path"]),
@@ -69,13 +68,6 @@ const reviewGitParameters = Type.Union(
 	[
 		Type.Object(
 			{
-				operation: Type.Literal("status"),
-				path: optionalPath(),
-			},
-			{ additionalProperties: false },
-		),
-		Type.Object(
-			{
 				operation: Type.Literal("show"),
 				commit: commitRef("Commit ID or unambiguous prefix to show."),
 				path: optionalPath(),
@@ -122,6 +114,7 @@ function gitEnvironment(): NodeJS.ProcessEnv {
 
 	return {
 		...environment,
+		GIT_CONFIG_NOSYSTEM: "1",
 		GIT_NO_LAZY_FETCH: "1",
 		GIT_OPTIONAL_LOCKS: "0",
 		GIT_PAGER: "cat",
@@ -178,8 +171,6 @@ async function runGit(
 				"core.untrackedCache=false",
 				"-c",
 				"log.showSignature=false",
-				"-c",
-				"status.submoduleSummary=false",
 				"-c",
 				"submodule.recurse=false",
 				...args,
@@ -327,8 +318,7 @@ function repositoryPath(value: unknown): string | undefined {
 function validateParameters(params: Record<string, unknown>): ReviewGitOperation {
 	const operation = params.operation;
 	if (
-		operation !== "status"
-		&& operation !== "show"
+		operation !== "show"
 		&& operation !== "diff"
 		&& operation !== "log"
 		&& operation !== "rev-parse"
@@ -377,7 +367,7 @@ export const reviewGitTool = defineTool({
 	name: "review_git",
 	label: "Review Git",
 	description:
-		"Read-only inspection of the Git worktree containing the current directory. Fixed operations only: status; show(commit); diff(base, commit); log(commit, optional base); rev-parse(commit). Commit refs must be 7-40 hexadecimal characters. Optional paths are validated repository-relative literals. No command, argv, repository, environment, or flags can be supplied.",
+		"Read-only inspection of committed Git objects in the worktree containing the current directory. Fixed operations only: show(commit); diff(base, commit); log(commit, optional base); rev-parse(commit). Commit refs must be 7-40 hexadecimal characters. Optional paths are validated repository-relative literals. No command, argv, repository, environment, or flags can be supplied.",
 	parameters: reviewGitParameters,
 
 	async execute(_toolCallId, params, signal, _onUpdate, ctx) {
@@ -387,19 +377,6 @@ export const reviewGitTool = defineTool({
 		const path = repositoryPath(rawParams.path);
 
 		switch (operation) {
-			case "status": {
-				const result = await runGit(
-					repository,
-					["status", "--porcelain=v1", "--branch", "--untracked-files=all", "--ignore-submodules=all", "--", ...(path ? [path] : [])],
-					signal,
-					"git status",
-				);
-				return formatResult(
-					result,
-					{ operation, repository, ...(path ? { path } : {}) },
-					"Working tree clean",
-				);
-			}
 			case "show": {
 				const commit = await resolveCommit(repository, rawParams.commit, "commit", signal);
 				const result = await runGit(

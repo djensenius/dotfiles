@@ -358,10 +358,11 @@ package predates configurable Markdown profiles.
 
 The reviewer has no shell tool. Its `review_git` capability resolves the Git
 worktree from the reviewer's current directory and exposes only bounded,
-read-only `status`, `show`, `diff`, `log`, and `rev-parse` operations. Commit
-inputs are hexadecimal IDs, paths are validated repository-relative literals,
-and the model cannot supply Git flags, environment, argv, or another repository
-path.
+read-only `show`, `diff`, `log`, and `rev-parse` operations over committed
+objects. Commit inputs are hexadecimal IDs, paths are validated
+repository-relative literals, inherited `GIT_*` configuration injection is
+scrubbed, system Git configuration is disabled, and the model cannot supply Git
+flags, environment, argv, or another repository path.
 
 The existing `npm:pi-subagents` package is not removed automatically. The
 installer warns when it is present so migration can be verified before the old

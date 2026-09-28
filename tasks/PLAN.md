@@ -5,5 +5,7 @@
 - [x] Complete the required syntax, lint, formatting, and mocked behavior checks.
 - [x] Open pull request #348.
 - [x] Address Copilot review comment 4118200679 with a constrained, repository-owned `review_git` tool.
-- [ ] Push the follow-up commit and complete Copilot review.
+- [x] Restrict `review_git` to committed-object inspection and harden it against Git configuration injection.
+- [x] Validate hostile filters, diff drivers, pagers, fsmonitor, helpers, and `GIT_*` variables without side effects.
+- [ ] Push the follow-up commits and complete Copilot review.
 - [ ] Confirm CI passes for the follow-up commit.
