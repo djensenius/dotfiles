@@ -234,7 +234,7 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 Herdr is a terminal workspace manager for AI coding agents. Its config is a deliberate mirror of `tmux/tmux.conf` — same `Ctrl+a` prefix, same Catppuccin Mocha palette, and the same muscle memory — so switching between the two costs nothing.
 - **Directory**: `herdr/`
 - **Files**: `herdr/config.toml`, status and popup helpers in `herdr/scripts/`
-- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. `install.sh` links `config.toml` and `scripts/` individually.
+- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. The installers link `config.toml` and `scripts/` individually, then expose `herdr-fish` through `~/.local/bin`.
 
 #### tmux → herdr keymap
 
