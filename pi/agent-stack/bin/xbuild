@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# xbuild - drop-in xcodebuild wrapper for a multi-agent macOS build host.
+#
+# Serializes builds across projects and agents, caps parallel test workers,
+# optionally isolates DerivedData by checkout, and shuts down simulators after
+# test runs.
+#
+# Usage:
+#   xbuild <any xcodebuild arguments>
+#
+# Env:
+#   XBUILD_DERIVED_DATA_ROOT  Base directory for per-checkout DerivedData.
+#   XBUILD_TEST_WORKERS       Parallel test workers (default: 2).
+#   XBUILD_KEEP_SIMS=1        Do not shut down simulators after tests.
+set -uo pipefail
+
+LOCK="${TMPDIR:-/tmp}/xbuild-${USER:-$(id -un)}.lock"
+args=("$@")
+
+has_arg() {
+  local arg
+  for arg in "${args[@]}"; do
+    [ "$arg" = "$1" ] && return 0
+  done
+  return 1
+}
+
+is_test=0
+for arg in "${args[@]}"; do
+  case "$arg" in
+    test|test-without-building) is_test=1 ;;
+  esac
+done
+
+if [ -n "${XBUILD_DERIVED_DATA_ROOT:-}" ] && ! has_arg -derivedDataPath; then
+  key="$(basename "$PWD")-$(printf '%s' "$PWD" | shasum | cut -c1-8)"
+  args+=(-derivedDataPath "$XBUILD_DERIVED_DATA_ROOT/$key")
+fi
+
+if [ "$is_test" = 1 ] && ! has_arg -parallel-testing-worker-count; then
+  args+=(-parallel-testing-worker-count "${XBUILD_TEST_WORKERS:-2}")
+fi
+
+command -v lockf >/dev/null 2>&1 || {
+  echo "xbuild: lockf is required" >&2
+  exit 1
+}
+
+(
+  if ! lockf -s -t 0 9; then
+    echo "xbuild: another build is running; waiting for the lock..." >&2
+    if ! lockf 9; then
+      echo "xbuild: failed to acquire the build lock" >&2
+      exit 1
+    fi
+  fi
+
+  xcodebuild "${args[@]}"
+  rc=$?
+
+  if [ "$is_test" = 1 ] && [ "${XBUILD_KEEP_SIMS:-0}" != "1" ]; then
+    xcrun simctl shutdown all >/dev/null 2>&1 || true
+  fi
+
+  exit "$rc"
+) 9>"$LOCK"

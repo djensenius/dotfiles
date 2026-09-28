@@ -22,6 +22,7 @@ zellij = "latest"
 bottom = "latest"   # provides the `btm` binary
 delta = "latest"    # git-delta
 herdr = "latest"    # agent multiplexer for the terminal
+pi = "latest"       # coding agent used by the Herdr subagent stack
 
 # Sourced unconditionally by fish/config.fish, so fish errors on every prompt
 # without them.

@@ -324,13 +324,75 @@ Herdr detects GitHub Copilot CLI automatically — the agent shows up in the Age
 The optional hook adds **native session identity**, which lets Herdr resume a Copilot pane with `copilot --resume=<id>` after a server restart:
 
 ```bash
+mkdir -p "${COPILOT_HOME:-$HOME/.copilot}"
 herdr integration install copilot
 herdr integration status
 ```
 
-It writes `~/.copilot/hooks/herdr-agent-state.sh` (or `$COPILOT_HOME`) and adds a `SessionStart` entry to `~/.copilot/settings.json`; the config directory must already exist. This is a manual, one-time step — `install.sh` does not do it. Undo with `herdr integration uninstall copilot`.
+It writes `~/.copilot/hooks/herdr-agent-state.sh` (or `$COPILOT_HOME`) and adds
+a `SessionStart` entry to `~/.copilot/settings.json`. This is a one-time step;
+`./install-agent-stack` creates the config directory and installs the
+integration automatically when Copilot CLI is available. Undo with
+`herdr integration uninstall copilot`.
 
 The hook is not a state authority — Copilot's `idle`/`working`/`blocked` state always comes from screen detection, whether or not it is installed.
+
+#### Pi + Herdr subagents
+
+The optional Pi agent stack runs visible, persistent subagents in separate
+Herdr panes. A coordinator can delegate read-only investigation to `scout`,
+implementation to a worktree-isolated `worker`, and commit review to the
+custom read-only `reviewer` profile:
+
+```bash
+./install-agent-stack
+```
+
+The installer requires system Git 2.45.0 or newer for `--no-lazy-fetch`
+enforcement and checks it before making integration or extension changes.
+Upgrade Git with Homebrew (`brew install git`) on macOS or the operating
+system's package manager; Git is intentionally not managed by mise. The
+installer uses the mise-managed Node, Pi, and Herdr binaries, installs their
+Herdr integrations (including Copilot when available), installs the official
+Herdr skill, copies profiles and the repository-owned `review_git` extension
+into Pi's agent directory, and installs `xbuild` into `~/.local/bin`. The Herdr
+subagents extension is temporarily pinned to commit
+`3af3865a58ea4c551c3ea7b099fe8a9ea42cba83`, because the published npm `0.1.3`
+package predates configurable Markdown profiles.
+
+The reviewer has no shell tool. Its `review_git` capability resolves the Git
+worktree from the reviewer's current directory and exposes only bounded,
+read-only `show`, `diff`, `log`, and `rev-parse` operations over committed
+objects. Commit inputs must be full 40-character hexadecimal IDs. `show`,
+`diff`, and `log` return one bounded page at a time with total-page and
+continuation metadata, and the reviewer must retrieve every page before
+approval. Page windows are counted in decoded Unicode code points; invalid or
+incomplete UTF-8 bytes become `U+FFFD`, while valid multibyte characters are
+never split between pages. Paths are validated repository-relative literals,
+lazy fetching is disabled both globally and through the environment, inherited
+`GIT_*` configuration injection is scrubbed, system Git configuration is
+disabled, and the model cannot supply Git flags, environment, argv, or another
+repository path.
+
+The existing `npm:pi-subagents` package is not removed automatically. The
+installer warns when it is present so migration can be verified before the old
+extension is removed.
+
+To enable the coordinator workflow in a repository, copy or merge the template:
+
+```bash
+cp ~/.dotfiles/pi/agent-stack/templates/AGENTS.md ./AGENTS.md
+```
+
+The template is deliberately opt-in because it requires a scout before
+implementation, one worktree worker at a time, reviewer approval before
+integration, a maintained `tasks/PLAN.md`, and pushing completed worker
+branches to `origin`.
+
+On macOS, `xbuild` is a drop-in `xcodebuild` wrapper that serializes builds
+with the native `lockf` utility. Test runs default to two parallel workers and
+shut down simulators afterward. Set `XBUILD_KEEP_SIMS=1` to keep them running,
+or `XBUILD_DERIVED_DATA_ROOT` to put per-checkout DerivedData elsewhere.
 
 #### Plugin prerequisites
 

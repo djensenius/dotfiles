@@ -28,6 +28,10 @@ is the update path.
   cargo-build, as do the herdr marketplace plugins in step 7 that publish no
   arm64 binary — `herdr-floax`, `herdr-navigator` and `herdr-pluck` at the time
   of writing.
+- **Git 2.45.0 or newer** before running the optional
+  [`../install-agent-stack`](../install-agent-stack). Install or upgrade it
+  through the operating system package manager; the agent-stack installer does
+  not add Git to mise.
 
 ## What it does
 
