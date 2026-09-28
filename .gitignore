@@ -4,11 +4,17 @@ nvim/lazy-lock.json
 tmux/plugins
 rio/log
 fish/completions/copilot.fish
+gh/hosts.yml
 herdr/.plugins.lock
 herdr/herdr-client.log
 herdr/herdr-server.log
+herdr/herdr.log
+herdr/*.sock
+herdr/plugins
+herdr/plugins.json
 herdr/release-notes.json
 herdr/session.json
+herdr/sessions
 actionlint
 stylua
 stylua.zip

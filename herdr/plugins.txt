@@ -1,0 +1,7 @@
+# Herdr marketplace plugins installed by install-mac.
+paulbkim-dev/vim-herdr-navigation
+JanTvrdik/herdr-command-palette
+rmarganti/herdr-pluck
+Tyru5/herdr-floax
+thanhdat77/herdr-navigator
+iurysza/termscope

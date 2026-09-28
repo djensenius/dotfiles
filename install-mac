@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Entry point: ./install-mac
+# Provisions a macOS workstation with these dotfiles. See README.md.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mac/install.sh" "$@"

@@ -1,0 +1,49 @@
+# source target [mode]
+# Modes: link (default), realdir, link-if-absent, optional.
+
+# Home dotfiles. ~/.gitconfig is handled specially by mac/install.sh.
+gitignore_local ~/.gitignore_local link-if-absent
+vale.ini ~/.vale.ini
+
+# Shell, editor and prompt.
+fish ~/.config/fish
+nvim ~/.config/nvim
+tmux ~/.config/tmux
+starship.toml ~/.config/starship.toml
+
+# CLI application configs linked on this laptop.
+atuin ~/.config/atuin
+bat ~/.config/bat
+bottom ~/.config/bottom
+delta ~/.config/delta
+fastfetch ~/.config/fastfetch
+gitmux.conf ~/.config/gitmux.conf
+kitty ~/.config/kitty
+mise ~/.config/mise
+prettierrc.json ~/.config/prettierrc.json
+rio ~/.config/rio
+tmuxinator ~/.config/tmuxinator
+wezterm ~/.config/wezterm
+worldcup26 ~/.config/worldcup26
+yazi ~/.config/yazi
+
+# GitHub CLI keeps auth in hosts.yml; only config.yml is repo-owned.
+- ~/.config/gh realdir
+gh/config.yml ~/.config/gh/config.yml
+- ~/.config/gh-dash realdir
+gh-dash/config.yml ~/.config/gh-dash/config.yml
+
+# Herdr writes sockets, logs, session state and plugins; link only repo-owned pieces.
+- ~/.config/herdr realdir
+herdr/config.toml ~/.config/herdr/config.toml
+herdr/scripts ~/.config/herdr/scripts
+
+# Helper scripts exposed on PATH.
+scripts/tmux-background-install-indicator.sh ~/.local/bin/tmux-background-install-indicator.sh
+
+# Present in the repo but intentionally not linked on this laptop; uncomment to opt in.
+# btop ~/.config/btop
+# eza ~/.config/eza
+# k9s ~/.config/k9s
+# gopod/config.json ~/.config/gopod/config.json
+# zellij ~/.config/zellij
