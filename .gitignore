@@ -8,6 +8,8 @@ gh/hosts.yml
 herdr/.plugins.lock
 herdr/herdr-client.log
 herdr/herdr-server.log
+herdr/herdr.log
+herdr/*.sock
 herdr/plugins
 herdr/plugins.json
 herdr/release-notes.json

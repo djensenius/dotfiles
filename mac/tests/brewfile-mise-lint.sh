@@ -15,6 +15,7 @@ mise_tools() {
             sub(/^[^:]+:/, "", key)
             sub(/^@[^\/]+\//, "", key)
             sub(/@.*/, "", key)
+            sub(/^.*\//, "", key) # owner/repo or host/path keys: compare the basename, like brew_names
             print key
         }
     ' "$ROOT/mise/config.toml" | sort -u

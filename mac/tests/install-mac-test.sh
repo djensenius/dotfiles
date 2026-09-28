@@ -793,12 +793,21 @@ test_real_home_guard() {
     [ "$before" = "$after" ] || fail_test 'real HOME guard detected changes to relevant real paths'
 }
 
+HARNESS_HOME=""
+cleanup_harness_home() {
+    # Only ever remove the temporary directory this harness created.
+    case "$HARNESS_HOME" in
+        "${TMPDIR:-/tmp}"/*|/tmp/*|/var/folders/*) rm -rf -- "$HARNESS_HOME" ;;
+    esac
+}
+
 main() {
-    local real_home_before real_home_after harness_home
+    local real_home_before real_home_after
     real_home_before="$(snapshot_real_home)"
-    harness_home="$(mktemp -d)"
-    export HOME="$harness_home"
-    trap 'rm -rf "$HOME"' EXIT
+    HARNESS_HOME="$(mktemp -d)"
+    [ -n "$HARNESS_HOME" ] && [ -d "$HARNESS_HOME" ] || { echo "mktemp failed" >&2; exit 1; }
+    export HOME="$HARNESS_HOME"
+    trap cleanup_harness_home EXIT
     test_links_manifest_sources_exist
     test_link_states
     test_ghostty_cleanup_negative_cases

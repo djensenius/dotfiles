@@ -778,8 +778,10 @@ install_herdr_plugins() {
 
     while IFS= read -r plugin || [ -n "$plugin" ]; do
         plugin="${plugin%%#*}"
+        set -f
         # shellcheck disable=SC2086 # plugin ids do not contain shell whitespace
         set -- $plugin
+        set +f
         [ "$#" -eq 0 ] && continue
         plugin="$1"
         plugin_id="$(herdr_plugin_id "$plugin")"
