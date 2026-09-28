@@ -403,8 +403,10 @@ The installer merges in two stdio servers and preserves any other servers:
 - `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
 - `context7`: `npx -y @upstash/context7-mcp@latest`
 
-Playwright may need its Firefox browser build installed once with
-`npx playwright install firefox`. To use Edge instead, change the Playwright
+Playwright needs its own Firefox build. Because the server runs as
+`@latest`, a Playwright update can require a newer build, so re-run
+`npx playwright install firefox` whenever the MCP server reports a missing or
+outdated browser. To use Edge instead, change the Playwright
 server args from `--browser firefox` to `--browser msedge`. GitHub MCP is not
 configured here because `gh` already covers that workflow.
 
