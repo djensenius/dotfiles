@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Entry point: ./install-agent-stack
+# Installs the Pi + Herdr subagent coordination stack.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pi/agent-stack/install.sh" "$@"
