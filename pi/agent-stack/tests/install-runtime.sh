@@ -189,7 +189,11 @@ case "$action" in
             fi
             while IFS= read -r managed_source; do
               [ -n "$managed_source" ] || continue
-              if [ -f "$RUNTIME_TEST_STATE/package-$(sanitize_source "$managed_source")" ]; then
+              marker="$RUNTIME_TEST_STATE/package-$(sanitize_source "$managed_source")"
+              if [ -s "$marker" ]; then
+                # A version-pinned entry must count as already installed.
+                printf '  %s@%s\n    /mock/managed\n' "$managed_source" "$(cat "$marker")"
+              elif [ -f "$marker" ]; then
                 printf '  %s\n    /mock/managed\n' "$managed_source"
               fi
             done <<<"$RUNTIME_TEST_MANAGED_PACKAGE_SOURCES"
@@ -344,6 +348,7 @@ setup_fixture() {
     "$root/markers"
   : > "$root/mise.log"
   mark_package_installed "$root" "$PREINSTALLED_MANAGED_PACKAGE"
+  printf '0.32.0' > "$root/state/package-$(sanitize_source "$PREINSTALLED_MANAGED_PACKAGE")"
   link_installer_utilities "$root/common-bin"
   write_prerequisite_mocks "$root/system-bin"
   write_mise_mock "$root/system-bin/mise"

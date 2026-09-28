@@ -66,6 +66,18 @@ managed_package_sources() {
   ' "$PACKAGES_FILE"
 }
 
+# True when $2 (pi list sources, one per line) already has $1, either
+# unpinned or pinned to a version (npm:foo or npm:foo@1.2.3).
+has_package_source() {
+  local wanted="$1" source
+  while IFS= read -r source; do
+    if [ "$source" = "$wanted" ] || [[ "$source" == "$wanted@"* ]]; then
+      return 0
+    fi
+  done <<<"$2"
+  return 1
+}
+
 mise_exec() {
   "$MISE_BIN" -C "$REPO_ROOT" exec -- "$@"
 }
@@ -157,6 +169,7 @@ main() {
     die "mise-managed herdr is unavailable after installation"
   ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version"
 
+  [ -r "$PACKAGES_FILE" ] || die "missing package list: $PACKAGES_FILE"
   log "Inspecting installed Pi packages"
   if ! packages="$(mise_exec pi list)"; then
     die "failed to inspect installed Pi packages"
@@ -175,7 +188,7 @@ main() {
 
   log "Installing repository-managed Pi packages"
   while IFS= read -r package_source; do
-    if grep -Fxq "$package_source" <<<"$sources"; then
+    if has_package_source "$package_source" "$sources"; then
       ok "$package_source is already installed"
     else
       mise_exec pi install "$package_source"
