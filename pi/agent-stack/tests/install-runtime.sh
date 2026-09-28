@@ -4,7 +4,8 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALLER="$DIR/../install.sh"
 REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
-HERDR_SUBAGENTS_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
+SUBAGENTS_SOURCE="npm:pi-subagents"
+LEGACY_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/install-runtime.XXXXXX")"
 cleanup() {
@@ -40,7 +41,7 @@ assert_not_contains() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in basename cat chmod cmp dirname grep head install mkdir rm; do
+  for utility in awk basename cat chmod cmp dirname grep head install mkdir rm rmdir; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -131,17 +132,22 @@ case "$action" in
               printf 'mock pi list stderr\n' >&2
               exit 73
             fi
-            if [ -n "${RUNTIME_TEST_PI_LIST_SOURCE:-}" ]; then
-              printf '  %s\n' "$RUNTIME_TEST_PI_LIST_SOURCE"
-            elif [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
-              printf '  %s\n' "$RUNTIME_TEST_SOURCE"
+            # Mirror real `pi list` output: styled section headers, a
+            # " (filtered)" display suffix, and a project scope the installer
+            # must ignore.
+            printf '\033[1mUser packages:\033[22m\n'
+            if [ -n "${RUNTIME_TEST_PI_LIST_SOURCE:-}" ] &&
+              [ ! -f "$RUNTIME_TEST_STATE/listed-source-removed" ]; then
+              printf '  %s\n    /mock/listed\n' "$RUNTIME_TEST_PI_LIST_SOURCE"
             fi
-            ;;
-          install)
-            [ "$#" -eq 1 ] && [ "$1" = "$RUNTIME_TEST_SOURCE" ] ||
-              fail "unexpected pi install arguments: $*"
-            printf 'exec:pi install:%s\n' "$1" >> "$RUNTIME_TEST_LOG"
-            : > "$RUNTIME_TEST_STATE/pi-installed"
+            if [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
+              printf '  %s%s\n    /mock/installed\n' \
+                "$RUNTIME_TEST_SOURCE" "${RUNTIME_TEST_PI_LIST_SUFFIX:-}"
+            fi
+            printf '\n\033[1mProject packages:\033[22m\n'
+            printf '  npm:pi-subagents@0.1.0\n    /mock/project-pinned\n'
+            printf '  git:github.com/maxedapps/pi-subagents-herdr@2222222222222222222222222222222222222222\n'
+            printf '    /mock/project-legacy\n'
             ;;
           update)
             [ "$#" -eq 2 ] && [ "$1" = "--extension" ] &&
@@ -150,6 +156,19 @@ case "$action" in
             [ -f "$RUNTIME_TEST_STATE/pi-installed" ] ||
               fail "pi update ran before pi install"
             printf 'exec:pi update:%s\n' "$2" >> "$RUNTIME_TEST_LOG"
+            ;;
+          remove)
+            [ "$#" -eq 1 ] && [ -n "${RUNTIME_TEST_PI_LIST_SOURCE:-}" ] &&
+              [ "$1" = "$RUNTIME_TEST_PI_LIST_SOURCE" ] ||
+              fail "unexpected pi remove arguments: $*"
+            printf 'exec:pi remove:%s\n' "$1" >> "$RUNTIME_TEST_LOG"
+            : > "$RUNTIME_TEST_STATE/listed-source-removed"
+            ;;
+          install)
+            [ "$#" -eq 1 ] && [ "$1" = "$RUNTIME_TEST_SOURCE" ] ||
+              fail "unexpected pi install arguments: $*"
+            printf 'exec:pi install:%s\n' "$1" >> "$RUNTIME_TEST_LOG"
+            : > "$RUNTIME_TEST_STATE/pi-installed"
             ;;
           *)
             fail "unexpected pi arguments: $subcommand $*"
@@ -280,19 +299,21 @@ setup_fixture() {
 
 run_installer() {
   local root="$1" system_name="$2" pi_list_failure="$3" pi_list_source="${4:-}"
+  local pi_agent_dir="${RUNTIME_TEST_PI_AGENT_DIR:-$root/pi-agent}"
 
   env -i \
     HOME="$root/home" \
     PATH="$root/system-bin:$root/common-bin" \
     COPILOT_HOME="$root/copilot-home" \
-    PI_CODING_AGENT_DIR="$root/pi-agent" \
+    PI_CODING_AGENT_DIR="$pi_agent_dir" \
     BIN_DIR="$root/local-bin" \
     RUNTIME_TEST_LOG="$root/mise.log" \
     RUNTIME_TEST_MARKERS="$root/markers" \
     RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
     RUNTIME_TEST_PI_LIST_SOURCE="$pi_list_source" \
+    RUNTIME_TEST_PI_LIST_SUFFIX="${RUNTIME_TEST_PI_LIST_SUFFIX:-}" \
     RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
-    RUNTIME_TEST_SOURCE="$HERDR_SUBAGENTS_SOURCE" \
+    RUNTIME_TEST_SOURCE="$SUBAGENTS_SOURCE" \
     RUNTIME_TEST_STATE="$root/state" \
     RUNTIME_TEST_UNAME="$system_name" \
     /bin/bash "$INSTALLER"
@@ -310,14 +331,17 @@ assert_no_runtime_markers() {
 assert_no_agent_stack_mutations() {
   local name="$1" root="$2"
 
-  assert_count 0 "exec:pi install:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
-  assert_count 0 "exec:pi update:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:pi install:$SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:pi update:$SUBAGENTS_SOURCE" "$root/mise.log"
+  if grep -q '^exec:pi remove:' "$root/mise.log"; then
+    fail "$name removed Pi packages before validating package state"
+  fi
   assert_count 0 "exec:npx skills" "$root/mise.log"
   assert_count 0 "exec:herdr integration pi" "$root/mise.log"
   assert_count 0 "exec:herdr integration copilot" "$root/mise.log"
   [ ! -e "$root/pi-agent/extensions/reviewer-git.ts" ] ||
     fail "$name installed the repository-owned extension before validating package state"
-  [ ! -e "$root/pi-agent/herdr-subagents/agents/reviewer.md" ] ||
+  [ ! -e "$root/pi-agent/agents/reviewer.md" ] ||
     fail "$name installed profiles before validating package state"
   [ ! -e "$root/copilot-home" ] ||
     fail "$name installed the Copilot integration before validating package state"
@@ -325,8 +349,24 @@ assert_no_agent_stack_mutations() {
     fail "$name installed wrappers before validating package state"
 }
 
+assert_reviewer_profile() {
+  local name="$1" agent_dir="$2"
+
+  cmp -s "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$agent_dir/agents/reviewer.md" ||
+    fail "$name did not install the reviewer profile"
+  grep -Fxq "extensions: ../extensions/reviewer-git.ts" \
+    "$agent_dir/agents/reviewer.md" ||
+    fail "$name reviewer profile does not load reviewer-git.ts relatively"
+  # pi-subagents resolves ../ entries from the agent file's directory.
+  cmp -s "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$agent_dir/agents/../extensions/reviewer-git.ts" ||
+    fail "$name reviewer-git.ts is not where the profile resolves it"
+}
+
 run_success_scenario() {
   local name="$1" system_runtimes="$2" system_name="$3" with_lockf="$4"
+  local RUNTIME_TEST_PI_LIST_SUFFIX="${5:-}"
   local root="$tmp/$name"
   local log="$root/mise.log"
   local first_output="$root/first.out"
@@ -353,8 +393,13 @@ run_success_scenario() {
   assert_count 2 "exec:npx skills" "$log"
   assert_count 2 "exec:pi --version" "$log"
   assert_count 2 "exec:pi list" "$log"
-  assert_count 1 "exec:pi install:$HERDR_SUBAGENTS_SOURCE" "$log"
-  assert_count 1 "exec:pi update:$HERDR_SUBAGENTS_SOURCE" "$log"
+  assert_count 1 "exec:pi install:$SUBAGENTS_SOURCE" "$log"
+  assert_count 1 "exec:pi update:$SUBAGENTS_SOURCE" "$log"
+  assert_contains "updated $SUBAGENTS_SOURCE" "$second_output"
+  if grep -q '^exec:pi remove:' "$log"; then
+    fail "$name removed a Pi package without a superseded source"
+  fi
+  assert_contains "herdr-fish is not on PATH" "$first_output"
   assert_count 2 "exec:herdr --version" "$log"
   assert_count 2 "exec:herdr integration pi" "$log"
   assert_count 2 "exec:herdr integration copilot" "$log"
@@ -365,10 +410,7 @@ run_success_scenario() {
     "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts" ||
     fail "$name did not install the repository-owned extension"
-  cmp -s \
-    "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
-    "$root/pi-agent/herdr-subagents/agents/reviewer.md" ||
-    fail "$name did not install the reviewer profile"
+  assert_reviewer_profile "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
   assert_contains "installed reviewer-git.ts" "$first_output"
@@ -431,7 +473,7 @@ run_pi_list_failure() {
   [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
   assert_contains "mock pi list stderr" "$output"
   assert_contains "failed to inspect installed Pi packages" "$output"
-  assert_not_contains "pinned maxedapps/pi-subagents-herdr" "$output"
+  assert_not_contains "installed $SUBAGENTS_SOURCE" "$output"
   assert_count 1 "exec:pi list" "$root/mise.log"
   assert_no_agent_stack_mutations "$name" "$root"
   [ ! -e "$root/state/pi-installed" ] ||
@@ -439,25 +481,37 @@ run_pi_list_failure() {
   assert_no_runtime_markers "$name" "$root"
 }
 
-run_rejected_source() {
-  local name="$1" source="$2" expected_error="$3"
+run_migration() {
+  local name="$1" listed_source="$2"
   local root="$tmp/$name"
-  local output="$root/install.out"
-  local status
+  local log="$root/mise.log"
+  local first_output="$root/first.out"
+  local second_output="$root/second.out"
+  local legacy_dir="$root/pi-agent/herdr-subagents/agents"
 
   setup_fixture "$root" "no" "no"
+  mkdir -p "$legacy_dir"
+  printf 'legacy reviewer\n' > "$legacy_dir/reviewer.md"
+  printf 'legacy worker\n' > "$legacy_dir/worker.md"
 
-  set +e
-  run_installer "$root" "Linux" 0 "$source" >"$output" 2>&1
-  status=$?
-  set -e
+  if ! run_installer "$root" "Linux" 0 "$listed_source" >"$first_output" 2>&1; then
+    cat "$first_output" >&2
+    fail "$name first installer run failed"
+  fi
+  if ! run_installer "$root" "Linux" 0 "$listed_source" >"$second_output" 2>&1; then
+    cat "$second_output" >&2
+    fail "$name second installer run failed"
+  fi
 
-  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
-  assert_contains "$expected_error" "$output"
-  assert_count 1 "exec:pi list" "$root/mise.log"
-  assert_no_agent_stack_mutations "$name" "$root"
-  [ ! -e "$root/state/pi-installed" ] ||
-    fail "$name changed Pi package state after rejecting $source"
+  assert_count 1 "exec:pi remove:$listed_source" "$log"
+  assert_count 1 "exec:pi install:$SUBAGENTS_SOURCE" "$log"
+  assert_count 1 "exec:pi update:$SUBAGENTS_SOURCE" "$log"
+  assert_contains "removed $listed_source" "$first_output"
+  assert_contains "removed legacy profile $legacy_dir/reviewer.md" "$first_output"
+  assert_contains "updated $SUBAGENTS_SOURCE" "$second_output"
+  [ ! -e "$root/pi-agent/herdr-subagents" ] ||
+    fail "$name left the legacy profile directory behind"
+  assert_reviewer_profile "$name" "$root/pi-agent"
   assert_no_runtime_markers "$name" "$root"
 }
 
@@ -466,13 +520,53 @@ run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
 run_darwin_no_lockf
 run_pi_list_failure
-run_rejected_source \
-  "npm-source-conflict" \
-  "npm:@maxedapps/pi-subagents-herdr" \
-  "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
-run_rejected_source \
-  "git-source-conflict" \
-  "git:github.com/maxedapps/pi-subagents-herdr@1111111111111111111111111111111111111111" \
-  "another Git source is configured for maxedapps/pi-subagents-herdr"
+run_herdr_fish_resolution() {
+  local root output
+
+  # A wrapper in BIN_DIR does not help when BIN_DIR is not on PATH.
+  root="$tmp/herdr-fish-off-path"
+  output="$root/install.out"
+  setup_fixture "$root" "no" "no"
+  mkdir -p "$root/local-bin"
+  printf '#!/bin/bash\n' > "$root/local-bin/herdr-fish"
+  chmod 755 "$root/local-bin/herdr-fish"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "herdr-fish-off-path installer run failed"
+  fi
+  assert_contains "herdr-fish is not on PATH" "$output"
+
+  root="$tmp/herdr-fish-on-path"
+  output="$root/install.out"
+  setup_fixture "$root" "no" "no"
+  printf '#!/bin/bash\n' > "$root/system-bin/herdr-fish"
+  chmod 755 "$root/system-bin/herdr-fish"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "herdr-fish-on-path installer run failed"
+  fi
+  assert_not_contains "herdr-fish is not on PATH" "$output"
+}
+
+run_special_agent_dir() {
+  local name="special-agent-dir"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local agent_dir="$root/pi&agent|x,y\\z"
+
+  setup_fixture "$root" "no" "no"
+  if ! RUNTIME_TEST_PI_AGENT_DIR="$agent_dir" \
+    run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name installer run failed"
+  fi
+  assert_reviewer_profile "$name" "$agent_dir"
+}
+
+run_special_agent_dir
+run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
+run_herdr_fish_resolution
+run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
+run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
 
 printf 'installer mise runtime tests passed\n'
