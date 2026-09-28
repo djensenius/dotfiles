@@ -30,6 +30,13 @@ assert_contains() {
     fail "expected '$needle' in $file"
 }
 
+assert_not_contains() {
+  local needle="$1" file="$2"
+  if grep -Fq -- "$needle" "$file"; then
+    fail "did not expect '$needle' in $file"
+  fi
+}
+
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
@@ -120,6 +127,10 @@ case "$action" in
           list)
             [ "$#" -eq 0 ] || fail "unexpected pi list arguments: $*"
             printf 'exec:pi list\n' >> "$RUNTIME_TEST_LOG"
+            if [ "${RUNTIME_TEST_PI_LIST_FAILURE:-0}" = "1" ]; then
+              printf 'mock pi list stderr\n' >&2
+              exit 73
+            fi
             if [ -f "$RUNTIME_TEST_STATE/pi-installed" ]; then
               printf '  %s\n' "$RUNTIME_TEST_SOURCE"
             fi
@@ -182,7 +193,8 @@ exit 0
 EOF
   cat > "$destination/uname" <<'EOF'
 #!/bin/bash
-printf 'Linux\n'
+set -euo pipefail
+printf '%s\n' "${RUNTIME_TEST_UNAME:?}"
 EOF
   cat > "$destination/copilot" <<'EOF'
 #!/bin/bash
@@ -195,6 +207,17 @@ EOF
     "$destination/curl" \
     "$destination/uname" \
     "$destination/copilot"
+}
+
+write_lockf_mock() {
+  local destination="$1"
+  cat > "$destination/lockf" <<'EOF'
+#!/bin/bash
+set -euo pipefail
+: > "${RUNTIME_TEST_MARKERS:?}/invoked-lockf"
+exit 99
+EOF
+  chmod 755 "$destination/lockf"
 }
 
 write_system_runtime_mocks() {
@@ -232,57 +255,70 @@ EOF
   done
 }
 
-run_scenario() {
-  local name="$1" system_runtimes="$2"
-  local root="$tmp/$name"
-  local common_bin="$root/common-bin"
-  local system_bin="$root/system-bin"
-  local home="$root/home"
-  local state="$root/state"
-  local markers="$root/markers"
-  local log="$root/mise.log"
-  local first_output="$root/first.out"
-  local second_output="$root/second.out"
-  local runtime_marker
+setup_fixture() {
+  local root="$1" system_runtimes="$2" with_lockf="$3"
 
-  mkdir -p "$system_bin" "$home" "$state" "$markers"
-  : > "$log"
-  link_installer_utilities "$common_bin"
-  write_prerequisite_mocks "$system_bin"
-  write_mise_mock "$system_bin/mise"
-  write_stale_shims "$home/.local/share/mise/shims"
+  mkdir -p \
+    "$root/system-bin" \
+    "$root/home" \
+    "$root/state" \
+    "$root/markers"
+  : > "$root/mise.log"
+  link_installer_utilities "$root/common-bin"
+  write_prerequisite_mocks "$root/system-bin"
+  write_mise_mock "$root/system-bin/mise"
+  write_stale_shims "$root/home/.local/share/mise/shims"
   if [ "$system_runtimes" = "yes" ]; then
-    write_system_runtime_mocks "$system_bin"
+    write_system_runtime_mocks "$root/system-bin"
   fi
+  if [ "$with_lockf" = "yes" ]; then
+    write_lockf_mock "$root/system-bin"
+  fi
+}
 
-  if ! env -i \
-    HOME="$home" \
-    PATH="$system_bin:$common_bin" \
+run_installer() {
+  local root="$1" system_name="$2" pi_list_failure="$3"
+
+  env -i \
+    HOME="$root/home" \
+    PATH="$root/system-bin:$root/common-bin" \
     COPILOT_HOME="$root/copilot-home" \
     PI_CODING_AGENT_DIR="$root/pi-agent" \
     BIN_DIR="$root/local-bin" \
-    RUNTIME_TEST_LOG="$log" \
-    RUNTIME_TEST_MARKERS="$markers" \
+    RUNTIME_TEST_LOG="$root/mise.log" \
+    RUNTIME_TEST_MARKERS="$root/markers" \
+    RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
     RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
     RUNTIME_TEST_SOURCE="$HERDR_SUBAGENTS_SOURCE" \
-    RUNTIME_TEST_STATE="$state" \
-    /bin/bash "$INSTALLER" >"$first_output" 2>&1; then
+    RUNTIME_TEST_STATE="$root/state" \
+    RUNTIME_TEST_UNAME="$system_name" \
+    /bin/bash "$INSTALLER"
+}
+
+assert_no_runtime_markers() {
+  local name="$1" root="$2" runtime_marker
+
+  for runtime_marker in "$root/markers"/*; do
+    [ ! -e "$runtime_marker" ] ||
+      fail "$name invoked unconfigured runtime marker $runtime_marker"
+  done
+}
+
+run_success_scenario() {
+  local name="$1" system_runtimes="$2" system_name="$3" with_lockf="$4"
+  local root="$tmp/$name"
+  local log="$root/mise.log"
+  local first_output="$root/first.out"
+  local second_output="$root/second.out"
+
+  setup_fixture "$root" "$system_runtimes" "$with_lockf"
+
+  if ! run_installer "$root" "$system_name" 0 >"$first_output" 2>&1; then
     cat "$first_output" >&2
     fail "$name first installer run failed"
   fi
 
-  if ! env -i \
-    HOME="$home" \
-    PATH="$system_bin:$common_bin" \
-    COPILOT_HOME="$root/copilot-home" \
-    PI_CODING_AGENT_DIR="$root/pi-agent" \
-    BIN_DIR="$root/local-bin" \
-    RUNTIME_TEST_LOG="$log" \
-    RUNTIME_TEST_MARKERS="$markers" \
-    RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
-    RUNTIME_TEST_SOURCE="$HERDR_SUBAGENTS_SOURCE" \
-    RUNTIME_TEST_STATE="$state" \
-    /bin/bash "$INSTALLER" >"$second_output" 2>&1; then
+  if ! run_installer "$root" "$system_name" 0 >"$second_output" 2>&1; then
     cat "$second_output" >&2
     fail "$name second installer run failed"
   fi
@@ -302,10 +338,7 @@ run_scenario() {
   assert_count 2 "exec:herdr integration pi" "$log"
   assert_count 2 "exec:herdr integration copilot" "$log"
 
-  for runtime_marker in "$markers"/*; do
-    [ ! -e "$runtime_marker" ] ||
-      fail "$name invoked unconfigured runtime marker $runtime_marker"
-  done
+  assert_no_runtime_markers "$name" "$root"
 
   cmp -s \
     "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
@@ -320,9 +353,79 @@ run_scenario() {
   assert_contains "installed reviewer-git.ts" "$first_output"
   assert_contains "reviewer-git.ts is up to date" "$second_output"
   assert_contains "reviewer.md is up to date" "$second_output"
+
+  if [ "$system_name" = "Darwin" ]; then
+    cmp -s "$REPO_ROOT/pi/agent-stack/bin/xbuild" "$root/local-bin/xbuild" ||
+      fail "$name did not install xbuild"
+    assert_contains "installed xbuild" "$first_output"
+    assert_contains "xbuild is up to date" "$second_output"
+  else
+    [ ! -e "$root/local-bin/xbuild" ] ||
+      fail "$name unexpectedly installed xbuild on $system_name"
+  fi
 }
 
-run_scenario "qualifying-system-runtimes" "yes"
-run_scenario "absent-system-runtimes" "no"
+run_darwin_no_lockf() {
+  local name="darwin-without-lockf"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local status
+
+  setup_fixture "$root" "no" "no"
+
+  set +e
+  run_installer "$root" "Darwin" 0 >"$output" 2>&1
+  status=$?
+  set -e
+
+  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
+  assert_contains "macOS lockf is required by xbuild" "$output"
+  assert_not_contains "Installing mise-managed Node, Pi, and Herdr" "$output"
+  [ ! -s "$root/mise.log" ] ||
+    fail "$name invoked mise before rejecting missing lockf"
+  [ ! -e "$root/pi-agent" ] ||
+    fail "$name modified the Pi agent directory before rejecting missing lockf"
+  [ ! -e "$root/copilot-home" ] ||
+    fail "$name modified COPILOT_HOME before rejecting missing lockf"
+  [ ! -e "$root/local-bin" ] ||
+    fail "$name modified BIN_DIR before rejecting missing lockf"
+  [ ! -e "$root/state/pi-installed" ] ||
+    fail "$name modified Pi package state before rejecting missing lockf"
+  assert_no_runtime_markers "$name" "$root"
+}
+
+run_pi_list_failure() {
+  local name="pi-list-failure"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local status
+
+  setup_fixture "$root" "no" "no"
+
+  set +e
+  run_installer "$root" "Linux" 1 >"$output" 2>&1
+  status=$?
+  set -e
+
+  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
+  assert_contains "mock pi list stderr" "$output"
+  assert_contains "failed to inspect installed Pi packages" "$output"
+  assert_not_contains "pinned maxedapps/pi-subagents-herdr" "$output"
+  assert_count 1 "exec:pi list" "$root/mise.log"
+  assert_count 0 "exec:pi install:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:pi update:$HERDR_SUBAGENTS_SOURCE" "$root/mise.log"
+  assert_count 0 "exec:npx skills" "$root/mise.log"
+  [ ! -e "$root/state/pi-installed" ] ||
+    fail "$name changed Pi package state after inspection failed"
+  [ ! -e "$root/pi-agent/herdr-subagents/agents/reviewer.md" ] ||
+    fail "$name installed profiles after Pi package inspection failed"
+  assert_no_runtime_markers "$name" "$root"
+}
+
+run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"
+run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
+run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
+run_darwin_no_lockf
+run_pi_list_failure
 
 printf 'installer mise runtime tests passed\n'

@@ -90,6 +90,9 @@ main() {
   has curl || die "curl is required"
   has mise || die "mise is required; install it first from https://mise.jdx.dev"
   MISE_BIN="$(command -v mise)"
+  if is_mac; then
+    has lockf || die "macOS lockf is required by xbuild"
+  fi
 
   log "Installing mise-managed Node, Pi, and Herdr"
   "$MISE_BIN" -C "$REPO_ROOT" trust "$REPO_ROOT/mise/config.toml" >/dev/null
@@ -122,7 +125,9 @@ main() {
   fi
 
   log "Installing pinned Pi Herdr subagents extension"
-  packages="$(mise_exec pi list 2>/dev/null || true)"
+  if ! packages="$(mise_exec pi list)"; then
+    die "failed to inspect installed Pi packages"
+  fi
   if grep -Fq "npm:@maxedapps/pi-subagents-herdr" <<<"$packages"; then
     die "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
   fi
@@ -180,7 +185,6 @@ main() {
 
   if is_mac; then
     log "Installing xbuild"
-    has lockf || die "macOS lockf is required by xbuild"
     mkdir -p "$BIN_DIR"
     sync_file "$DIR/bin/xbuild" "$BIN_DIR/xbuild" 755
     case ":$PATH:" in
