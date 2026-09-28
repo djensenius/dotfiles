@@ -460,6 +460,16 @@ ensure_real_dir() {
     as_user mkdir -p "$dir"
 }
 
+remove_legacy_herdr_fish_link() {
+    local target="$HOME/.local/bin/herdr-fish"
+    local legacy_src="$DOTFILES_DIR/herdr/scripts/herdr-fish.sh"
+
+    if [ -L "$target" ] && [ "$(readlink "$target")" = "$legacy_src" ]; then
+        as_user rm -f "$target"
+        ok "Removed legacy Herdr fish wrapper link: ${target/#$HOME/~}"
+    fi
+}
+
 # link_config <repo-relative source> <absolute target>
 link_config() {
     local src="$DOTFILES_DIR/$1" target="$2"
@@ -526,7 +536,7 @@ link_configs() {
     ensure_real_dir "$HOME/.config/herdr"
     link_config herdr/config.toml "$HOME/.config/herdr/config.toml"
     link_config herdr/scripts "$HOME/.config/herdr/scripts"
-    link_config herdr/scripts/herdr-fish.sh "$HOME/.local/bin/herdr-fish"
+    remove_legacy_herdr_fish_link
 
     # tmux.conf references this by name, so it has to resolve on PATH.
     link_config scripts/tmux-background-install-indicator.sh \

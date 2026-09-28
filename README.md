@@ -115,10 +115,9 @@ For local installation, most configurations can be symlinked to your `~/.config`
    Herdr keeps sockets, logs and its own managed plugin checkouts inside
    `~/.config/herdr`, so link the individual pieces rather than the directory.
    ```bash
-   mkdir -p ~/.config/herdr ~/.local/bin
+   mkdir -p ~/.config/herdr
    ln -sf ~/.dotfiles/herdr/config.toml ~/.config/herdr/config.toml
    ln -sfn ~/.dotfiles/herdr/scripts ~/.config/herdr/scripts
-   ln -sf ~/.dotfiles/herdr/scripts/herdr-fish.sh ~/.local/bin/herdr-fish
    ```
    Then install the plugins listed in the [herdr](#herdr) section below.
 
@@ -234,7 +233,7 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 Herdr is a terminal workspace manager for AI coding agents. Its config is a deliberate mirror of `tmux/tmux.conf` — same `Ctrl+a` prefix, same Catppuccin Mocha palette, and the same muscle memory — so switching between the two costs nothing.
 - **Directory**: `herdr/`
 - **Files**: `herdr/config.toml`, status and popup helpers in `herdr/scripts/`
-- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. The installers link `config.toml` and `scripts/` individually, then expose `herdr-fish` through `~/.local/bin`.
+- **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. The installers link `config.toml` and `scripts/` individually.
 
 #### tmux → herdr keymap
 
@@ -369,9 +368,8 @@ re-run, so the extension keeps pace with Herdr API changes. To choose a model fo
 override to `~/.pi/agent/settings.json`, for example
 `{"subagents":{"agentOverrides":{"worker":{"model":"provider/model"}}}}`.
 
-The installer does not create the Herdr config links. Herdr panes start through
-the `herdr-fish` wrapper, so set up Herdr first (see *Special setup for Herdr*);
-the installer warns when `herdr-fish` is not on `PATH`.
+The installer does not create the Herdr config links, so set up Herdr first (see
+*Special setup for Herdr*).
 
 The reviewer has no shell tool. Its `review_git` capability resolves the Git
 worktree from the reviewer's current directory and exposes only bounded,

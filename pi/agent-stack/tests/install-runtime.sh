@@ -399,7 +399,6 @@ run_success_scenario() {
   if grep -q '^exec:pi remove:' "$log"; then
     fail "$name removed a Pi package without a superseded source"
   fi
-  assert_contains "herdr-fish is not on PATH" "$first_output"
   assert_count 2 "exec:herdr --version" "$log"
   assert_count 2 "exec:herdr integration pi" "$log"
   assert_count 2 "exec:herdr integration copilot" "$log"
@@ -520,34 +519,6 @@ run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
 run_darwin_no_lockf
 run_pi_list_failure
-run_herdr_fish_resolution() {
-  local root output
-
-  # A wrapper in BIN_DIR does not help when BIN_DIR is not on PATH.
-  root="$tmp/herdr-fish-off-path"
-  output="$root/install.out"
-  setup_fixture "$root" "no" "no"
-  mkdir -p "$root/local-bin"
-  printf '#!/bin/bash\n' > "$root/local-bin/herdr-fish"
-  chmod 755 "$root/local-bin/herdr-fish"
-  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
-    cat "$output" >&2
-    fail "herdr-fish-off-path installer run failed"
-  fi
-  assert_contains "herdr-fish is not on PATH" "$output"
-
-  root="$tmp/herdr-fish-on-path"
-  output="$root/install.out"
-  setup_fixture "$root" "no" "no"
-  printf '#!/bin/bash\n' > "$root/system-bin/herdr-fish"
-  chmod 755 "$root/system-bin/herdr-fish"
-  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
-    cat "$output" >&2
-    fail "herdr-fish-on-path installer run failed"
-  fi
-  assert_not_contains "herdr-fish is not on PATH" "$output"
-}
-
 run_special_agent_dir() {
   local name="special-agent-dir"
   local root="$tmp/$name"
@@ -565,7 +536,6 @@ run_special_agent_dir() {
 
 run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
-run_herdr_fish_resolution
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
 run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
 

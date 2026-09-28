@@ -200,13 +200,6 @@ main() {
     has xcodebuild || warn "xcodebuild is unavailable; install Xcode before using xbuild"
   fi
 
-  # herdr/config.toml launches panes with the herdr-fish wrapper, resolved by
-  # command name; without it on PATH Herdr cannot create a workspace. The
-  # dotfiles installers own this link.
-  if ! has herdr-fish; then
-    warn "herdr-fish is not on PATH; Herdr panes will fail to start (see README: Special setup for Herdr)"
-  fi
-
   cat <<EOF
 
 Agent stack installed.
