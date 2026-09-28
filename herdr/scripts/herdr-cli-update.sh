@@ -149,6 +149,7 @@ manager_icon() {
     case "$1" in
         brew) printf '%s' '' ;;
         npm) printf '%s' '' ;;
+        pi) printf '%s' '' ;;
         pip) printf '%s' '' ;;
         cargo) printf '%s' '' ;;
         composer) printf '%s' '' ;;
@@ -156,6 +157,7 @@ manager_icon() {
         apt) printf '%s' '' ;;
         dnf) printf '%s' '' ;;
         mise) printf '%s' '' ;;
+        herdr) printf '%s' '' ;;
         *) printf '%s' '󰏖' ;;
     esac
 }
@@ -270,6 +272,27 @@ pip_upgrade_all() {
     return "$failed"
 }
 
+herdr_update_outdated_plugins() {
+    local list_file="$CACHE_DIR/herdr.list" plugin found=0 failed=0
+    if [ ! -f "$list_file" ]; then
+        printf 'cli-update: no Herdr plugin list found\n' >&2
+        return 1
+    fi
+
+    require_command herdr || return
+    while IFS= read -r plugin; do
+        [ -n "$plugin" ] || continue
+        found=1
+        printf '%sReinstalling %s...%s\n' "$BOLD" "$plugin" "$RESET"
+        herdr plugin install "$plugin" --yes || failed=1
+    done < <(awk '{ print $1 }' "$list_file")
+    if [ "$found" -eq 0 ]; then
+        printf 'cli-update: Herdr plugin list is empty\n' >&2
+        return 1
+    fi
+    return "$failed"
+}
+
 run_upgrade() {
     case "$1" in
         brew)
@@ -277,6 +300,9 @@ run_upgrade() {
             ;;
         npm)
             require_command npm && npm update -g
+            ;;
+        pi)
+            require_command pi && pi update --extensions
             ;;
         cargo)
             require_command cargo-install-update && cargo install-update -a
@@ -298,6 +324,9 @@ run_upgrade() {
             ;;
         pip)
             pip_upgrade_all
+            ;;
+        herdr)
+            herdr_update_outdated_plugins
             ;;
         *)
             printf 'cli-update: unsupported package manager: %s\n' "$1" >&2
@@ -395,12 +424,14 @@ cache_initialized=1
 
 add_manager brew "Homebrew" brew.count "brew upgrade" brew.list
 add_manager npm "npm" npm.count "npm update -g" npm.list
+add_manager pi "Pi" pi.count "pi update --extensions" pi.list
 add_manager cargo "Cargo" cargo.count "cargo install-update -a" cargo.list
 add_manager composer "Composer" composer.count "composer global update" composer.list
 add_manager go "Go" go.count "go-global-update" go.list
 add_manager apt "Apt" apt.count "sudo apt upgrade" apt.list
 add_manager dnf "DNF" dnf.count "sudo dnf upgrade" dnf.list
 add_manager mise "Mise" mise.count "mise upgrade" mise.list
+add_manager herdr "Herdr" herdr.count "herdr plugin install <plugin> --yes" herdr.list
 add_manager pip "pip" pip.count "pip3 install --upgrade <packages>" pip.list
 
 if [ "$list_only" -eq 1 ]; then

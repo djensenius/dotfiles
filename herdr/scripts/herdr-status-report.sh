@@ -45,7 +45,9 @@ CHECKING_FILE="$OUTDATED_CACHE/checking"
 REFRESH_REQUEST_FILE="$OUTDATED_CACHE/refresh-request"
 REFRESH_COMPLETE_FILE="$OUTDATED_CACHE/refresh-complete"
 LAUNCH_LABEL='dev.djensenius.herdr-status'
-MANAGERS=(brew npm pip cargo go mise)
+MANAGERS=(brew npm pi pip cargo go mise herdr)
+PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
+PI_NPM_PREFIX="$PI_AGENT_DIR/npm"
 
 log() { printf 'herdr-status: %s\n' "$1" >&2; }
 
@@ -88,10 +90,12 @@ manager_icon() {
     case "$1" in
         brew) printf '%s' '' ;;
         npm) printf '%s' '' ;;
+        pi) printf '%s' '' ;;
         pip) printf '%s' '' ;;
         cargo) printf '%s' '' ;;
         go) printf '%s' '' ;;
         mise) printf '%s' '' ;;
+        herdr) printf '%s' '' ;;
         *) printf '%s' '󰏖' ;;
     esac
 }
@@ -295,9 +299,21 @@ refresh_outdated_poller() {
     request_outdated_poller_refresh
 }
 
+poller_supports_manager() {
+    local manager="$1"
+    [ -r "$OUTDATED_POLLER" ] || return 1
+    grep -Eq "^[[:space:]]*check_${manager}\\(\\)" "$OUTDATED_POLLER"
+}
+
 expected_package_managers() {
     command -v brew >/dev/null 2>&1 && printf '%s\n' brew
     command -v npm >/dev/null 2>&1 && printf '%s\n' npm
+    if poller_supports_manager pi &&
+        command -v pi >/dev/null 2>&1 &&
+        command -v npm >/dev/null 2>&1 &&
+        [ -d "$PI_NPM_PREFIX" ]; then
+        printf '%s\n' pi
+    fi
     command -v pip3 >/dev/null 2>&1 && printf '%s\n' pip
     if command -v cargo >/dev/null 2>&1 &&
         command -v cargo-install-update >/dev/null 2>&1; then
@@ -314,6 +330,11 @@ expected_package_managers() {
     fi
     command -v dnf >/dev/null 2>&1 && printf '%s\n' dnf
     command -v mise >/dev/null 2>&1 && printf '%s\n' mise
+    if poller_supports_manager herdr &&
+        command -v herdr >/dev/null 2>&1 &&
+        command -v git >/dev/null 2>&1; then
+        printf '%s\n' herdr
+    fi
     return 0
 }
 

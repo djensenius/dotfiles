@@ -276,7 +276,7 @@ right-aligned status entries.
 
 `ui.tab_bar_right` shows Herdr's built-in `ZOOM` indicator plus
 `herdr/scripts/herdr-status-report.sh --tab-bar`. The helper renders
-`battery_hearts` and non-zero brew/npm/pip/cargo/go/mise update counts from the
+`battery_hearts` and non-zero brew/npm/pi/pip/cargo/go/mise/herdr update counts from the
 shared `tmux-outdated-packages` cache every five seconds. This replaces the old
 dedicated `status` workspace and its custom sidebar metadata.
 
@@ -303,7 +303,13 @@ below directly supervises it when Herdr is used on its own:
 Tune the display with `HERDR_STATUS_HEARTS` and `HERDR_STATUS_MAX_AGE`; override
 the shared poller path with `HERDR_STATUS_POLLER`. Run the helper with
 `--tab-bar` to preview its exact output or `--ensure-poller` to repair a stopped
-poller.
+poller. Pi packages come from the Pi agent npm prefix
+`${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/npm`, which is separate from
+`npm outdated -g`; their update action runs `pi update --extensions`. Herdr
+plugin counts come from `herdr plugin list` SHA comparisons, and the updater
+reinstalls outdated plugins with `herdr plugin install owner/repo --yes`. The
+Herdr helpers treat missing `pi`/`herdr` cache files as zero so they remain
+compatible with older `tmux-outdated-packages` plugin checkouts.
 
 tmux-speedtest stays tmux-only: it is on-demand rather than ambient, so it is
 not polled into the Herdr tab bar.
