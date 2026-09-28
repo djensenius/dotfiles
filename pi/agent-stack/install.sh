@@ -21,6 +21,7 @@ HERDR_SUBAGENTS_SOURCE="git:github.com/$HERDR_SUBAGENTS_REPO@$HERDR_SUBAGENTS_CO
 MIN_GIT="2.45.0"
 MIN_NODE="22.19.0"
 GIT_VERSION=""
+MISE_BIN=""
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }
@@ -28,6 +29,10 @@ warn() { printf '\033[1;33m !!\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m XX\033[0m %s\n' "$*" >&2; exit 1; }
 has()  { command -v "$1" >/dev/null 2>&1; }
 is_mac() { [ "$(uname -s)" = "Darwin" ]; }
+
+mise_exec() {
+  "$MISE_BIN" -C "$REPO_ROOT" exec -- "$@"
+}
 
 require_git_version() {
   local output pattern major minor patch
@@ -54,16 +59,14 @@ require_git_version() {
 }
 
 node_ok() {
-  has node || return 1
-  node -e '
-    const [actual, minimum] = process.argv.slice(1).map((value) =>
-      value.split(".").map(Number)
-    );
+  mise_exec node -e '
+    const actual = process.versions.node.split(".").map(Number);
+    const minimum = process.argv[1].split(".").map(Number);
     for (let index = 0; index < 3; index++) {
       if (actual[index] > minimum[index]) process.exit(0);
       if (actual[index] < minimum[index]) process.exit(1);
     }
-  ' "$(node -p 'process.versions.node')" "$MIN_NODE"
+  ' "$MIN_NODE"
 }
 
 sync_file() {
@@ -80,41 +83,46 @@ sync_file() {
 }
 
 main() {
+  local node_version pi_version herdr_version packages installed_git_source
+
   log "Checking prerequisites"
   require_git_version
   has curl || die "curl is required"
   has mise || die "mise is required; install it first from https://mise.jdx.dev"
+  MISE_BIN="$(command -v mise)"
 
   log "Installing mise-managed Node, Pi, and Herdr"
-  mise -C "$REPO_ROOT" trust "$REPO_ROOT/mise/config.toml" >/dev/null
-  if ! node_ok || ! has npx; then
-    mise -C "$REPO_ROOT" install node npm
-  fi
-  mise -C "$REPO_ROOT" install pi herdr
-  mise reshim
+  "$MISE_BIN" -C "$REPO_ROOT" trust "$REPO_ROOT/mise/config.toml" >/dev/null
+  "$MISE_BIN" -C "$REPO_ROOT" install node npm pi herdr
+  "$MISE_BIN" -C "$REPO_ROOT" reshim
   export PATH="$HOME/.local/share/mise/shims:$PATH"
   hash -r
 
-  node_ok || die "node >= $MIN_NODE is required (current: $(node -v 2>/dev/null || echo none))"
-  has pi || die "pi is not on PATH after mise install"
-  has herdr || die "herdr is not on PATH after mise install"
-  ok "git $GIT_VERSION, node $(node -v), pi $(pi --version | head -n1), $(herdr --version | head -n1)"
+  node_version="$(mise_exec node -p 'process.versions.node')" ||
+    die "mise-managed node is unavailable after installation"
+  node_ok || die "mise-managed node >= $MIN_NODE is required (current: $node_version)"
+  mise_exec npx --version >/dev/null || die "mise-managed npx is unavailable after installation"
+  pi_version="$(mise_exec pi --version | head -n1)" ||
+    die "mise-managed pi is unavailable after installation"
+  herdr_version="$(mise_exec herdr --version | head -n1)" ||
+    die "mise-managed herdr is unavailable after installation"
+  ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version"
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
   sync_file "$DIR/extensions/reviewer-git.ts" "$PI_AGENT_DIR/extensions/reviewer-git.ts"
 
   log "Installing Herdr agent integrations"
-  herdr integration install pi
+  mise_exec herdr integration install pi
   if has copilot; then
     mkdir -p "${COPILOT_HOME:-$HOME/.copilot}"
-    herdr integration install copilot
+    mise_exec herdr integration install copilot
   else
     warn "copilot CLI is not installed; skipping its Herdr integration"
   fi
 
   log "Installing pinned Pi Herdr subagents extension"
-  packages="$(pi list 2>/dev/null || true)"
+  packages="$(mise_exec pi list 2>/dev/null || true)"
   if grep -Fq "npm:@maxedapps/pi-subagents-herdr" <<<"$packages"; then
     die "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
   fi
@@ -125,9 +133,9 @@ main() {
   fi
 
   if grep -Fq "$HERDR_SUBAGENTS_SOURCE" <<<"$packages"; then
-    pi update --extension "$HERDR_SUBAGENTS_SOURCE"
+    mise_exec pi update --extension "$HERDR_SUBAGENTS_SOURCE"
   else
-    pi install "$HERDR_SUBAGENTS_SOURCE"
+    mise_exec pi install "$HERDR_SUBAGENTS_SOURCE"
   fi
   ok "pinned $HERDR_SUBAGENTS_REPO at $HERDR_SUBAGENTS_COMMIT"
 
@@ -137,7 +145,7 @@ main() {
 
   if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
     log "Installing the official Herdr skill"
-    npx -y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y
+    mise_exec npx -y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y
   fi
 
   log "Installing Pi subagent profiles"
