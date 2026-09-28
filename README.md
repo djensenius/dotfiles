@@ -359,14 +359,56 @@ system's package manager; Git is intentionally not managed by mise. The
 installer uses the mise-managed Node, Pi, and Herdr binaries, installs their
 Herdr integrations (including Copilot when available), installs the official
 Herdr skill, copies the repository-owned `review_git` extension into Pi's
-agent directory, copies the `reviewer` profile into `~/.pi/agent/agents/` (it
-loads `../extensions/reviewer-git.ts` relative to itself), and
-installs `xbuild` into `~/.local/bin`. Like Pi and Herdr (both `latest` in
-mise), `pi-subagents` is deliberately unpinned: the installer installs
-`npm:pi-subagents` and runs `pi update --extension npm:pi-subagents` on every
-re-run, so the extension keeps pace with Herdr API changes. To choose a model for a builtin agent, add an
-override to `~/.pi/agent/settings.json`, for example
-`{"subagents":{"agentOverrides":{"worker":{"model":"provider/model"}}}}`.
+agent directory, copies the shared Catppuccin footer config, copies the
+`reviewer` and `council-gpt`/`council-claude`/`council-gemini` profiles into
+`~/.pi/agent/agents/` (the reviewer loads `../extensions/reviewer-git.ts`
+relative to itself), and installs `xbuild` into `~/.local/bin`.
+
+The stack also keeps a small shared Pi config under `pi/agent-stack/` and
+merges it into the user files instead of replacing them, so machine-local
+settings such as `lastChangelogVersion`, existing `packages`, local MCP
+servers, and other keys are preserved. Shared settings set the Pi defaults to
+GitHub Copilot `gpt-5.5`, medium thinking, dark fullscreen TUI mode, and these
+builtin subagent model overrides:
+
+| Agent | Model |
+| --- | --- |
+| `scout` | `github-copilot/gpt-5.4-mini` |
+| `researcher` | `github-copilot/gemini-3.8-flash` |
+| `worker` | `github-copilot/gpt-5.5` |
+| `reviewer` | `github-copilot/claude-opus-5.5` |
+| `oracle` | `github-copilot/claude-opus-5.5` |
+
+Like Pi and Herdr (both `latest` in mise), `pi-subagents` is deliberately
+unpinned: the installer installs `npm:pi-subagents` and runs
+`pi update --extension npm:pi-subagents` on every re-run, so the extension
+keeps pace with Herdr API changes. Other shared Pi packages are also unpinned
+and installed only when absent from the `User packages:` section of `pi list`:
+`npm:pi-catppuccin-footer`, `npm:@plannotator/pi-extension`,
+`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`, and
+`npm:pi-mcp-adapter`.
+
+The `pi-subagents` extension config lives at
+`~/.pi/agent/extensions/subagent/config.json`. The shared config keeps
+FleetView and the async widget explicitly enabled (`fleetView: true`,
+`asyncWidget: true`) and leaves inspector opening on the documented automatic
+policy (`authorityPolicy.inspectorOpen: "auto"`). The bundled inspector
+dispatcher tries Herdr first, then Ghostty, then external providers, so Herdr is
+the default inspector surface when Pi is running inside Herdr.
+
+MCP servers are configured through `pi-mcp-adapter`'s user config,
+`~/.pi/agent/mcp-adapter.json` (or `$PI_CODING_AGENT_DIR/mcp-adapter.json`).
+The installer merges in two stdio servers and preserves any other servers:
+
+- `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
+- `context7`: `npx -y @upstash/context7-mcp@latest`
+
+Playwright needs its own Firefox build. Because the server runs as
+`@latest`, a Playwright update can require a newer build, so re-run
+`npx playwright install firefox` whenever the MCP server reports a missing or
+outdated browser. To use Edge instead, change the Playwright
+server args from `--browser firefox` to `--browser msedge`. GitHub MCP is not
+configured here because `gh` already covers that workflow.
 
 The installer does not create the Herdr config links, so set up Herdr first (see
 *Special setup for Herdr*).

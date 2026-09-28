@@ -1,0 +1,26 @@
+{
+  "defaultProvider": "github-copilot",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "medium",
+  "theme": "dark",
+  "tuiMode": "fullscreen",
+  "subagents": {
+    "agentOverrides": {
+      "scout": {
+        "model": "github-copilot/gpt-5.4-mini"
+      },
+      "researcher": {
+        "model": "github-copilot/gemini-3.8-flash"
+      },
+      "worker": {
+        "model": "github-copilot/gpt-5.5"
+      },
+      "reviewer": {
+        "model": "github-copilot/claude-opus-5.5"
+      },
+      "oracle": {
+        "model": "github-copilot/claude-opus-5.5"
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# Repository-managed Pi packages installed by ./install-agent-stack.
+# Keep unpinned so Pi can resolve the latest compatible package.
+npm:pi-catppuccin-footer
+npm:@plannotator/pi-extension
+npm:pi-web-access
+npm:pi-browser-harness
+npm:pi-memctx
+npm:pi-mcp-adapter
