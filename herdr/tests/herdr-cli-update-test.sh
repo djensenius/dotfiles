@@ -345,4 +345,25 @@ if grep -q -e 'bad;name' -e 'install \.\./escape' -e 'install owner/\.\. ' -e 'i
     exit 1
 fi
 
+# The launchd poller must see the same Pi agent directory as this helper.
+(
+    HOME="$TEST_ROOT/launch-home"
+    mkdir -p "$HOME/Library/LaunchAgents"
+    : >"$HOME/Library/LaunchAgents/$LAUNCH_LABEL.plist"
+    PI_AGENT_DIR="$TEST_ROOT/custom-pi-agent"
+    launchctl_log="$TEST_ROOT/launchctl.log"
+    : >"$launchctl_log"
+    # shellcheck disable=SC2329 # Called by start_poller_launch_agent from the sourced helper.
+    launchctl() {
+        printf '%s\n' "$*" >>"$launchctl_log"
+        [ "$1" != print ]
+    }
+    start_poller_launch_agent
+    grep -Fxq "setenv PI_CODING_AGENT_DIR $TEST_ROOT/custom-pi-agent" "$launchctl_log" || {
+        printf '%s\n' 'launch agent did not receive the resolved Pi agent directory' >&2
+        exit 1
+    }
+    grep -q '^kickstart -k ' "$launchctl_log"
+)
+
 printf '%s\n' 'Herdr CLI cache snapshot tests passed'

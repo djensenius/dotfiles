@@ -236,6 +236,9 @@ start_poller_launch_agent() {
     fi
 
     launchctl setenv HERDR_STATUS_POLLER "$OUTDATED_POLLER" || return
+    # The launchd poller is a separate job; give it the same Pi directory this
+    # helper uses so both agree on whether (and where) Pi packages are checked.
+    launchctl setenv PI_CODING_AGENT_DIR "$PI_AGENT_DIR" || return
 
     if definition=$(launchctl print "$job" 2>/dev/null); then
         case "$definition" in
