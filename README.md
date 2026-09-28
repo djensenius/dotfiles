@@ -350,10 +350,18 @@ custom read-only `reviewer` profile:
 
 The installer uses the mise-managed Node, Pi, and Herdr binaries, installs
 their Herdr integrations (including Copilot when available), installs the
-official Herdr skill, copies profiles into Pi's agent directory, and installs
-`xbuild` into `~/.local/bin`. The Herdr subagents extension is temporarily
-pinned to commit `3af3865a58ea4c551c3ea7b099fe8a9ea42cba83`, because the
-published npm `0.1.3` package predates configurable Markdown profiles.
+official Herdr skill, copies profiles and the repository-owned `review_git`
+extension into Pi's agent directory, and installs `xbuild` into
+`~/.local/bin`. The Herdr subagents extension is temporarily pinned to commit
+`3af3865a58ea4c551c3ea7b099fe8a9ea42cba83`, because the published npm `0.1.3`
+package predates configurable Markdown profiles.
+
+The reviewer has no shell tool. Its `review_git` capability resolves the Git
+worktree from the reviewer's current directory and exposes only bounded,
+read-only `status`, `show`, `diff`, `log`, and `rev-parse` operations. Commit
+inputs are hexadecimal IDs, paths are validated repository-relative literals,
+and the model cannot supply Git flags, environment, argv, or another repository
+path.
 
 The existing `npm:pi-subagents` package is not removed automatically. The
 installer warns when it is present so migration can be verified before the old

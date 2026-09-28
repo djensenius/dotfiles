@@ -73,8 +73,11 @@ has pi || die "pi is not on PATH after mise install"
 has herdr || die "herdr is not on PATH after mise install"
 ok "node $(node -v), pi $(pi --version | head -n1), $(herdr --version | head -n1)"
 
-log "Installing Herdr agent integrations"
+log "Installing repository-owned Pi extensions"
 mkdir -p "$PI_AGENT_DIR/extensions"
+sync_file "$DIR/extensions/reviewer-git.ts" "$PI_AGENT_DIR/extensions/reviewer-git.ts"
+
+log "Installing Herdr agent integrations"
 herdr integration install pi
 if has copilot; then
   mkdir -p "${COPILOT_HOME:-$HOME/.copilot}"
