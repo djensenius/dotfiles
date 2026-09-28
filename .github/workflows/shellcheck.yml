@@ -13,3 +13,7 @@ jobs:
         uses: ludeeus/action-shellcheck@master
       - name: 'Test Herdr cache snapshot'
         run: herdr/tests/herdr-cli-update-test.sh
+      - name: 'Test macOS bootstrap'
+        run: |
+          mac/tests/brewfile-mise-lint.sh
+          mac/tests/install-mac-test.sh

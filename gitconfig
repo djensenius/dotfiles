@@ -13,11 +13,6 @@
   features = side-by-side line-numbers decorations Catppuccin-mocha
   navigate = true
 
-[user]
-	email = david@jensenius.com
-	name = David Jensenius
-  signingkey = ~/.ssh/id_ed25519.pub
-
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -30,14 +25,8 @@
 [init]
 	defaultBranch = main
 
-[commit]
-	gpgsign = true
-
 [github]
 	user = djensenius
-
-[credential]
-	helper = cache
 
 [alias]
   m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout
@@ -46,7 +35,8 @@
 [help]
 	autocorrect = 20
 
-[gpg]
-	format = ssh
 [safe]
 	bareRepository = all
+
+[include]
+  path = ~/.gitconfig.local

@@ -80,6 +80,46 @@ Add `--fish-shell` to make fish your login shell, or `--dry-run` to preview.
 
 See [pi/README.md](pi/README.md) for the full step list and options.
 
+### macOS Installation
+
+A Mac uses the Homebrew-aware bootstrapper:
+
+```bash
+git clone https://github.com/djensenius/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+./install-mac
+```
+
+The thin `install-mac` entry point runs `mac/install.sh`. It checks the machine,
+uses `mac/Brewfile` for curated Homebrew taps/formulae/fonts/terminal casks,
+links the repo-owned dotfiles from `mac/links.txt`, trusts and installs the
+`mise` tools, installs only missing Herdr plugins from `herdr/plugins.txt`, syncs
+TPM and Neovim plugins, and then runs `./install-agent-stack`. Personal GUI
+apps live in `mac/Brewfile.apps` and are installed only when you pass `--apps`.
+The Brewfiles are curated from this laptop; `brew bundle dump` is useful for
+read-only drift discovery but raw dumps should not be committed.
+
+Useful flags:
+
+```bash
+./install-mac --dry-run          # show planned actions, change nothing
+./install-mac --check            # read-only drift check; exits 2 on drift
+./install-mac --only links,mise  # run a subset of sections
+./install-mac --skip agent-stack # skip a section
+./install-mac --apps             # include personal GUI casks
+./install-mac --drift            # diff current Homebrew state against Brewfiles
+./install-mac --adopt-gitconfig  # move ~/.gitconfig to ~/.gitconfig.local first
+./install-mac --fish-shell --yes # opt in to chsh for Homebrew fish
+```
+
+The macOS bootstrap never installs Homebrew for you, upgrades packages, cleans up
+or uninstalls packages, applies macOS defaults, creates secrets or SSH/GPG keys,
+logs in to services such as `gh`, 1Password or the App Store, or loads launchd
+agents. `~/.gitconfig` is linked only when missing or already correct; use
+`--adopt-gitconfig` to move machine-local settings (signing key, credential
+helper, per-machine identity) to `~/.gitconfig.local`, which the repo config
+includes last so local values win.
+
 ### Manual Local Installation
 
 For local installation, most configurations can be symlinked to your `~/.config` directory:
@@ -410,8 +450,9 @@ outdated browser. To use Edge instead, change the Playwright
 server args from `--browser firefox` to `--browser msedge`. GitHub MCP is not
 configured here because `gh` already covers that workflow.
 
-The installer does not create the Herdr config links, so set up Herdr first (see
-*Special setup for Herdr*).
+The agent-stack installer does not create the Herdr config links; set up Herdr
+first (for example with `./install-mac --only links`, or see *Special setup for
+Herdr*) so pane helpers and plugin configuration are in place.
 
 The reviewer has no shell tool. Its `review_git` capability resolves the Git
 worktree from the reviewer's current directory and exposes only bounded,
