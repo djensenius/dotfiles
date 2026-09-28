@@ -21,12 +21,15 @@ repo="$tmp/repo"
 decoy="$tmp/decoy"
 origin="$tmp/origin.git"
 partial="$tmp/partial"
+nested="$repo/modules/nested"
 home="$tmp/home"
 helpers="$tmp/helpers"
 markers="$tmp/markers"
 control_markers="$tmp/control-markers"
 invocation_log="$tmp/git-invocations.log"
 expected_diff="$tmp/expected-diff.txt"
+expected_submodule_show="$tmp/expected-submodule-show.txt"
+expected_submodule_diff="$tmp/expected-submodule-diff.txt"
 mkdir -p "$repo" "$decoy" "$home" "$helpers" "$markers" "$control_markers" "$tmp/pi-agent"
 : > "$invocation_log"
 
@@ -101,65 +104,136 @@ chmod 755 "$helpers/git"
 "$GIT_BIN" init -q --object-format=sha1 "$repo"
 "$GIT_BIN" -C "$repo" config user.name "Reviewer Git Test"
 "$GIT_BIN" -C "$repo" config user.email "reviewer-git@example.invalid"
-printf '*.txt filter=evil diff=evil\n' > "$repo/.gitattributes"
+mkdir -p "$nested"
+"$GIT_BIN" init -q --object-format=sha1 "$nested"
+"$GIT_BIN" -C "$nested" config user.name "Reviewer Git Nested"
+"$GIT_BIN" -C "$nested" config user.email "reviewer-git-nested@example.invalid"
+printf 'nested before\n' > "$nested/nested.txt"
+"$GIT_BIN" -C "$nested" add nested.txt
+"$GIT_BIN" -C "$nested" commit -q -m "Nested base"
+submodule_old="$("$GIT_BIN" -C "$nested" rev-parse HEAD)"
+
+printf '*.txt filter=evil diff=evil\nforced-text.bin -diff\n' > "$repo/.gitattributes"
 printf 'before\n' > "$repo/tracked.txt"
+printf 'forced text before\n' > "$repo/forced-text.bin"
 awk 'BEGIN {
   for (i = 0; i < 700; i++) {
     printf "before-%05d cafe-\303\251 emoji-\360\237\230\200 alpha beta gamma delta\n", i
   }
 }' > "$repo/large.txt"
-"$GIT_BIN" -C "$repo" add .gitattributes tracked.txt large.txt
+"$GIT_BIN" -C "$repo" add .gitattributes tracked.txt forced-text.bin large.txt
+"$GIT_BIN" -C "$repo" update-index --add --cacheinfo "160000,$submodule_old,modules/nested"
 "$GIT_BIN" -C "$repo" commit -q -m "Base"
 base="$("$GIT_BIN" -C "$repo" rev-parse HEAD)"
 
+printf 'nested after\n' > "$nested/nested.txt"
+"$GIT_BIN" -C "$nested" add nested.txt
+"$GIT_BIN" -C "$nested" commit -q -m "Nested target"
+submodule_new="$("$GIT_BIN" -C "$nested" rev-parse HEAD)"
+
 printf 'after\n' > "$repo/tracked.txt"
+printf 'forced text after\n' > "$repo/forced-text.bin"
 awk 'BEGIN {
   for (i = 0; i < 700; i++) {
     printf "after-%05d cafe-\303\251 emoji-\360\237\230\200 alpha beta gamma delta\n", i
   }
 }' > "$repo/large.txt"
-"$GIT_BIN" -C "$repo" add tracked.txt large.txt
+"$GIT_BIN" -C "$repo" add tracked.txt forced-text.bin large.txt
+"$GIT_BIN" -C "$repo" update-index --cacheinfo "160000,$submodule_new,modules/nested"
 "$GIT_BIN" -C "$repo" commit -q -m "Target"
 commit="$("$GIT_BIN" -C "$repo" rev-parse HEAD)"
 short_ref="${commit:0:12}"
 "$GIT_BIN" -C "$repo" update-ref "refs/heads/$short_ref" "$base"
+"$GIT_BIN" -C "$repo" config core.bigFileThreshold 1
 
-env \
-  GIT_CONFIG_GLOBAL=/dev/null \
-  GIT_CONFIG_NOSYSTEM=1 \
-  GIT_NO_LAZY_FETCH=1 \
-  GIT_OPTIONAL_LOCKS=0 \
-  GIT_PAGER=cat \
-  LC_ALL=C \
-  NO_COLOR=1 \
-  PAGER=cat \
-  "$GIT_BIN" \
-    --no-pager \
-    --no-lazy-fetch \
-    --no-replace-objects \
-    --literal-pathspecs \
-    -c color.ui=false \
-    -c core.fsmonitor=false \
-    -c core.pager=cat \
-    -c core.untrackedCache=false \
-    -c log.showSignature=false \
-    -c submodule.recurse=false \
-    -C "$repo" \
-    diff \
-    --no-color \
-    --no-ext-diff \
-    --no-textconv \
-    --ignore-submodules=all \
-    --stat \
-    --patch \
-    "$base" \
-    "$commit" \
-    -- \
-    large.txt > "$expected_diff"
+review_git_expected() {
+  env \
+    GIT_CONFIG_GLOBAL=/dev/null \
+    GIT_CONFIG_NOSYSTEM=1 \
+    GIT_NO_LAZY_FETCH=1 \
+    GIT_OPTIONAL_LOCKS=0 \
+    GIT_PAGER=cat \
+    LC_ALL=C \
+    NO_COLOR=1 \
+    PAGER=cat \
+    "$GIT_BIN" \
+      --no-pager \
+      --no-lazy-fetch \
+      --no-replace-objects \
+      --literal-pathspecs \
+      -c color.ui=false \
+      -c core.fsmonitor=false \
+      -c core.pager=cat \
+      -c core.untrackedCache=false \
+      -c log.showSignature=false \
+      -c submodule.recurse=false \
+      -C "$repo" \
+      "$@"
+}
+
+review_git_expected \
+  diff \
+  --no-color \
+  --no-ext-diff \
+  --no-textconv \
+  --text \
+  --ignore-submodules=dirty \
+  --submodule=short \
+  --stat \
+  --patch \
+  "$base" \
+  "$commit" \
+  -- \
+  large.txt > "$expected_diff"
+
+review_git_expected \
+  show \
+  --no-color \
+  --no-ext-diff \
+  --no-textconv \
+  --text \
+  --ignore-submodules=dirty \
+  --submodule=short \
+  --format=fuller \
+  --stat \
+  --patch \
+  "$commit" \
+  -- \
+  modules/nested > "$expected_submodule_show"
+
+review_git_expected \
+  diff \
+  --no-color \
+  --no-ext-diff \
+  --no-textconv \
+  --text \
+  --ignore-submodules=dirty \
+  --submodule=short \
+  --stat \
+  --patch \
+  "$base" \
+  "$commit" \
+  -- \
+  modules/nested > "$expected_submodule_diff"
 
 expected_bytes="$(wc -c < "$expected_diff" | tr -d '[:space:]')"
 if [ "$expected_bytes" -le $((48 * 1024)) ]; then
   printf 'Expected pagination fixture to exceed 48 KiB, got %s bytes\n' "$expected_bytes" >&2
+  exit 1
+fi
+
+for revision in "$base" "$commit"; do
+  gitlink_mode="$("$GIT_BIN" -C "$repo" ls-tree "$revision" modules/nested | awk '{print $1}')"
+  if [ "$gitlink_mode" != "160000" ]; then
+    printf 'Expected mode 160000 gitlink at %s, got %s\n' "$revision" "$gitlink_mode" >&2
+    exit 1
+  fi
+done
+
+printf 'dirty nested worktree\n' >> "$nested/nested.txt"
+printf 'untracked nested state\n' > "$nested/untracked.txt"
+if [ -z "$("$GIT_BIN" -C "$nested" status --porcelain)" ]; then
+  printf 'Nested repository did not become dirty\n' >&2
   exit 1
 fi
 
@@ -210,12 +284,14 @@ printf 'dirty worktree\n' > "$repo/tracked.txt"
 
 "$GIT_BIN" config --file "$home/.gitconfig" diff.external "$helpers/global-diff"
 "$GIT_BIN" config --file "$home/.gitconfig" core.pager "$helpers/global-pager"
+"$GIT_BIN" config --file "$home/.gitconfig" core.bigFileThreshold 1
 "$GIT_BIN" config --file "$home/.gitconfig" core.fsmonitor "$helpers/global-fsmonitor"
 "$GIT_BIN" config --file "$home/.gitconfig" credential.helper "!$helpers/credential-helper"
 
 system_config="$tmp/system.gitconfig"
 "$GIT_BIN" config --file "$system_config" diff.external "$helpers/system-diff"
 "$GIT_BIN" config --file "$system_config" core.pager "$helpers/system-pager"
+"$GIT_BIN" config --file "$system_config" core.bigFileThreshold 1
 "$GIT_BIN" config --file "$system_config" core.fsmonitor "$helpers/system-fsmonitor"
 "$GIT_BIN" config --file "$system_config" credential.helper "!$helpers/credential-helper"
 
@@ -227,10 +303,14 @@ output="$tmp/pi-output.jsonl"
     PATH="$helpers:$PATH" \
     PI_CODING_AGENT_DIR="$tmp/pi-agent" \
     REVIEW_GIT_EXPECTED_DIFF_FILE="$expected_diff" \
+    REVIEW_GIT_EXPECTED_SUBMODULE_DIFF_FILE="$expected_submodule_diff" \
+    REVIEW_GIT_EXPECTED_SUBMODULE_SHOW_FILE="$expected_submodule_show" \
     REVIEW_GIT_INVOCATION_LOG="$invocation_log" \
     REVIEW_GIT_MARKER_DIR="$markers" \
     REVIEW_GIT_PARTIAL_REPO="$partial" \
     REVIEW_GIT_REAL_GIT="$GIT_BIN" \
+    REVIEW_GIT_SUBMODULE_NEW="$submodule_new" \
+    REVIEW_GIT_SUBMODULE_OLD="$submodule_old" \
     GIT_ALTERNATE_OBJECT_DIRECTORIES="$decoy/.git/objects" \
     GIT_ASKPASS="$helpers/env-askpass" \
     GIT_CEILING_DIRECTORIES="/" \
@@ -299,6 +379,14 @@ printf '%s\n' "$summary" | jq -e '
   and .shortRefRejectedBeforeGit == true
   and .statusRejected == true
   and .revParseSinglePage == true
+  and .forcedTextVisibility.show == true
+  and .forcedTextVisibility.diff == true
+  and .forcedTextVisibility.bigFileThreshold == true
+  and .forcedTextVisibility.negativeDiffAttribute == true
+  and .gitlinkVisibility.show == true
+  and .gitlinkVisibility.diff == true
+  and .gitlinkVisibility.mode == "160000"
+  and .gitlinkVisibility.dirtyWorktreeIgnored == true
   and .lazyFetchBlocked == true
   and .cancellationRejected == true
   and .stderrTruncationRejected == true
@@ -309,6 +397,16 @@ if [ ! -s "$invocation_log" ]; then
   printf 'review_git did not invoke Git through the test wrapper\n' >&2
   exit 1
 fi
+
+show_args=" show --no-color --no-ext-diff --no-textconv --text --ignore-submodules=dirty --submodule=short --format=fuller --stat --patch "
+diff_args=" diff --no-color --no-ext-diff --no-textconv --text --ignore-submodules=dirty --submodule=short --stat --patch "
+log_args=" log --no-color --no-decorate --no-ext-diff --no-textconv --ignore-submodules=all --date=iso-strict "
+for expected_args in "$show_args" "$diff_args" "$log_args"; do
+  if ! grep -F "$expected_args" "$invocation_log" >/dev/null; then
+    printf 'Missing expected Git arguments: %s\n' "$expected_args" >&2
+    exit 1
+  fi
+done
 
 marker_files="$(find "$markers" -type f -print)"
 if [ -n "$marker_files" ]; then

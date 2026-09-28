@@ -9,5 +9,6 @@
 - [x] Validate hostile filters, diff drivers, pagers, fsmonitor, helpers, and `GIT_*` variables without side effects.
 - [x] Require Git 2.45.0, full commit IDs, and explicit no-lazy-fetch execution.
 - [x] Replace output truncation with bounded, complete pagination and adversarial regression coverage.
+- [x] Preserve text hunks and committed gitlink pointer changes in reviewer show/diff output.
 - [ ] Push the follow-up commits and complete Copilot review.
 - [ ] Confirm CI passes for the follow-up commits.

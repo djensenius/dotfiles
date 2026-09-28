@@ -125,6 +125,38 @@ function paginationDetails(result: unknown): Record<string, unknown> {
 	return pagination as Record<string, unknown>;
 }
 
+function assertForcedTextPatch(body: string, operation: "show" | "diff"): void {
+	assert(
+		body.includes("diff --git a/forced-text.bin b/forced-text.bin"),
+		`${operation} omitted the forced-text file header`,
+	);
+	assert(body.includes("@@"), `${operation} omitted the forced-text hunk`);
+	assert(body.includes("-forced text before"), `${operation} omitted the old forced-text content`);
+	assert(body.includes("+forced text after"), `${operation} omitted the new forced-text content`);
+	assert(!body.includes("Binary files"), `${operation} treated forced-text content as binary`);
+	assert(!body.includes("GIT binary patch"), `${operation} emitted a binary patch`);
+}
+
+function assertGitlinkPatch(
+	body: string,
+	expected: string,
+	oldCommit: string,
+	newCommit: string,
+	operation: "show" | "diff",
+): void {
+	assert(body === expected, `${operation} gitlink output changed after the nested worktree became dirty`);
+	assert(body.includes("160000"), `${operation} omitted gitlink mode 160000`);
+	assert(
+		body.includes(`-Subproject commit ${oldCommit}`),
+		`${operation} omitted the old submodule commit`,
+	);
+	assert(
+		body.includes(`+Subproject commit ${newCommit}`),
+		`${operation} omitted the new submodule commit`,
+	);
+	assert(!body.includes("-dirty"), `${operation} leaked dirty nested-worktree state`);
+}
+
 export default function reviewerGitSecurityTest(pi: ExtensionAPI) {
 	pi.registerCommand("review-git-security-test", {
 		description: "Exercise review_git against hostile repository configuration",
@@ -155,7 +187,20 @@ export default function reviewerGitSecurityTest(pi: ExtensionAPI) {
 
 				const repository = await realpath(ctx.cwd);
 				const expectedDiff = await readFile(requiredEnvironment("REVIEW_GIT_EXPECTED_DIFF_FILE"), "utf8");
+				const expectedSubmoduleDiff = await readFile(
+					requiredEnvironment("REVIEW_GIT_EXPECTED_SUBMODULE_DIFF_FILE"),
+					"utf8",
+				);
+				const expectedSubmoduleShow = await readFile(
+					requiredEnvironment("REVIEW_GIT_EXPECTED_SUBMODULE_SHOW_FILE"),
+					"utf8",
+				);
+				const submoduleOld = requiredEnvironment("REVIEW_GIT_SUBMODULE_OLD");
+				const submoduleNew = requiredEnvironment("REVIEW_GIT_SUBMODULE_NEW");
 				assert(Buffer.byteLength(expectedDiff) > 48 * 1024, "expected diff must exceed 48 KiB");
+				assert(/^[0-9a-f]{40}$/i.test(submoduleOld), "old submodule ID must be 40 hexadecimal characters");
+				assert(/^[0-9a-f]{40}$/i.test(submoduleNew), "new submodule ID must be 40 hexadecimal characters");
+				assert(submoduleOld !== submoduleNew, "submodule fixture did not change commits");
 
 				const completed: string[] = [];
 				const revParse = await reviewGitTool.execute(
@@ -181,6 +226,42 @@ export default function reviewerGitSecurityTest(pi: ExtensionAPI) {
 					assert(pagination.page === 1, `${params.operation} did not default to page 1`);
 					assert(pagination.pageSize === 12_000, `${params.operation} used the wrong default page size`);
 					completed.push(params.operation);
+				}
+
+				for (const [operation, params] of [
+					["show", { operation: "show", commit, path: "forced-text.bin" }],
+					["diff", { operation: "diff", base, commit, path: "forced-text.bin" }],
+				] as const) {
+					const result = await reviewGitTool.execute(
+						`security-test-forced-text-${operation}`,
+						params,
+						ctx.signal,
+						undefined,
+						ctx,
+					);
+					assertForcedTextPatch(resultBody(result), operation);
+				}
+
+				for (const [operation, params, expected] of [
+					[
+						"show",
+						{ operation: "show", commit, path: "modules/nested" },
+						expectedSubmoduleShow,
+					],
+					[
+						"diff",
+						{ operation: "diff", base, commit, path: "modules/nested" },
+						expectedSubmoduleDiff,
+					],
+				] as const) {
+					const result = await reviewGitTool.execute(
+						`security-test-gitlink-${operation}`,
+						params,
+						ctx.signal,
+						undefined,
+						ctx,
+					);
+					assertGitlinkPatch(resultBody(result), expected, submoduleOld, submoduleNew, operation);
 				}
 
 				let reconstructed = "";
@@ -239,7 +320,15 @@ export default function reviewerGitSecurityTest(pi: ExtensionAPI) {
 				completed.push("diff");
 
 				assert(page === totalPages, "did not retrieve every advertised page");
-				assert(reconstructed === expectedDiff, "paginated diff did not reconstruct the complete Git output");
+				const reconstructedCodePoints = [...reconstructed];
+				const expectedCodePoints = [...expectedDiff];
+				const firstDifference = reconstructedCodePoints.findIndex(
+					(character, index) => character !== expectedCodePoints[index],
+				);
+				assert(
+					reconstructed === expectedDiff,
+					`paginated diff mismatch at code point ${firstDifference}; expected ${expectedDiff.length} UTF-16 units, got ${reconstructed.length}`,
+				);
 				assert(totalCodePoints === [...expectedDiff].length, "total character metadata is incorrect");
 				assert(stdoutBytes === Buffer.byteLength(expectedDiff), "total byte metadata is incorrect");
 
@@ -395,6 +484,20 @@ export default function reviewerGitSecurityTest(pi: ExtensionAPI) {
 					shortRefRejectedBeforeGit: true,
 					statusRejected: true,
 					revParseSinglePage: true,
+					forcedTextVisibility: {
+						show: true,
+						diff: true,
+						bigFileThreshold: true,
+						negativeDiffAttribute: true,
+					},
+					gitlinkVisibility: {
+						show: true,
+						diff: true,
+						mode: "160000",
+						oldCommit: submoduleOld,
+						newCommit: submoduleNew,
+						dirtyWorktreeIgnored: true,
+					},
 					lazyFetchBlocked: true,
 					cancellationRejected: true,
 					stderrTruncationRejected: true,
