@@ -339,10 +339,15 @@ The hook is not a state authority — Copilot's `idle`/`working`/`blocked` state
 
 #### Pi + Herdr subagents
 
-The optional Pi agent stack runs visible, persistent subagents in separate
-Herdr panes. A coordinator can delegate read-only investigation to `scout`,
-implementation to a worktree-isolated `worker`, and commit review to the
-custom read-only `reviewer` profile:
+The optional Pi agent stack uses
+[`pi-subagents`](https://github.com/nicobailon/pi-subagents) for delegation. A
+coordinator can delegate read-only investigation to `scout`, implementation to
+a `worker` (run as a workflow step with `worktree: true` to get a managed Git
+worktree), and commit
+review to the custom read-only `reviewer` profile. Foreground children stream
+in the parent conversation; background children keep running in a detached
+runner and show up in the FleetView and `/subagents-fleet`. Inside Herdr, the
+parent pane reports active background work through Herdr's pane status:
 
 ```bash
 ./install-agent-stack
@@ -354,11 +359,18 @@ Upgrade Git with Homebrew (`brew install git`) on macOS or the operating
 system's package manager; Git is intentionally not managed by mise. The
 installer uses the mise-managed Node, Pi, and Herdr binaries, installs their
 Herdr integrations (including Copilot when available), installs the official
-Herdr skill, copies profiles and the repository-owned `review_git` extension
-into Pi's agent directory, and installs `xbuild` into `~/.local/bin`. The Herdr
-subagents extension is temporarily pinned to commit
-`3af3865a58ea4c551c3ea7b099fe8a9ea42cba83`, because the published npm `0.1.3`
-package predates configurable Markdown profiles.
+Herdr skill, copies the repository-owned `review_git` extension into Pi's
+agent directory, renders the `reviewer` profile into `~/.pi/agent/agents/`, and
+installs `xbuild` into `~/.local/bin`. Like Pi and Herdr (both `latest` in
+mise), `pi-subagents` is deliberately unpinned: the installer installs
+`npm:pi-subagents` and runs `pi update --extension npm:pi-subagents` on every
+re-run, so the extension keeps pace with Herdr API changes. To choose a model for a builtin agent, add an
+override to `~/.pi/agent/settings.json`, for example
+`{"subagents":{"agentOverrides":{"worker":{"model":"provider/model"}}}}`.
+
+The installer does not create the Herdr config links. Herdr panes start through
+the `herdr-fish` wrapper, so set up Herdr first (see *Special setup for Herdr*);
+the installer warns when `herdr-fish` is not on `PATH`.
 
 The reviewer has no shell tool. Its `review_git` capability resolves the Git
 worktree from the reviewer's current directory and exposes only bounded,
@@ -374,9 +386,11 @@ lazy fetching is disabled both globally and through the environment, inherited
 disabled, and the model cannot supply Git flags, environment, argv, or another
 repository path.
 
-The existing `npm:pi-subagents` package is not removed automatically. The
-installer warns when it is present so migration can be verified before the old
-extension is removed.
+The stack previously used `maxedapps/pi-subagents-herdr`, which is
+incompatible with Herdr 0.9.1 (`agent.start` now requires an agent `kind` and
+an existing pane). The installer removes that package and its old profiles from
+`~/.pi/agent/herdr-subagents/` automatically, and replaces any version-pinned
+`npm:pi-subagents@x.y.z` entry with the unpinned package.
 
 To enable the coordinator workflow in a repository, copy or merge the template:
 

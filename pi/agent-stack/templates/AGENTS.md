@@ -5,9 +5,10 @@
 - Break work into small, independent tasks with clear acceptance criteria.
 - Keep the running plan in `tasks/PLAN.md`; update it as tasks complete.
 - Use a `scout` subagent to investigate before assigning implementation.
-- Use a `worker` subagent for implementation, one at a time. Each worker commits
-  to its own branch and reports the branch, full 40-character commit SHA, files,
-  and checks run.
+- Use a `worker` subagent for implementation, one at a time, in a managed Git
+  worktree (a workflow step with `worktree: true`). Each worker commits to its
+  own branch and reports the branch, full 40-character commit SHA, files, and
+  checks run.
 - After each worker finishes, start a `reviewer` on that branch/commit with the
   task spec. Require it to fetch every `review_git` output page. Only integrate
   on APPROVE or APPROVE WITH NOTES.

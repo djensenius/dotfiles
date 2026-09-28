@@ -4,7 +4,6 @@
 # Re-run after pulling dotfiles changes to refresh profiles and wrappers.
 #
 # Env:
-#   WORKER_MODEL=provider/model  Override the bundled worker model.
 #   SKIP_HERDR_SKILL=1          Skip the global Herdr skill installation.
 #   PI_CODING_AGENT_DIR=path    Override Pi's agent directory.
 #   BIN_DIR=path                Override the wrapper installation directory.
@@ -13,15 +12,21 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
-PROFILE_DIR="$PI_AGENT_DIR/herdr-subagents/agents"
+AGENTS_DIR="$PI_AGENT_DIR/agents"
+LEGACY_PROFILE_DIR="$PI_AGENT_DIR/herdr-subagents/agents"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
-HERDR_SUBAGENTS_REPO="maxedapps/pi-subagents-herdr"
-HERDR_SUBAGENTS_COMMIT="3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
-HERDR_SUBAGENTS_SOURCE="git:github.com/$HERDR_SUBAGENTS_REPO@$HERDR_SUBAGENTS_COMMIT"
+# nicobailon/pi-subagents, deliberately unpinned: Pi and Herdr float at latest
+# through mise, so the extension tracks latest too and is updated on every run.
+SUBAGENTS_PACKAGE="pi-subagents"
+SUBAGENTS_SOURCE="npm:$SUBAGENTS_PACKAGE"
+# The previous stack used maxedapps/pi-subagents-herdr, which is incompatible
+# with Herdr 0.9.1 (agent.start requires kind + pane). It is removed on upgrade.
+LEGACY_SOURCE_PATTERN='^(npm:@maxedapps/pi-subagents-herdr|git:github\.com/maxedapps/pi-subagents-herdr)(@|$)'
 MIN_GIT="2.45.0"
 MIN_NODE="22.19.0"
 GIT_VERSION=""
 MISE_BIN=""
+PROFILE_TMP=""
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m OK\033[0m %s\n' "$*"; }
@@ -29,6 +34,11 @@ warn() { printf '\033[1;33m !!\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m XX\033[0m %s\n' "$*" >&2; exit 1; }
 has()  { command -v "$1" >/dev/null 2>&1; }
 is_mac() { [ "$(uname -s)" = "Darwin" ]; }
+
+# Prints one installed package source per line from `pi list` output.
+package_sources() {
+  sed -nE 's/^[[:space:]]*((npm|git):[^[:space:]]+)[[:space:]]*$/\1/p' <<<"$1"
+}
 
 mise_exec() {
   "$MISE_BIN" -C "$REPO_ROOT" exec -- "$@"
@@ -83,7 +93,8 @@ sync_file() {
 }
 
 main() {
-  local node_version pi_version herdr_version packages installed_git_source
+  local node_version pi_version herdr_version packages sources
+  local current_subagents stale_sources stale_source profile
 
   log "Checking prerequisites"
   require_git_version
@@ -111,18 +122,15 @@ main() {
     die "mise-managed herdr is unavailable after installation"
   ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version"
 
-  log "Validating pinned Pi Herdr subagents package state"
+  log "Inspecting installed Pi packages"
   if ! packages="$(mise_exec pi list)"; then
     die "failed to inspect installed Pi packages"
   fi
-  if grep -Fq "npm:@maxedapps/pi-subagents-herdr" <<<"$packages"; then
-    die "remove npm:@maxedapps/pi-subagents-herdr before installing the pinned Git source"
-  fi
-
-  installed_git_source="$(grep -E 'git:github\.com/maxedapps/pi-subagents-herdr(@|$)' <<<"$packages" | head -n1 || true)"
-  if [ -n "$installed_git_source" ] && [ "$installed_git_source" != "  $HERDR_SUBAGENTS_SOURCE" ] && [ "$installed_git_source" != "$HERDR_SUBAGENTS_SOURCE" ]; then
-    die "another Git source is configured for $HERDR_SUBAGENTS_REPO: $installed_git_source"
-  fi
+  sources="$(package_sources "$packages")"
+  current_subagents="$(grep -Fx "$SUBAGENTS_SOURCE" <<<"$sources" || true)"
+  # Version-pinned pi-subagents entries and the legacy maxedapps extension are
+  # replaced by the unpinned package.
+  stale_sources="$(grep -E "^npm:$SUBAGENTS_PACKAGE@|$LEGACY_SOURCE_PATTERN" <<<"$sources" || true)"
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
@@ -137,16 +145,21 @@ main() {
     warn "copilot CLI is not installed; skipping its Herdr integration"
   fi
 
-  log "Installing pinned Pi Herdr subagents extension"
-  if grep -Fq "$HERDR_SUBAGENTS_SOURCE" <<<"$packages"; then
-    mise_exec pi update --extension "$HERDR_SUBAGENTS_SOURCE"
-  else
-    mise_exec pi install "$HERDR_SUBAGENTS_SOURCE"
+  if [ -n "$stale_sources" ]; then
+    log "Removing superseded subagents packages"
+    while IFS= read -r stale_source; do
+      mise_exec pi remove "$stale_source"
+      ok "removed $stale_source"
+    done <<<"$stale_sources"
   fi
-  ok "pinned $HERDR_SUBAGENTS_REPO at $HERDR_SUBAGENTS_COMMIT"
 
-  if grep -Fq "npm:pi-subagents" <<<"$packages"; then
-    warn "npm:pi-subagents is still installed; verify the Herdr stack before removing it"
+  log "Installing the latest Pi subagents extension"
+  if [ -n "$current_subagents" ]; then
+    mise_exec pi update --extension "$SUBAGENTS_SOURCE"
+    ok "updated $SUBAGENTS_SOURCE"
+  else
+    mise_exec pi install "$SUBAGENTS_SOURCE"
+    ok "installed $SUBAGENTS_SOURCE"
   fi
 
   if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
@@ -155,34 +168,21 @@ main() {
   fi
 
   log "Installing Pi subagent profiles"
-  mkdir -p "$PROFILE_DIR"
+  mkdir -p "$AGENTS_DIR"
+  PROFILE_TMP="$(mktemp -d)"
+  trap 'rm -rf "$PROFILE_TMP"' EXIT
   for profile in "$DIR"/profiles/*.md; do
-    sync_file "$profile" "$PROFILE_DIR/$(basename "$profile")"
+    sed "s|@REVIEWER_GIT_EXTENSION@|$PI_AGENT_DIR/extensions/reviewer-git.ts|g" \
+      "$profile" > "$PROFILE_TMP/$(basename "$profile")"
+    sync_file "$PROFILE_TMP/$(basename "$profile")" "$AGENTS_DIR/$(basename "$profile")"
   done
-
-  if [ -n "${WORKER_MODEL:-}" ]; then
-    log "Installing worker model override: $WORKER_MODEL"
-    tmp="$(mktemp -d)"
-    trap 'rm -rf "$tmp"' EXIT
-    worker_url="https://raw.githubusercontent.com/$HERDR_SUBAGENTS_REPO/$HERDR_SUBAGENTS_COMMIT/agents/worker.md"
-    curl -fsSL "$worker_url" > "$tmp/worker-upstream.md"
-    awk -v model="$WORKER_MODEL" '
-    NR == 1 && /^---[[:space:]]*$/ { in_frontmatter = 1; print; next }
-    in_frontmatter && /^model:/ {
-      print "model: " model
-      model_written = 1
-      next
-    }
-    in_frontmatter && /^---[[:space:]]*$/ {
-      if (!model_written) print "model: " model
-      in_frontmatter = 0
-      print
-      next
-    }
-    { print }
-  ' "$tmp/worker-upstream.md" > "$tmp/worker.md"
-    sync_file "$tmp/worker.md" "$PROFILE_DIR/worker.md"
-  fi
+  for profile in reviewer.md worker.md; do
+    if [ -f "$LEGACY_PROFILE_DIR/$profile" ]; then
+      rm -f "$LEGACY_PROFILE_DIR/$profile"
+      ok "removed legacy profile $LEGACY_PROFILE_DIR/$profile"
+    fi
+  done
+  rmdir "$LEGACY_PROFILE_DIR" "$PI_AGENT_DIR/herdr-subagents" 2>/dev/null || true
 
   if is_mac; then
     log "Installing xbuild"
@@ -195,17 +195,23 @@ main() {
     has xcodebuild || warn "xcodebuild is unavailable; install Xcode before using xbuild"
   fi
 
+  # herdr/config.toml launches panes with the herdr-fish wrapper; without it
+  # Herdr cannot create a workspace. The dotfiles installers own this link.
+  if ! has herdr-fish && [ ! -x "$BIN_DIR/herdr-fish" ]; then
+    warn "herdr-fish is not on PATH; Herdr panes will fail to start (see README: Special setup for Herdr)"
+  fi
+
   cat <<EOF
 
 Agent stack installed.
 
-Pinned extension:
-  $HERDR_SUBAGENTS_SOURCE
+Subagents extension (latest):
+  $SUBAGENTS_SOURCE
 
 Enable the coordinator workflow in a repository:
   cp "$DIR/templates/AGENTS.md" ./AGENTS.md
 
-Start Pi from a Herdr pane, then smoke test with:
+Smoke test from Pi (ideally in a Herdr pane):
   Use a scout subagent to map how this project is structured.
 EOF
 }
