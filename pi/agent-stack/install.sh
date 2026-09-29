@@ -144,8 +144,10 @@ prepare_copilot_herdr_skill() {
   local skills_dir="${COPILOT_HOME:-$HOME/.copilot}/skills"
   local generated_skill
 
-  mkdir -p "$skills_dir"
-  generated_skill="$(mktemp "$skills_dir/.herdr-skill.XXXXXX")"
+  mkdir -p "$skills_dir" || return 1
+  if ! generated_skill="$(mktemp "$skills_dir/.herdr-skill.XXXXXX")"; then
+    return 1
+  fi
   if ! mise_exec herdr --skill >"$generated_skill"; then
     rm -f "$generated_skill"
     return 1
@@ -155,7 +157,10 @@ prepare_copilot_herdr_skill() {
     rm -f "$generated_skill"
     return 1
   fi
-  chmod 644 "$generated_skill"
+  if ! chmod 644 "$generated_skill"; then
+    rm -f "$generated_skill"
+    return 1
+  fi
   printf '%s\n' "$generated_skill"
 }
 
@@ -164,10 +169,10 @@ publish_copilot_herdr_skill() {
   local skill_dir="${COPILOT_HOME:-$HOME/.copilot}/skills/herdr"
 
   if [ -e "$skill_dir" ] || [ -L "$skill_dir" ]; then
-    rm -rf -- "$skill_dir"
+    rm -rf -- "$skill_dir" || return 1
   fi
-  mkdir -p "$skill_dir"
-  mv -f "$generated_skill" "$skill_dir/SKILL.md"
+  mkdir -p "$skill_dir" || return 1
+  mv -f "$generated_skill" "$skill_dir/SKILL.md" || return 1
   ok "installed Copilot Herdr skill -> $skill_dir/SKILL.md"
 }
 

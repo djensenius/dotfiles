@@ -769,6 +769,41 @@ run_herdr_skill_generation_failure() {
   assert_count 0 "exec:npx skills remove" "$root/mise.log"
 }
 
+run_copilot_skill_publish_failure() {
+  local name="copilot-skill-publish-failure"
+  local root="$tmp/$name"
+  local output="$root/publish.out"
+  local generated_skill="$root/copilot-home/skills/.herdr-skill.prepared"
+  local status
+
+  mkdir -p "$root/bin" "$root/copilot-home/skills/herdr"
+  printf 'prepared herdr skill\n' > "$generated_skill"
+  printf 'working Copilot herdr skill\n' > "$root/copilot-home/skills/herdr/SKILL.md"
+  cat > "$root/bin/mv" <<'EOF'
+#!/bin/bash
+exit 75
+EOF
+  chmod 755 "$root/bin/mv"
+
+  set +e
+  COPILOT_HOME="$root/copilot-home" PATH="$root/bin:$PATH" \
+    /bin/bash -c '
+      source "$1"
+      if publish_copilot_herdr_skill "$2"; then
+        exit 0
+      fi
+      exit 75
+    ' _ "$INSTALLER" "$generated_skill" >"$output" 2>&1
+  status=$?
+  set -e
+
+  [ "$status" -eq 75 ] ||
+    fail "$name should propagate publication failure, got $status"
+  assert_not_contains "installed Copilot Herdr skill" "$output"
+  [ -f "$generated_skill" ] ||
+    fail "$name removed the prepared skill after publication failed"
+}
+
 run_migration() {
   local name="$1" listed_source="$2"
   local root="$tmp/$name"
@@ -810,6 +845,7 @@ run_darwin_no_lockf
 run_pi_list_failure
 run_invalid_settings_json
 run_herdr_skill_generation_failure
+run_copilot_skill_publish_failure
 
 run_special_agent_dir() {
   local name="special-agent-dir"
