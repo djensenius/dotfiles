@@ -5,9 +5,7 @@
   "cwdStyle": "short",
   "left": [
     "mode",
-    "cwd",
-    "git",
-    "gitDiff"
+    "cwd"
   ],
   "right": [
     "status",
@@ -20,8 +18,6 @@
   "colors": {
     "mode": "mauve",
     "cwd": "blue",
-    "git": "green",
-    "gitDiff": "green",
     "status": "peach",
     "state": "pink",
     "model": "mauve",
