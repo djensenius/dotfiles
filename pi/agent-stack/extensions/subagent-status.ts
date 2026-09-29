@@ -31,8 +31,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function formatSubagentStatus(active: number, needsAttention: boolean): string | undefined {
-	if (active <= 0) return undefined;
+export function formatSubagentStatus(active: number, needsAttention: boolean, busy = active): string | undefined {
+	// A workflow reports itself before its first child appears.
+	if (active <= 0) return busy > 0 ? `${needsAttention ? "⚠" : "⚙"} starting` : undefined;
 	const noun = active === 1 ? "subagent" : "subagents";
 	return `${needsAttention ? "⚠" : "⚙"} ${active} ${noun}`;
 }
@@ -43,17 +44,30 @@ function attentionRunId(data: unknown): string | undefined {
 	return type === "needs_attention" && typeof runId === "string" && runId ? runId : undefined;
 }
 
-// Running subagents in a fleet DTO: entries that are not workflow wrappers,
-// plus entries beyond the bounded list (`omitted`), which cannot be classified.
-export function activeSubagentCount(fleet: unknown): number | undefined {
+export interface FleetActivity {
+	/** Running subagents to display: entries that are not workflow wrappers, plus omitted ones. */
+	subagents: number;
+	/** Everything active, including workflow wrappers; keeps polling alive until children appear. */
+	busy: number;
+}
+
+// Running subagents in a fleet DTO. Workflow runs appear as their own
+// `agent: "workflow"` entry before and alongside their children.
+export function fleetActivity(fleet: unknown): FleetActivity | undefined {
 	if (!isRecord(fleet)) return undefined;
 	const { entries, omitted, totalActive } = fleet;
+	const total = typeof totalActive === "number" && Number.isFinite(totalActive) && totalActive >= 0 ? totalActive : undefined;
 	if (Array.isArray(entries)) {
 		const children = entries.filter((entry) => !(isRecord(entry) && entry.agent === "workflow")).length;
 		const beyond = typeof omitted === "number" && Number.isFinite(omitted) && omitted > 0 ? omitted : 0;
-		return children + beyond;
+		const subagents = children + beyond;
+		return { subagents, busy: Math.max(total ?? 0, entries.length + beyond, subagents) };
 	}
-	return typeof totalActive === "number" && Number.isFinite(totalActive) && totalActive >= 0 ? totalActive : undefined;
+	return total === undefined ? undefined : { subagents: total, busy: total };
+}
+
+export function activeSubagentCount(fleet: unknown): number | undefined {
+	return fleetActivity(fleet)?.subagents;
 }
 
 function completedRunId(data: unknown): string | undefined {
@@ -69,6 +83,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 
 	let ctx: ExtensionContext | undefined;
 	let active = 0;
+	let busy = 0;
 	let shownText: string | undefined;
 	let timer: ReturnType<typeof setInterval> | undefined;
 	let refreshing = false;
@@ -81,7 +96,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 
 	const render = () => {
 		if (!live()) return;
-		const text = formatSubagentStatus(active, attention.size > 0);
+		const text = formatSubagentStatus(active, attention.size > 0, busy);
 		if (text === shownText) return;
 		shownText = text;
 		try {
@@ -93,21 +108,21 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 	};
 
 	const syncTimer = () => {
-		if (live() && active > 0 && !timer) {
+		if (live() && busy > 0 && !timer) {
 			timer = setInterval(() => void refresh(), refreshMs);
 			(timer as { unref?: () => void }).unref?.();
-		} else if ((!live() || active === 0) && timer) {
+		} else if ((!live() || busy === 0) && timer) {
 			clearInterval(timer);
 			timer = undefined;
 		}
 	};
 
 	const requestActiveCount = () =>
-		new Promise<number | undefined>((resolve) => {
+		new Promise<FleetActivity | undefined>((resolve) => {
 			const requestId = newRequestId();
 			let settled = false;
 			let unsubscribe: Unsubscribe;
-			const finish = (value: number | undefined) => {
+			const finish = (value: FleetActivity | undefined) => {
 				if (settled) return;
 				settled = true;
 				clearTimeout(timeout);
@@ -118,7 +133,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 			unsubscribe = pi.events.on(`${RPC_REPLY_EVENT_PREFIX}${requestId}`, (reply: unknown) => {
 				finish(
 					isRecord(reply) && reply.success === true && isRecord(reply.data)
-						? activeSubagentCount(reply.data.fleet)
+						? fleetActivity(reply.data.fleet)
 						: undefined,
 				);
 			});
@@ -135,11 +150,12 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 		try {
 			do {
 				refreshAgain = false;
-				const total = await requestActiveCount();
+				const activity = await requestActiveCount();
 				if (!live()) return;
-				if (total !== undefined) {
-					active = total;
-					if (active === 0) attention.clear();
+				if (activity !== undefined) {
+					active = activity.subagents;
+					busy = activity.busy;
+					if (busy === 0) attention.clear();
 				}
 				render();
 			} while (refreshAgain);
@@ -184,6 +200,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 		stop();
 		ctx = sessionCtx;
 		active = 0;
+		busy = 0;
 		shownText = undefined;
 		attention.clear();
 		await refresh();

@@ -160,6 +160,25 @@ async function main() {
 		await h.shutdown();
 	}
 
+	// A workflow starts before its children: only the wrapper is active at
+	// first, and the child appears later without its own start event.
+	{
+		const h = createHarness();
+		await h.start();
+		h.setActive(0, 1);
+		h.events.emit("subagent:async-started", { id: "wf" });
+		await sleep(5);
+		assert(h.last() === "⚙ starting", `a workflow with no children yet should show starting, got ${h.last()}`);
+		h.setActive(1, 1);
+		await sleep(60);
+		assert(h.last() === "⚙ 1 subagent", `polling must pick up the child that appears later, got ${h.last()}`);
+		h.setActive(0, 0);
+		h.events.emit("subagent:async-complete", { runId: "wf" });
+		await sleep(5);
+		assert(h.last() === undefined, `status should clear when the workflow ends, got ${h.last()}`);
+		await h.shutdown();
+	}
+
 	// Shutdown clears the status and later events never touch the old session.
 	{
 		const h = createHarness();
