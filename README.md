@@ -474,6 +474,9 @@ show. Run `/mcp-adapter status` to check servers. The shared footer config
 (`pi/agent-stack/catppuccin-footer.json`) also hides the `browser` and `memctx`
 status items and drops the `git`, `gitDiff`, `lastTokens`, `cost` and `time`
 sections; Herdr's sidebar already shows each workspace's branch.
+Herdr's agent sidebar includes `state_text`, so while background subagents run
+the Pi pane shows the label pi-subagents publishes (workflow label, agent name
+or active count, with `⚠` when a subagent needs attention).
 
 Playwright needs its own Firefox build. Because the server runs as
 `@latest`, a Playwright update can require a newer build, so re-run
