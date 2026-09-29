@@ -27,6 +27,7 @@ FOOTER_FILE="$DIR/catppuccin-footer.json"
 # through mise, so the extension tracks latest too and is updated on every run.
 SUBAGENTS_PACKAGE="pi-subagents"
 SUBAGENTS_SOURCE="npm:$SUBAGENTS_PACKAGE"
+PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
 # The previous stack used maxedapps/pi-subagents-herdr, which is incompatible
 # with Herdr 0.9.1 (agent.start requires kind + pane). It is removed on upgrade.
 LEGACY_SOURCE_PATTERN='^(npm:@maxedapps/pi-subagents-herdr|git:github\.com/maxedapps/pi-subagents-herdr)(@|$)'
@@ -140,8 +141,9 @@ merge_json_file() {
 }
 
 main() {
-  local node_version pi_version herdr_version packages sources
+  local node_version pi_version herdr_version packages sources managed_sources
   local current_subagents stale_sources stale_source profile package_source extension
+  local manages_pi_herdr=false
 
   log "Checking prerequisites"
   require_git_version
@@ -170,6 +172,11 @@ main() {
   ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version"
 
   [ -r "$PACKAGES_FILE" ] || die "missing package list: $PACKAGES_FILE"
+  managed_sources="$(managed_package_sources)"
+  if has_package_source "$PI_HERDR_SOURCE" "$managed_sources"; then
+    manages_pi_herdr=true
+  fi
+
   log "Inspecting installed Pi packages"
   if ! packages="$(mise_exec pi list)"; then
     die "failed to inspect installed Pi packages"
@@ -194,7 +201,7 @@ main() {
       mise_exec pi install "$package_source"
       ok "installed $package_source"
     fi
-  done < <(managed_package_sources)
+  done <<<"$managed_sources"
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
@@ -203,7 +210,16 @@ main() {
   done
 
   log "Installing Herdr agent integrations"
-  mise_exec herdr integration install pi
+  if $manages_pi_herdr; then
+    if [ -f "$PI_AGENT_DIR/extensions/herdr-agent-state.ts" ]; then
+      rm -f "$PI_AGENT_DIR/extensions/herdr-agent-state.ts"
+      ok "removed standalone Herdr Pi lifecycle integration"
+    else
+      ok "standalone Herdr Pi lifecycle integration is absent"
+    fi
+  else
+    mise_exec herdr integration install pi
+  fi
   if has copilot; then
     mkdir -p "${COPILOT_HOME:-$HOME/.copilot}"
     mise_exec herdr integration install copilot
@@ -229,8 +245,17 @@ main() {
   fi
 
   if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
-    log "Installing the official Herdr skill"
-    mise_exec npx -y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y
+    if $manages_pi_herdr; then
+      log "Removing superseded standalone Herdr skill"
+      if mise_exec npx -y skills remove herdr -g -y; then
+        ok "removed standalone Herdr skill; @narumitw/pi-herdr provides Pi's Herdr skill"
+      else
+        warn "failed to remove standalone Herdr skill; remove ~/.agents/skills/herdr manually to avoid skill-name collisions"
+      fi
+    else
+      log "Installing the official Herdr skill"
+      mise_exec npx -y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y
+    fi
   fi
 
   log "Installing Pi subagent profiles"

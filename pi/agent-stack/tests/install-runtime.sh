@@ -13,6 +13,7 @@ MANAGED_PACKAGE_SOURCES=(
   "npm:pi-browser-harness"
   "npm:pi-memctx"
   "npm:pi-mcp-adapter"
+  "npm:@narumitw/pi-herdr"
 )
 PREINSTALLED_MANAGED_PACKAGE="npm:pi-web-access"
 UNMANAGED_PACKAGE_SOURCE="npm:some-local-tool"
@@ -157,9 +158,17 @@ case "$action" in
           printf 'exec:npx --version\n' >> "$RUNTIME_TEST_LOG"
           printf '10.0.0\n'
         else
-          [ "$*" = "-y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y" ] ||
-            fail "unexpected npx arguments: $*"
-          printf 'exec:npx skills\n' >> "$RUNTIME_TEST_LOG"
+          case "$*" in
+            "-y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y")
+              printf 'exec:npx skills add\n' >> "$RUNTIME_TEST_LOG"
+              ;;
+            "-y skills remove herdr -g -y")
+              printf 'exec:npx skills remove\n' >> "$RUNTIME_TEST_LOG"
+              ;;
+            *)
+              fail "unexpected npx arguments: $*"
+              ;;
+          esac
         fi
         ;;
       pi)
@@ -410,7 +419,8 @@ assert_no_agent_stack_mutations() {
   if grep -q '^exec:pi remove:' "$root/mise.log"; then
     fail "$name removed Pi packages before validating package state"
   fi
-  assert_count 0 "exec:npx skills" "$root/mise.log"
+  assert_count 0 "exec:npx skills add" "$root/mise.log"
+  assert_count 0 "exec:npx skills remove" "$root/mise.log"
   assert_count 0 "exec:herdr integration pi" "$root/mise.log"
   assert_count 0 "exec:herdr integration copilot" "$root/mise.log"
   [ ! -e "$root/pi-agent/settings.json" ] ||
@@ -485,6 +495,7 @@ run_success_scenario() {
 
   setup_fixture "$root" "$system_runtimes" "$with_lockf"
   mkdir -p "$root/pi-agent/extensions/subagent"
+  printf 'standalone herdr integration\n' > "$root/pi-agent/extensions/herdr-agent-state.ts"
   cat > "$root/pi-agent/settings.json" <<'JSON'
 {
   "lastChangelogVersion": "0.1.0",
@@ -538,7 +549,8 @@ JSON
   assert_count 2 "exec:node -p" "$log"
   assert_count 2 "exec:node -e" "$log"
   assert_count 2 "exec:npx --version" "$log"
-  assert_count 2 "exec:npx skills" "$log"
+  assert_count 0 "exec:npx skills add" "$log"
+  assert_count 2 "exec:npx skills remove" "$log"
   assert_count 2 "exec:pi --version" "$log"
   assert_count 2 "exec:pi list" "$log"
   assert_count 1 "exec:pi install:$SUBAGENTS_SOURCE" "$log"
@@ -558,7 +570,7 @@ JSON
     fail "$name removed a Pi package without a superseded source"
   fi
   assert_count 2 "exec:herdr --version" "$log"
-  assert_count 2 "exec:herdr integration pi" "$log"
+  assert_count 0 "exec:herdr integration pi" "$log"
   assert_count 2 "exec:herdr integration copilot" "$log"
 
   assert_no_runtime_markers "$name" "$root"
@@ -571,6 +583,8 @@ JSON
     "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
     "$root/pi-agent/extensions/subagent-status.ts" ||
     fail "$name did not install the subagent status extension"
+  [ ! -e "$root/pi-agent/extensions/herdr-agent-state.ts" ] ||
+    fail "$name did not remove the standalone Herdr Pi lifecycle integration"
   assert_reviewer_profile "$name" "$root/pi-agent"
   assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
