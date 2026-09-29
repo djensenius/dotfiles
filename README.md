@@ -420,10 +420,10 @@ The installer requires system Git 2.45.0 or newer for `--no-lazy-fetch`
 enforcement and checks it before making integration or extension changes.
 Upgrade Git with Homebrew (`brew install git`) on macOS or the operating
 system's package manager; Git is intentionally not managed by mise. The
-installer uses the mise-managed Node, Pi, and Herdr binaries, installs their
-Herdr integrations (including Copilot when available), installs the official
-Herdr skill, copies the repository-owned `review_git` extension into Pi's
-agent directory, copies the shared Catppuccin footer config, copies the
+installer uses the mise-managed Node, Pi, and Herdr binaries, installs the
+Copilot Herdr integration when Copilot is available, copies the repository-owned
+`review_git` extension into Pi's agent directory, copies the shared Catppuccin
+footer config, copies the
 `reviewer` and `council-gpt`/`council-claude`/`council-gemini` profiles into
 `~/.pi/agent/agents/` (the reviewer loads `../extensions/reviewer-git.ts`
 relative to itself), and installs `xbuild` into `~/.local/bin`.
@@ -449,8 +449,17 @@ unpinned: the installer installs `npm:pi-subagents` and runs
 keeps pace with Herdr API changes. Other shared Pi packages are also unpinned
 and installed only when absent from the `User packages:` section of `pi list`:
 `npm:pi-catppuccin-footer`, `npm:@plannotator/pi-extension`,
-`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`, and
-`npm:pi-mcp-adapter`.
+`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`,
+`npm:pi-mcp-adapter`, and `npm:@narumitw/pi-herdr`. The `pi-herdr` package
+replaces Herdr's standalone Pi lifecycle integration and Pi's use of the
+standalone global Herdr skill, so the installer removes
+`~/.pi/agent/extensions/herdr-agent-state.ts`, any legacy
+`~/.pi/agent/skills/herdr` link, and the canonical `~/.agents/skills/herdr`
+skill. When Copilot CLI is installed, the installer first prepares valid,
+version-matched Herdr guidance and then publishes it under
+`${COPILOT_HOME:-~/.copilot}/skills/herdr` so Copilot keeps its skill without
+making the duplicate visible to Pi. Copilot's Herdr lifecycle integration also
+remains in place.
 
 The `pi-subagents` extension config lives at
 `~/.pi/agent/extensions/subagent/config.json`. The shared config keeps
@@ -539,13 +548,15 @@ silently:
 
 | Requirement | Needed by |
 | --- | --- |
-| `cargo` (Rust toolchain) | `herdr-floax`, `herdr-navigator` — built from source |
-| `python3` (3.10+) | `termscope` |
+| `cargo` (Rust toolchain) | `herdr-floax`, `herdr-navigator`, `herdr-plugin-renamer` — built from source |
+| `node` 20+ and `npm` | `agent-slack-notify`, `heeler` |
+| `python3` (3.11+) | `termscope`, `kuwa72.focus-attention` |
 | `jq` | `vim-herdr-navigation`, `herdr-floax`, `jt.command-palette` |
 | `fzf` | `jt.command-palette` |
 | `fd` | `termscope` file picker |
 | [Television](https://github.com/alexpasmantier/television) 0.15+ | `termscope` — its build step installs this **via Homebrew**, so `brew` must be on `PATH` or the plugin install fails |
 | Clipboard command (`pbcopy` on macOS, `wl-copy` on Wayland, `xclip`/`xsel` on X11) | `herdr-pluck` |
+| OpenSSH server with host keys | `heeler` pairing (`Remote Login` on macOS; run `sudo ssh-keygen -A` if host keys are missing) |
 
 `install.sh` does **not** install Herdr itself. Once `herdr` is on `PATH`, re-running
 `./install.sh` installs or refreshes every plugin (`install` doubles as the update
@@ -560,6 +571,10 @@ herdr plugin install rmarganti/herdr-pluck --yes
 herdr plugin install Tyru5/herdr-floax --yes
 herdr plugin install thanhdat77/herdr-navigator --yes
 herdr plugin install iurysza/termscope --yes
+herdr plugin install wyattjoh/herdr-plugin-renamer --yes
+herdr plugin install kuwa72/herdr-focus-attention --yes
+herdr plugin install juninaba/herdr-slack-notify --yes
+herdr plugin install ZingerLittleBee/Heeler/plugin --yes
 ```
 
 ### [k9s](https://k9scli.io) ([repo](https://github.com/derailed/k9s))

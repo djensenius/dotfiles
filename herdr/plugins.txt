@@ -5,3 +5,7 @@ rmarganti/herdr-pluck
 Tyru5/herdr-floax
 thanhdat77/herdr-navigator
 iurysza/termscope
+wyattjoh/herdr-plugin-renamer
+kuwa72/herdr-focus-attention
+juninaba/herdr-slack-notify
+ZingerLittleBee/Heeler/plugin

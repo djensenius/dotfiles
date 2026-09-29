@@ -758,6 +758,10 @@ herdr_plugin_id() {
         Tyru5/herdr-floax) printf 'herdr-floax\n' ;;
         thanhdat77/herdr-navigator) printf 'herdr-navigator\n' ;;
         iurysza/termscope) printf 'termscope\n' ;;
+        wyattjoh/herdr-plugin-renamer) printf 'herdr-plugin-renamer\n' ;;
+        kuwa72/herdr-focus-attention) printf 'kuwa72.focus-attention\n' ;;
+        juninaba/herdr-slack-notify) printf 'agent-slack-notify\n' ;;
+        ZingerLittleBee/Heeler/plugin) printf 'heeler\n' ;;
         *) printf '%s\n' "${1##*/}" ;;
     esac
 }
