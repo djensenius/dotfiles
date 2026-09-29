@@ -774,19 +774,27 @@ run_copilot_skill_publish_failure() {
   local root="$tmp/$name"
   local output="$root/publish.out"
   local generated_skill="$root/copilot-home/skills/.herdr-skill.prepared"
-  local status
+  local real_mv status
 
   mkdir -p "$root/bin" "$root/copilot-home/skills/herdr"
   printf 'prepared herdr skill\n' > "$generated_skill"
   printf 'working Copilot herdr skill\n' > "$root/copilot-home/skills/herdr/SKILL.md"
+  real_mv="$(command -v mv)"
   cat > "$root/bin/mv" <<'EOF'
 #!/bin/bash
-exit 75
+set -euo pipefail
+if [[ "${1:-}" == *"/.herdr-publish."* && "${2:-}" = "$PUBLISH_TARGET" ]]; then
+  exit 75
+fi
+exec "$REAL_MV" "$@"
 EOF
   chmod 755 "$root/bin/mv"
 
   set +e
-  COPILOT_HOME="$root/copilot-home" PATH="$root/bin:$PATH" \
+  COPILOT_HOME="$root/copilot-home" \
+    PUBLISH_TARGET="$root/copilot-home/skills/herdr" \
+    REAL_MV="$real_mv" \
+    PATH="$root/bin:$PATH" \
     /bin/bash -c '
       source "$1"
       if publish_copilot_herdr_skill "$2"; then
@@ -800,8 +808,12 @@ EOF
   [ "$status" -eq 75 ] ||
     fail "$name should propagate publication failure, got $status"
   assert_not_contains "installed Copilot Herdr skill" "$output"
-  [ -f "$generated_skill" ] ||
-    fail "$name removed the prepared skill after publication failed"
+  assert_contains "working Copilot herdr skill" "$root/copilot-home/skills/herdr/SKILL.md"
+  if find "$root/copilot-home/skills" -maxdepth 1 \
+    \( -name '.herdr-publish.*' -o -name '.herdr-backup.*' \) -print -quit |
+    grep -q .; then
+    fail "$name left a staging or backup directory behind"
+  fi
 }
 
 run_migration() {

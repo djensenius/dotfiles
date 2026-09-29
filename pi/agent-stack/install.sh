@@ -166,13 +166,46 @@ prepare_copilot_herdr_skill() {
 
 publish_copilot_herdr_skill() {
   local generated_skill="$1"
-  local skill_dir="${COPILOT_HOME:-$HOME/.copilot}/skills/herdr"
+  local skills_dir="${COPILOT_HOME:-$HOME/.copilot}/skills"
+  local skill_dir="$skills_dir/herdr"
+  local staged_dir backup_dir=""
+
+  mkdir -p "$skills_dir" || return 1
+  if ! staged_dir="$(mktemp -d "$skills_dir/.herdr-publish.XXXXXX")"; then
+    return 1
+  fi
+  if ! mv "$generated_skill" "$staged_dir/SKILL.md"; then
+    rmdir "$staged_dir" || warn "failed to clean unused Herdr skill staging directory $staged_dir"
+    return 1
+  fi
 
   if [ -e "$skill_dir" ] || [ -L "$skill_dir" ]; then
-    rm -rf -- "$skill_dir" || return 1
+    if ! backup_dir="$(mktemp -d "$skills_dir/.herdr-backup.XXXXXX")"; then
+      rm -rf -- "$staged_dir" || warn "failed to clean Herdr skill staging directory $staged_dir"
+      return 1
+    fi
+    if ! rmdir "$backup_dir"; then
+      rm -rf -- "$staged_dir" || warn "failed to clean Herdr skill staging directory $staged_dir"
+      rm -rf -- "$backup_dir" || warn "failed to clean unused Herdr skill backup directory $backup_dir"
+      return 1
+    fi
+    if ! mv "$skill_dir" "$backup_dir"; then
+      rm -rf -- "$staged_dir" || warn "failed to clean Herdr skill staging directory $staged_dir"
+      return 1
+    fi
   fi
-  mkdir -p "$skill_dir" || return 1
-  mv -f "$generated_skill" "$skill_dir/SKILL.md" || return 1
+
+  if ! mv "$staged_dir" "$skill_dir"; then
+    if [ -n "$backup_dir" ] && ! mv "$backup_dir" "$skill_dir"; then
+      warn "failed to restore the previous Copilot Herdr skill; it remains at $backup_dir"
+    fi
+    rm -rf -- "$staged_dir" || warn "failed to clean Herdr skill staging directory $staged_dir"
+    return 1
+  fi
+
+  if [ -n "$backup_dir" ] && ! rm -rf -- "$backup_dir"; then
+    warn "installed the Copilot Herdr skill but could not remove backup $backup_dir"
+  fi
   ok "installed Copilot Herdr skill -> $skill_dir/SKILL.md"
 }
 
