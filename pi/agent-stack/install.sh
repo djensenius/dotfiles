@@ -4,7 +4,7 @@
 # Re-run after pulling dotfiles changes to refresh profiles and wrappers.
 #
 # Env:
-#   SKIP_HERDR_SKILL=1          Skip the global Herdr skill installation.
+#   SKIP_HERDR_SKILL=1          Skip Herdr skill installation and migration.
 #   PI_CODING_AGENT_DIR=path    Override Pi's agent directory.
 #   BIN_DIR=path                Override the wrapper installation directory.
 set -euo pipefail
@@ -140,6 +140,23 @@ merge_json_file() {
   ok "$label $result"
 }
 
+install_copilot_herdr_skill() {
+  local skill_dir="${COPILOT_HOME:-$HOME/.copilot}/skills/herdr"
+  local generated_skill
+
+  generated_skill="$(mktemp "${TMPDIR:-/tmp}/herdr-skill.XXXXXX")"
+  if ! mise_exec herdr --skill >"$generated_skill"; then
+    rm -f "$generated_skill"
+    die "failed to generate the Copilot Herdr skill"
+  fi
+  mkdir -p "$skill_dir"
+  if ! sync_file "$generated_skill" "$skill_dir/SKILL.md"; then
+    rm -f "$generated_skill"
+    die "failed to install the Copilot Herdr skill"
+  fi
+  rm -f "$generated_skill"
+}
+
 main() {
   local node_version pi_version herdr_version packages sources managed_sources
   local current_subagents stale_sources stale_source profile package_source extension
@@ -247,10 +264,12 @@ main() {
   if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
     if $manages_pi_herdr; then
       log "Removing superseded standalone Herdr skill"
-      if mise_exec npx -y skills remove herdr --agent pi -g -y; then
-        ok "removed standalone Herdr skill from Pi; @narumitw/pi-herdr provides Pi's Herdr skill"
-      else
-        warn "failed to remove standalone Herdr skill; remove ~/.agents/skills/herdr manually to avoid skill-name collisions"
+      if ! mise_exec npx -y skills remove herdr -g -y; then
+        die "failed to remove the standalone global Herdr skill"
+      fi
+      ok "removed standalone global Herdr skill; @narumitw/pi-herdr provides Pi's Herdr skill"
+      if has copilot; then
+        install_copilot_herdr_skill
       fi
     else
       log "Installing the official Herdr skill"

@@ -49,6 +49,12 @@ assert_not_contains() {
   fi
 }
 
+assert_not_exists() {
+  local path="$1"
+  [ ! -e "$path" ] && [ ! -L "$path" ] ||
+    fail "expected path to be absent: $path"
+}
+
 sanitize_source() {
   printf '%s' "$1" | sed 's/[^A-Za-z0-9_.-]/_/g'
 }
@@ -73,7 +79,7 @@ assert_json() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in awk basename cat chmod cmp dirname grep head install mkdir rm rmdir sed; do
+  for utility in awk basename cat chmod cmp dirname grep head install mkdir mktemp rm rmdir sed; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -162,7 +168,11 @@ case "$action" in
             "-y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y")
               printf 'exec:npx skills add\n' >> "$RUNTIME_TEST_LOG"
               ;;
-            "-y skills remove herdr --agent pi -g -y")
+            "-y skills remove herdr -g -y")
+              rm -rf \
+                "$HOME/.agents/skills/herdr" \
+                "$PI_CODING_AGENT_DIR/skills/herdr" \
+                "$COPILOT_HOME/skills/herdr"
               printf 'exec:npx skills remove\n' >> "$RUNTIME_TEST_LOG"
               ;;
             *)
@@ -250,6 +260,14 @@ case "$action" in
         if [ "$#" -eq 1 ] && [ "$1" = "--version" ]; then
           printf 'exec:herdr --version\n' >> "$RUNTIME_TEST_LOG"
           printf 'herdr 0.9.1\n'
+        elif [ "$#" -eq 1 ] && [ "$1" = "--skill" ]; then
+          printf 'exec:herdr --skill\n' >> "$RUNTIME_TEST_LOG"
+          cat <<'SKILL'
+---
+name: herdr
+description: Generated Herdr skill
+---
+SKILL
         elif [ "$#" -eq 3 ] && [ "$1" = "integration" ] &&
           [ "$2" = "install" ] &&
           { [ "$3" = "pi" ] || [ "$3" = "copilot" ]; }; then
@@ -423,6 +441,7 @@ assert_no_agent_stack_mutations() {
   assert_count 0 "exec:npx skills remove" "$root/mise.log"
   assert_count 0 "exec:herdr integration pi" "$root/mise.log"
   assert_count 0 "exec:herdr integration copilot" "$root/mise.log"
+  assert_count 0 "exec:herdr --skill" "$root/mise.log"
   [ ! -e "$root/pi-agent/settings.json" ] ||
     fail "$name installed shared settings before validating package state"
   [ ! -e "$root/pi-agent/mcp-adapter.json" ] ||
@@ -494,7 +513,14 @@ run_success_scenario() {
   local package_source
 
   setup_fixture "$root" "$system_runtimes" "$with_lockf"
-  mkdir -p "$root/pi-agent/extensions/subagent"
+  mkdir -p \
+    "$root/home/.agents/skills/herdr" \
+    "$root/pi-agent/extensions/subagent" \
+    "$root/pi-agent/skills" \
+    "$root/copilot-home/skills"
+  printf 'standalone herdr skill\n' > "$root/home/.agents/skills/herdr/SKILL.md"
+  ln -s "$root/home/.agents/skills/herdr" "$root/pi-agent/skills/herdr"
+  ln -s "$root/home/.agents/skills/herdr" "$root/copilot-home/skills/herdr"
   printf 'standalone herdr integration\n' > "$root/pi-agent/extensions/herdr-agent-state.ts"
   cat > "$root/pi-agent/settings.json" <<'JSON'
 {
@@ -570,6 +596,7 @@ JSON
     fail "$name removed a Pi package without a superseded source"
   fi
   assert_count 2 "exec:herdr --version" "$log"
+  assert_count 2 "exec:herdr --skill" "$log"
   assert_count 0 "exec:herdr integration pi" "$log"
   assert_count 2 "exec:herdr integration copilot" "$log"
 
@@ -585,6 +612,9 @@ JSON
     fail "$name did not install the subagent status extension"
   [ ! -e "$root/pi-agent/extensions/herdr-agent-state.ts" ] ||
     fail "$name did not remove the standalone Herdr Pi lifecycle integration"
+  assert_not_exists "$root/home/.agents/skills/herdr"
+  assert_not_exists "$root/pi-agent/skills/herdr"
+  assert_contains "description: Generated Herdr skill" "$root/copilot-home/skills/herdr/SKILL.md"
   assert_reviewer_profile "$name" "$root/pi-agent"
   assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
