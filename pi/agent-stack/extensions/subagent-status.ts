@@ -31,11 +31,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function formatSubagentStatus(active: number, needsAttention: boolean, busy = active): string | undefined {
+export function formatSubagentStatus(
+	active: number,
+	needsAttention: boolean,
+	busy = active,
+	atLeast = false,
+): string | undefined {
+	const icon = needsAttention ? "⚠" : "⚙";
 	// A workflow reports itself before its first child appears.
-	if (active <= 0) return busy > 0 ? `${needsAttention ? "⚠" : "⚙"} starting` : undefined;
-	const noun = active === 1 ? "subagent" : "subagents";
-	return `${needsAttention ? "⚠" : "⚙"} ${active} ${noun}`;
+	if (active <= 0) return busy > 0 ? `${icon} starting` : undefined;
+	const noun = active === 1 && !atLeast ? "subagent" : "subagents";
+	return `${icon} ${active}${atLeast ? "+" : ""} ${noun}`;
 }
 
 function attentionRunId(data: unknown): string | undefined {
@@ -49,6 +55,8 @@ export interface FleetActivity {
 	subagents: number;
 	/** Everything active, including workflow wrappers; keeps polling alive until children appear. */
 	busy: number;
+	/** True when the fleet list was truncated: unclassified entries may be wrappers, so `subagents` is a lower bound. */
+	atLeast: boolean;
 }
 
 // Running subagents in a fleet DTO. Workflow runs appear as their own
@@ -58,12 +66,13 @@ export function fleetActivity(fleet: unknown): FleetActivity | undefined {
 	const { entries, omitted, totalActive } = fleet;
 	const total = typeof totalActive === "number" && Number.isFinite(totalActive) && totalActive >= 0 ? totalActive : undefined;
 	if (Array.isArray(entries)) {
-		const children = entries.filter((entry) => !(isRecord(entry) && entry.agent === "workflow")).length;
+		const subagents = entries.filter((entry) => !(isRecord(entry) && entry.agent === "workflow")).length;
+		// Omitted entries are unclassified (subagents or workflow wrappers), so
+		// count only visible subagents and mark the result as a lower bound.
 		const beyond = typeof omitted === "number" && Number.isFinite(omitted) && omitted > 0 ? omitted : 0;
-		const subagents = children + beyond;
-		return { subagents, busy: Math.max(total ?? 0, entries.length + beyond, subagents) };
+		return { subagents, busy: Math.max(total ?? 0, entries.length + beyond, subagents), atLeast: beyond > 0 };
 	}
-	return total === undefined ? undefined : { subagents: total, busy: total };
+	return total === undefined ? undefined : { subagents: total, busy: total, atLeast: false };
 }
 
 export function activeSubagentCount(fleet: unknown): number | undefined {
@@ -84,6 +93,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 	let ctx: ExtensionContext | undefined;
 	let active = 0;
 	let busy = 0;
+	let atLeast = false;
 	let shownText: string | undefined;
 	let timer: ReturnType<typeof setInterval> | undefined;
 	let refreshing = false;
@@ -96,7 +106,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 
 	const render = () => {
 		if (!live()) return;
-		const text = formatSubagentStatus(active, attention.size > 0, busy);
+		const text = formatSubagentStatus(active, attention.size > 0, busy, atLeast);
 		if (text === shownText) return;
 		shownText = text;
 		try {
@@ -155,6 +165,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 				if (activity !== undefined) {
 					active = activity.subagents;
 					busy = activity.busy;
+					atLeast = activity.atLeast;
 					if (busy === 0) attention.clear();
 				}
 				render();
@@ -201,6 +212,7 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 		ctx = sessionCtx;
 		active = 0;
 		busy = 0;
+		atLeast = false;
 		shownText = undefined;
 		attention.clear();
 		await refresh();

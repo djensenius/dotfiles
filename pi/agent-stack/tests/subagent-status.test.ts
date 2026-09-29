@@ -1,6 +1,6 @@
 // Unit test for extensions/subagent-status.ts using a fake Pi event bus.
 // Run: node pi/agent-stack/tests/subagent-status.test.ts
-import subagentStatus, { activeSubagentCount, formatSubagentStatus, STATUS_KEY } from "../extensions/subagent-status.ts";
+import subagentStatus, { activeSubagentCount, fleetActivity, formatSubagentStatus, STATUS_KEY } from "../extensions/subagent-status.ts";
 
 type Handler = (data: unknown) => void;
 
@@ -108,10 +108,20 @@ async function main() {
 		activeSubagentCount({ entries: [{ agent: "workflow" }, ...Array(5).fill({ agent: "worker" })], totalActive: 6, omitted: 0 }) === 5,
 		"a workflow with five children shows five",
 	);
-	assert(
-		activeSubagentCount({ entries: Array(16).fill({ agent: "worker" }), totalActive: 20, omitted: 4 }) === 20,
-		"entries beyond the bounded list still count",
-	);
+	// Truncated list: omitted entries may be workflow wrappers, so the visible
+	// subagent count is a lower bound shown as "N+".
+	{
+		const activity = fleetActivity({ entries: Array(16).fill({ agent: "worker" }), totalActive: 20, omitted: 4 });
+		assert(activity?.subagents === 16 && activity.atLeast === true, "truncated fleet is a lower bound of visible subagents");
+		assert(formatSubagentStatus(activity.subagents, false, activity.busy, activity.atLeast) === "⚙ 16+ subagents", "lower bound renders as N+");
+		const withWrapper = fleetActivity({
+			entries: [{ agent: "workflow" }, ...Array(15).fill({ agent: "worker" })],
+			totalActive: 18,
+			omitted: 2, // could include another workflow wrapper
+		});
+		assert(withWrapper?.subagents === 15 && withWrapper.atLeast, "an omitted wrapper is never counted as a subagent");
+		assert(formatSubagentStatus(1, false, 1, true) === "⚙ 1+ subagents", "lower bound uses plural");
+	}
 	assert(activeSubagentCount({ totalActive: 3 }) === 3, "falls back to totalActive without entries");
 	assert(activeSubagentCount(undefined) === undefined, "missing fleet is unknown");
 
