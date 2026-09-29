@@ -2,9 +2,11 @@
 // coordinator that reports "idle" is visibly waiting on background work.
 //
 // Uses only pi-subagents' public in-process surface (docs/extension-api.md):
-// lifecycle events plus the event-bus RPC `status` method, whose
-// `data.fleet.totalActive` counts every running child, including workflow
-// children that start and stop without top-level events.
+// lifecycle events plus the event-bus RPC `status` method. Its `data.fleet`
+// lists every running child, including workflow children that start and stop
+// without top-level events. Workflow runs also appear as their own
+// `agent: "workflow"` entry; those are wrappers, not subagents, so they are
+// not counted.
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
@@ -39,6 +41,19 @@ function attentionRunId(data: unknown): string | undefined {
 	if (!isRecord(data) || data.source !== "async" || !isRecord(data.event)) return undefined;
 	const { type, runId } = data.event;
 	return type === "needs_attention" && typeof runId === "string" && runId ? runId : undefined;
+}
+
+// Running subagents in a fleet DTO: entries that are not workflow wrappers,
+// plus entries beyond the bounded list (`omitted`), which cannot be classified.
+export function activeSubagentCount(fleet: unknown): number | undefined {
+	if (!isRecord(fleet)) return undefined;
+	const { entries, omitted, totalActive } = fleet;
+	if (Array.isArray(entries)) {
+		const children = entries.filter((entry) => !(isRecord(entry) && entry.agent === "workflow")).length;
+		const beyond = typeof omitted === "number" && Number.isFinite(omitted) && omitted > 0 ? omitted : 0;
+		return children + beyond;
+	}
+	return typeof totalActive === "number" && Number.isFinite(totalActive) && totalActive >= 0 ? totalActive : undefined;
 }
 
 function completedRunId(data: unknown): string | undefined {
@@ -101,11 +116,11 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 			};
 			const timeout = setTimeout(() => finish(undefined), rpcTimeoutMs);
 			unsubscribe = pi.events.on(`${RPC_REPLY_EVENT_PREFIX}${requestId}`, (reply: unknown) => {
-				const total =
-					isRecord(reply) && reply.success === true && isRecord(reply.data) && isRecord(reply.data.fleet)
-						? reply.data.fleet.totalActive
-						: undefined;
-				finish(typeof total === "number" && Number.isFinite(total) && total >= 0 ? total : undefined);
+				finish(
+					isRecord(reply) && reply.success === true && isRecord(reply.data)
+						? activeSubagentCount(reply.data.fleet)
+						: undefined,
+				);
 			});
 			pi.events.emit(RPC_REQUEST_EVENT, { version: 1, requestId, method: "status", params: {} });
 		});

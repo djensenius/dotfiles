@@ -1,6 +1,6 @@
 // Unit test for extensions/subagent-status.ts using a fake Pi event bus.
 // Run: node pi/agent-stack/tests/subagent-status.test.ts
-import subagentStatus, { formatSubagentStatus, STATUS_KEY } from "../extensions/subagent-status.ts";
+import subagentStatus, { activeSubagentCount, formatSubagentStatus, STATUS_KEY } from "../extensions/subagent-status.ts";
 
 type Handler = (data: unknown) => void;
 
@@ -14,7 +14,8 @@ function createHarness(opts: { respond?: boolean } = {}) {
 	const bus = new Map<string, Set<Handler>>();
 	const lifecycle = new Map<string, (event: unknown, ctx: unknown) => Promise<void> | void>();
 	const statuses: Array<string | undefined> = [];
-	let totalActive = 0;
+	let children = 0;
+	let workflows = 0;
 	let requests = 0;
 
 	const events = {
@@ -38,7 +39,17 @@ function createHarness(opts: { respond?: boolean } = {}) {
 				version: 1,
 				requestId,
 				success: true,
-				data: { fleet: { version: 1, entries: [], totalActive, omitted: 0 } },
+				data: {
+					fleet: {
+						version: 1,
+						entries: [
+							...Array.from({ length: workflows }, (_, i) => ({ key: `wf-${i}`, agent: "workflow" })),
+							...Array.from({ length: children }, (_, i) => ({ key: `c-${i}`, agent: "scout" })),
+						],
+						totalActive: workflows + children,
+						omitted: 0,
+					},
+				},
 			}),
 		);
 	});
@@ -70,8 +81,9 @@ function createHarness(opts: { respond?: boolean } = {}) {
 		get requests() {
 			return requests;
 		},
-		setActive(n: number) {
-			totalActive = n;
+		setActive(n: number, workflowRuns = 0) {
+			children = n;
+			workflows = workflowRuns;
 		},
 		start: (hasUI = true, onSet?: () => void) => lifecycle.get("session_start")!({}, ctx(hasUI, onSet)),
 		shutdown: () => lifecycle.get("session_shutdown")!({}, undefined),
@@ -86,6 +98,22 @@ async function main() {
 	assert(formatSubagentStatus(3, false) === "⚙ 3 subagents", "plural label");
 	assert(formatSubagentStatus(2, true) === "⚠ 2 subagents", "attention label");
 
+	// Fleet counting: workflow wrappers are not subagents; omitted entries count.
+	assert(
+		activeSubagentCount({ entries: [{ agent: "workflow" }, { agent: "scout" }], totalActive: 2, omitted: 0 }) === 1,
+		"a one-step workflow is one subagent, not two",
+	);
+	assert(
+		activeSubagentCount({ entries: [{ agent: "workflow" }, ...Array(5).fill({ agent: "worker" })], totalActive: 6, omitted: 0 }) === 5,
+		"a workflow with five children shows five",
+	);
+	assert(
+		activeSubagentCount({ entries: Array(16).fill({ agent: "worker" }), totalActive: 20, omitted: 4 }) === 20,
+		"entries beyond the bounded list still count",
+	);
+	assert(activeSubagentCount({ totalActive: 3 }) === 3, "falls back to totalActive without entries");
+	assert(activeSubagentCount(undefined) === undefined, "missing fleet is unknown");
+
 	// Restores the count at session start and follows lifecycle events.
 	{
 		const h = createHarness();
@@ -93,7 +121,7 @@ async function main() {
 		await h.start();
 		assert(h.last() === "⚙ 2 subagents", `session start should restore count, got ${h.last()}`);
 
-		h.setActive(3);
+		h.setActive(3, 1); // a workflow run with three children: still three subagents
 		h.events.emit("subagent:async-started", { id: "run-b" });
 		await sleep(5);
 		assert(h.last() === "⚙ 3 subagents", `started event should refresh, got ${h.last()}`);
