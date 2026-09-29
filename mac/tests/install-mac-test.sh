@@ -420,10 +420,14 @@ set -euo pipefail
 if [ "$1" = plugin ] && [ "$2" = list ]; then
     if [ "${FAKE_HERDR_ALL_PLUGINS:-0}" = 1 ]; then
         cat <<'LIST'
-6 plugins installed:
+10 plugins installed:
+- agent-slack-notify (Agent Slack Notify) enabled [github:juninaba/herdr-slack-notify@abc]
+- heeler (heeler) enabled [github:ZingerLittleBee/Heeler/plugin@abc]
 - herdr-floax (herdr-floax) enabled [github:Tyru5/herdr-floax@abc]
 - herdr-navigator (Herdr Navigator) enabled [github:thanhdat77/herdr-navigator@abc]
+- herdr-plugin-renamer (Herdr Renamer) enabled [github:wyattjoh/herdr-plugin-renamer@abc]
 - jt.command-palette (Command Palette) enabled [github:JanTvrdik/herdr-command-palette@abc]
+- kuwa72.focus-attention (Focus Attention) enabled [github:kuwa72/herdr-focus-attention@abc]
 - rmarganti.herdr-pluck (Herdr Pluck) enabled [github:rmarganti/herdr-pluck@abc]
 - termscope (Termscope) enabled [github:iurysza/termscope@abc]
 - vim-herdr-navigation (Vim Herdr Navigation) enabled [github:paulbkim-dev/vim-herdr-navigation@abc]
