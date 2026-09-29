@@ -453,9 +453,10 @@ and installed only when absent from the `User packages:` section of `pi list`:
 `npm:pi-mcp-adapter`, and `npm:@narumitw/pi-herdr`. The `pi-herdr` package
 replaces Herdr's standalone Pi lifecycle integration and Pi's use of the
 standalone global Herdr skill, so the installer removes
-`~/.pi/agent/extensions/herdr-agent-state.ts` and the canonical
-`~/.agents/skills/herdr` skill. When Copilot CLI is installed, the installer
-regenerates version-matched Herdr guidance under
+`~/.pi/agent/extensions/herdr-agent-state.ts`, any legacy
+`~/.pi/agent/skills/herdr` link, and the canonical `~/.agents/skills/herdr`
+skill. When Copilot CLI is installed, the installer first prepares valid,
+version-matched Herdr guidance and then publishes it under
 `${COPILOT_HOME:-~/.copilot}/skills/herdr` so Copilot keeps its skill without
 making the duplicate visible to Pi. Copilot's Herdr lifecycle integration also
 remains in place.
