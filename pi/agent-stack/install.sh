@@ -247,8 +247,8 @@ main() {
   if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
     if $manages_pi_herdr; then
       log "Removing superseded standalone Herdr skill"
-      if mise_exec npx -y skills remove herdr -g -y; then
-        ok "removed standalone Herdr skill; @narumitw/pi-herdr provides Pi's Herdr skill"
+      if mise_exec npx -y skills remove herdr --agent pi -g -y; then
+        ok "removed standalone Herdr skill from Pi; @narumitw/pi-herdr provides Pi's Herdr skill"
       else
         warn "failed to remove standalone Herdr skill; remove ~/.agents/skills/herdr manually to avoid skill-name collisions"
       fi

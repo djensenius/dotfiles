@@ -162,7 +162,7 @@ case "$action" in
             "-y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y")
               printf 'exec:npx skills add\n' >> "$RUNTIME_TEST_LOG"
               ;;
-            "-y skills remove herdr -g -y")
+            "-y skills remove herdr --agent pi -g -y")
               printf 'exec:npx skills remove\n' >> "$RUNTIME_TEST_LOG"
               ;;
             *)
