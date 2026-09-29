@@ -283,6 +283,19 @@ type = "plugin_action"
 command = "termscope.open"
 description = "open visible file"
 
+# Jump through agents that need attention: blocked, done, then idle by default.
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "kuwa72.focus-attention.next"
+description = "focus next agent needing attention"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "plugin_action"
+command = "kuwa72.focus-attention.prev"
+description = "focus previous agent needing attention"
+
 # ================ Notifications ===================
 [ui.toast]
 delivery = "herdr"
@@ -313,6 +326,7 @@ row_gap = 0
 rows = [
   ["state_icon", "workspace", "tab"],
   ["agent", "state_text"],
+  ["$task"],
 ]
 
 # ================ Session =========================
