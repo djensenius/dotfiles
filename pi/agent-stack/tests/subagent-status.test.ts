@@ -87,6 +87,7 @@ function createHarness(opts: { respond?: boolean } = {}) {
 		},
 		start: (hasUI = true, onSet?: () => void) => lifecycle.get("session_start")!({}, ctx(hasUI, onSet)),
 		shutdown: () => lifecycle.get("session_shutdown")!({}, undefined),
+		agentStart: () => lifecycle.get("agent_start")!({}, undefined),
 		last: () => statuses[statuses.length - 1],
 	};
 }
@@ -133,6 +134,14 @@ async function main() {
 
 		h.events.emit("subagent:control-event", { source: "async", event: { type: "needs_attention", runId: "run-b" } });
 		assert(h.last() === "⚠ 5 subagents", `attention should show warning, got ${h.last()}`);
+
+		// Answering (a new coordinator turn) acknowledges the attention request
+		// while the run keeps working.
+		await h.agentStart();
+		assert(h.last() === "⚙ 5 subagents", `agent_start should clear attention, got ${h.last()}`);
+
+		h.events.emit("subagent:control-event", { source: "async", event: { type: "needs_attention", runId: "run-b" } });
+		assert(h.last() === "⚠ 5 subagents", `a new attention request should show again, got ${h.last()}`);
 
 		h.setActive(1);
 		h.events.emit("subagent:async-complete", { runId: "run-b" });

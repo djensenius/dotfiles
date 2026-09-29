@@ -172,6 +172,14 @@ export default function subagentStatus(pi: ExtensionAPI, options: SubagentStatus
 		render();
 	});
 
+	// A new coordinator turn means the operator has seen and answered the
+	// attention request (pi-subagents' Herdr bridge treats it the same way).
+	pi.on("agent_start", async () => {
+		if (attention.size === 0) return;
+		attention.clear();
+		render();
+	});
+
 	pi.on("session_start", async (_event, sessionCtx) => {
 		stop();
 		ctx = sessionCtx;
