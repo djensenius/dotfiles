@@ -141,7 +141,7 @@ merge_json_file() {
 
 main() {
   local node_version pi_version herdr_version packages sources
-  local current_subagents stale_sources stale_source profile package_source
+  local current_subagents stale_sources stale_source profile package_source extension
 
   log "Checking prerequisites"
   require_git_version
@@ -198,7 +198,9 @@ main() {
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
-  sync_file "$DIR/extensions/reviewer-git.ts" "$PI_AGENT_DIR/extensions/reviewer-git.ts"
+  for extension in "$DIR"/extensions/*.ts; do
+    sync_file "$extension" "$PI_AGENT_DIR/extensions/$(basename "$extension")"
+  done
 
   log "Installing Herdr agent integrations"
   mise_exec herdr integration install pi

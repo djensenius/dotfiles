@@ -308,9 +308,11 @@ rows = [
 
 [ui.sidebar.agents]
 row_gap = 0
+# state_text shows the label pi-subagents publishes while subagents run
+# (workflow label, agent name, or active count; ⚠ when one needs attention).
 rows = [
   ["state_icon", "workspace", "tab"],
-  ["agent"],
+  ["agent", "state_text"],
 ]
 
 # ================ Session =========================

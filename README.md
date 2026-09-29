@@ -454,9 +454,9 @@ and installed only when absent from the `User packages:` section of `pi list`:
 
 The `pi-subagents` extension config lives at
 `~/.pi/agent/extensions/subagent/config.json`. The shared config keeps
-FleetView and the async widget explicitly enabled (`fleetView: true`,
-`asyncWidget: true`) and leaves inspector opening on the documented automatic
-policy (`authorityPolicy.inspectorOpen: "auto"`). The bundled inspector
+FleetView enabled (`fleetView: true`) as the single under-editor view of
+subagent work, turns off the duplicate async widget (`asyncWidget: false`), and
+leaves inspector opening on the documented automatic policy (`authorityPolicy.inspectorOpen: "auto"`). The bundled inspector
 dispatcher tries Herdr first, then Ghostty, then external providers, so Herdr is
 the default inspector surface when Pi is running inside Herdr.
 
@@ -466,6 +466,23 @@ The installer merges in two stdio servers and preserves any other servers:
 
 - `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
 - `context7`: `npx -y @upstash/context7-mcp@latest`
+
+The shared adapter settings keep MCP quiet in the footer: `mcpFooterStatus: "off"`
+removes the routine connection status and `notifyOnStartupConnect: false` skips
+"servers connected" notices, while connection errors and auth warnings still
+show. Run `/mcp-adapter status` to check servers. The shared footer config
+(`pi/agent-stack/catppuccin-footer.json`) also hides the `browser` and `memctx`
+status items and drops the `git`, `gitDiff`, `lastTokens`, `cost` and `time`
+sections; Herdr's sidebar already shows each workspace's branch.
+Herdr's agent sidebar includes `state_text`, so while background subagents run
+the Pi pane shows the label pi-subagents publishes (workflow label, agent name
+or active count, with `⚠` when a subagent needs attention).
+In Pi itself, the repository-owned `subagent-status.ts` extension adds a
+footer status item such as `⚙ 3 subagents` (or `⚠ 3 subagents` when one needs
+you) while background subagents run, so a coordinator shown as `idle` is
+visibly waiting on subagent work. It uses only pi-subagents' public events and
+event-bus RPC, and is tested by `pi/agent-stack/tests/subagent-status.test.ts`
+(`node pi/agent-stack/tests/subagent-status.test.ts`).
 
 Playwright needs its own Firefox build. Because the server runs as
 `@latest`, a Playwright update can require a newer build, so re-run

@@ -421,6 +421,8 @@ assert_no_agent_stack_mutations() {
     fail "$name installed footer config before validating package state"
   [ ! -e "$root/pi-agent/extensions/reviewer-git.ts" ] ||
     fail "$name installed the repository-owned extension before validating package state"
+  [ ! -e "$root/pi-agent/extensions/subagent-status.ts" ] ||
+    fail "$name installed the subagent status extension before validating package state"
   [ ! -e "$root/pi-agent/agents/reviewer.md" ] ||
     fail "$name installed profiles before validating package state"
   [ ! -e "$root/copilot-home" ] ||
@@ -457,10 +459,10 @@ assert_shared_config() {
     'value.subagents.localSetting === "preserved" && value.subagents.agentOverrides.worker.model === "github-copilot/gpt-5.5" && value.subagents.agentOverrides.scout.model === "github-copilot/gpt-5.4-mini" && value.subagents.agentOverrides.researcher.model === "github-copilot/gemini-3.8-flash" && value.subagents.agentOverrides.reviewer.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.oracle.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.localOnly.description === "preserved"' \
     "$name settings merge did not preserve or override nested subagent values"
   assert_json "$agent_dir/extensions/subagent/config.json" \
-    'value.fleetView === true && value.asyncWidget === true && value.authorityPolicy.inspectorOpen === "auto" && value.authorityPolicy.projectOpen === "confirm"' \
+    'value.fleetView === true && value.asyncWidget === false && value.authorityPolicy.inspectorOpen === "auto" && value.authorityPolicy.projectOpen === "confirm"' \
     "$name subagent config merge did not preserve local policy and apply shared rich-view defaults"
   assert_json "$agent_dir/mcp-adapter.json" \
-    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
+    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest" && value.settings.mcpFooterStatus === "off" && value.settings.notifyOnStartupConnect === false' \
     "$name MCP adapter merge did not preserve other servers and configure shared servers"
   cmp -s "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
     "$agent_dir/catppuccin-footer.json" ||
@@ -501,7 +503,7 @@ JSON
   cat > "$root/pi-agent/extensions/subagent/config.json" <<'JSON'
 {
   "fleetView": false,
-  "asyncWidget": false,
+  "asyncWidget": true,
   "authorityPolicy": {
     "projectOpen": "confirm"
   }
@@ -565,12 +567,18 @@ JSON
     "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts" ||
     fail "$name did not install the repository-owned extension"
+  cmp -s \
+    "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
+    "$root/pi-agent/extensions/subagent-status.ts" ||
+    fail "$name did not install the subagent status extension"
   assert_reviewer_profile "$name" "$root/pi-agent"
   assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
   assert_contains "installed reviewer-git.ts" "$first_output"
   assert_contains "reviewer-git.ts is up to date" "$second_output"
+  assert_contains "installed subagent-status.ts" "$first_output"
+  assert_contains "subagent-status.ts is up to date" "$second_output"
   assert_contains "settings.json is up to date" "$second_output"
   assert_contains "mcp-adapter.json is up to date" "$second_output"
   assert_contains "catppuccin-footer.json is up to date" "$second_output"

@@ -16,5 +16,9 @@
         "@upstash/context7-mcp@latest"
       ]
     }
+  },
+  "settings": {
+    "mcpFooterStatus": "off",
+    "notifyOnStartupConnect": false
   }
 }
