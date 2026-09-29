@@ -477,6 +477,12 @@ sections; Herdr's sidebar already shows each workspace's branch.
 Herdr's agent sidebar includes `state_text`, so while background subagents run
 the Pi pane shows the label pi-subagents publishes (workflow label, agent name
 or active count, with `⚠` when a subagent needs attention).
+In Pi itself, the repository-owned `subagent-status.ts` extension adds a
+footer status item such as `⚙ 3 subagents` (or `⚠ 3 subagents` when one needs
+you) while background subagents run, so a coordinator shown as `idle` is
+visibly waiting on subagent work. It uses only pi-subagents' public events and
+event-bus RPC, and is tested by `pi/agent-stack/tests/subagent-status.test.ts`
+(`node pi/agent-stack/tests/subagent-status.test.ts`).
 
 Playwright needs its own Firefox build. Because the server runs as
 `@latest`, a Playwright update can require a newer build, so re-run

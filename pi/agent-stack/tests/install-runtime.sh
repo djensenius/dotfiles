@@ -421,6 +421,8 @@ assert_no_agent_stack_mutations() {
     fail "$name installed footer config before validating package state"
   [ ! -e "$root/pi-agent/extensions/reviewer-git.ts" ] ||
     fail "$name installed the repository-owned extension before validating package state"
+  [ ! -e "$root/pi-agent/extensions/subagent-status.ts" ] ||
+    fail "$name installed the subagent status extension before validating package state"
   [ ! -e "$root/pi-agent/agents/reviewer.md" ] ||
     fail "$name installed profiles before validating package state"
   [ ! -e "$root/copilot-home" ] ||
@@ -565,12 +567,18 @@ JSON
     "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts" ||
     fail "$name did not install the repository-owned extension"
+  cmp -s \
+    "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
+    "$root/pi-agent/extensions/subagent-status.ts" ||
+    fail "$name did not install the subagent status extension"
   assert_reviewer_profile "$name" "$root/pi-agent"
   assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
   assert_contains "installed reviewer-git.ts" "$first_output"
   assert_contains "reviewer-git.ts is up to date" "$second_output"
+  assert_contains "installed subagent-status.ts" "$first_output"
+  assert_contains "subagent-status.ts is up to date" "$second_output"
   assert_contains "settings.json is up to date" "$second_output"
   assert_contains "mcp-adapter.json is up to date" "$second_output"
   assert_contains "catppuccin-footer.json is up to date" "$second_output"
