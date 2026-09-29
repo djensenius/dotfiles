@@ -6,6 +6,7 @@ INSTALLER="$DIR/../install.sh"
 REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
 SUBAGENTS_SOURCE="npm:pi-subagents"
 LEGACY_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
+PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
 MANAGED_PACKAGE_SOURCES=(
   "npm:pi-catppuccin-footer"
   "npm:@plannotator/pi-extension"
@@ -13,7 +14,7 @@ MANAGED_PACKAGE_SOURCES=(
   "npm:pi-browser-harness"
   "npm:pi-memctx"
   "npm:pi-mcp-adapter"
-  "npm:@narumitw/pi-herdr"
+  "$PI_HERDR_SOURCE"
 )
 PREINSTALLED_MANAGED_PACKAGE="npm:pi-web-access"
 UNMANAGED_PACKAGE_SOURCE="npm:some-local-tool"
@@ -79,7 +80,7 @@ assert_json() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in awk basename cat chmod cmp dirname grep head install mkdir mktemp mv rm rmdir sed; do
+  for utility in awk basename cat chmod cmp cp dirname grep head install mkdir mktemp mv rm rmdir sed; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -169,9 +170,6 @@ case "$action" in
               printf 'exec:npx skills add\n' >> "$RUNTIME_TEST_LOG"
               ;;
             "-y skills remove herdr -g -y")
-              [ ! -e "$PI_CODING_AGENT_DIR/skills/herdr" ] &&
-                [ ! -L "$PI_CODING_AGENT_DIR/skills/herdr" ] ||
-                fail "installer did not remove the legacy Pi skill link before invoking skills remove"
               rm -rf \
                 "$HOME/.agents/skills/herdr" \
                 "$HOME/.pi/agent/skills/herdr" \
@@ -398,6 +396,7 @@ setup_fixture() {
 run_installer() {
   local root="$1" system_name="$2" pi_list_failure="$3" pi_list_source="${4:-}"
   local pi_agent_dir="${RUNTIME_TEST_PI_AGENT_DIR:-$root/pi-agent}"
+  local copilot_home="${RUNTIME_TEST_COPILOT_HOME:-$root/copilot-home}"
   local managed_package_sources real_node
 
   managed_package_sources="$(printf '%s\n' "${MANAGED_PACKAGE_SOURCES[@]}")"
@@ -406,7 +405,7 @@ run_installer() {
   env -i \
     HOME="$root/home" \
     PATH="$root/system-bin:$root/common-bin" \
-    COPILOT_HOME="$root/copilot-home" \
+    COPILOT_HOME="$copilot_home" \
     PI_CODING_AGENT_DIR="$pi_agent_dir" \
     BIN_DIR="$root/local-bin" \
     RUNTIME_TEST_LOG="$root/mise.log" \
@@ -766,51 +765,55 @@ run_herdr_skill_generation_failure() {
   [ -L "$root/pi-agent/skills/herdr" ] ||
     fail "$name removed the legacy Pi skill link before preparing its replacement"
   assert_contains "working Copilot herdr skill" "$root/copilot-home/skills/herdr/SKILL.md"
+  assert_count 0 "exec:pi install:$PI_HERDR_SOURCE" "$root/mise.log"
   assert_count 0 "exec:npx skills remove" "$root/mise.log"
 }
 
 run_copilot_skill_publish_failure() {
   local name="copilot-skill-publish-failure"
   local root="$tmp/$name"
-  local output="$root/publish.out"
-  local generated_skill="$root/copilot-home/skills/.herdr-skill.prepared"
+  local output="$root/install.out"
   local real_mv status
 
-  mkdir -p "$root/bin" "$root/copilot-home/skills/herdr"
-  printf 'prepared herdr skill\n' > "$generated_skill"
-  printf 'working Copilot herdr skill\n' > "$root/copilot-home/skills/herdr/SKILL.md"
+  setup_fixture "$root" "no" "no"
+  mkdir -p \
+    "$root/home/.agents/skills/herdr" \
+    "$root/home/.copilot/skills/herdr" \
+    "$root/pi-agent/skills"
+  printf 'working standalone herdr skill\n' > "$root/home/.agents/skills/herdr/SKILL.md"
+  printf 'working Copilot herdr skill\n' > "$root/home/.copilot/skills/herdr/SKILL.md"
+  ln -s "$root/home/.agents/skills/herdr" "$root/pi-agent/skills/herdr"
   real_mv="$(command -v mv)"
-  cat > "$root/bin/mv" <<'EOF'
+  cat > "$root/system-bin/mv" <<EOF
 #!/bin/bash
 set -euo pipefail
-if [[ "${1:-}" == *"/.herdr-publish."* && "${2:-}" = "$PUBLISH_TARGET" ]]; then
+if [[ "\${1:-}" == *"/.herdr-publish."* &&
+  "\${2:-}" = "$root/home/.copilot/skills/herdr" ]]; then
   exit 75
 fi
-exec "$REAL_MV" "$@"
+exec "$real_mv" "\$@"
 EOF
-  chmod 755 "$root/bin/mv"
+  chmod 755 "$root/system-bin/mv"
 
   set +e
-  COPILOT_HOME="$root/copilot-home" \
-    PUBLISH_TARGET="$root/copilot-home/skills/herdr" \
-    REAL_MV="$real_mv" \
-    PATH="$root/bin:$PATH" \
-    /bin/bash -c '
-      source "$1"
-      if publish_copilot_herdr_skill "$2"; then
-        exit 0
-      fi
-      exit 75
-    ' _ "$INSTALLER" "$generated_skill" >"$output" 2>&1
+  RUNTIME_TEST_COPILOT_HOME="$root/home/.copilot" \
+    run_installer "$root" "Linux" 0 >"$output" 2>&1
   status=$?
   set -e
 
-  [ "$status" -eq 75 ] ||
-    fail "$name should propagate publication failure, got $status"
+  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
+  assert_contains "failed to install the prepared Copilot Herdr skill" "$output"
   assert_not_contains "installed Copilot Herdr skill" "$output"
-  assert_contains "working Copilot herdr skill" "$root/copilot-home/skills/herdr/SKILL.md"
-  if find "$root/copilot-home/skills" -maxdepth 1 \
-    \( -name '.herdr-publish.*' -o -name '.herdr-backup.*' \) -print -quit |
+  assert_contains "working Copilot herdr skill" "$root/home/.copilot/skills/herdr/SKILL.md"
+  assert_not_exists "$root/home/.agents/skills/herdr"
+  [ -L "$root/pi-agent/skills/herdr" ] ||
+    fail "$name removed the configured Pi skill link before publication completed"
+  assert_count 1 "exec:pi install:$PI_HERDR_SOURCE" "$root/mise.log"
+  assert_count 1 "exec:npx skills remove" "$root/mise.log"
+  if find "$root/home/.copilot/skills" -maxdepth 1 \
+    \( -name '.herdr-skill.*' -o -name '.herdr-publish.*' -o \
+      -name '.herdr-backup.*' -o -name '.herdr-previous.*' \) \
+    -print -quit |
     grep -q .; then
     fail "$name left a staging or backup directory behind"
   fi

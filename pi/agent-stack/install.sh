@@ -164,11 +164,42 @@ prepare_copilot_herdr_skill() {
   printf '%s\n' "$generated_skill"
 }
 
+preserve_copilot_herdr_skill() {
+  local skills_dir="${COPILOT_HOME:-$HOME/.copilot}/skills"
+  local skill_dir="$skills_dir/herdr"
+  local canonical_dir="$HOME/.agents/skills/herdr"
+  local source_dir="" preserved_dir
+
+  if [ -f "$skill_dir/SKILL.md" ]; then
+    source_dir="$skill_dir"
+  elif [ -f "$canonical_dir/SKILL.md" ]; then
+    source_dir="$canonical_dir"
+  else
+    return 0
+  fi
+
+  mkdir -p "$skills_dir" || return 1
+  if ! preserved_dir="$(mktemp -d "$skills_dir/.herdr-previous.XXXXXX")"; then
+    return 1
+  fi
+  if ! cp -R -L "$source_dir/." "$preserved_dir/"; then
+    rm -rf -- "$preserved_dir" || warn "failed to clean incomplete Herdr skill backup $preserved_dir"
+    return 1
+  fi
+  if [ ! -f "$preserved_dir/SKILL.md" ]; then
+    rm -rf -- "$preserved_dir" || warn "failed to clean invalid Herdr skill backup $preserved_dir"
+    return 1
+  fi
+  printf '%s\n' "$preserved_dir"
+}
+
 publish_copilot_herdr_skill() {
   local generated_skill="$1"
+  local preserved_skill="${2:-}"
   local skills_dir="${COPILOT_HOME:-$HOME/.copilot}/skills"
   local skill_dir="$skills_dir/herdr"
   local staged_dir backup_dir=""
+  local restored=false
 
   mkdir -p "$skills_dir" || return 1
   if ! staged_dir="$(mktemp -d "$skills_dir/.herdr-publish.XXXXXX")"; then
@@ -196,15 +227,30 @@ publish_copilot_herdr_skill() {
   fi
 
   if ! mv "$staged_dir" "$skill_dir"; then
-    if [ -n "$backup_dir" ] && ! mv "$backup_dir" "$skill_dir"; then
-      warn "failed to restore the previous Copilot Herdr skill; it remains at $backup_dir"
+    if [ -n "$backup_dir" ] && mv "$backup_dir" "$skill_dir"; then
+      restored=true
+    elif [ -n "$preserved_skill" ] && mv "$preserved_skill" "$skill_dir"; then
+      restored=true
+      preserved_skill=""
+    fi
+    if ! $restored; then
+      warn "failed to restore the previous Copilot Herdr skill; preserved copies remain under $skills_dir"
     fi
     rm -rf -- "$staged_dir" || warn "failed to clean Herdr skill staging directory $staged_dir"
+    if $restored && [ -n "$preserved_skill" ]; then
+      rm -rf -- "$preserved_skill" || warn "failed to clean preserved Herdr skill backup $preserved_skill"
+    fi
+    if [ -n "$backup_dir" ] && { [ -e "$backup_dir" ] || [ -L "$backup_dir" ]; }; then
+      warn "a previous Copilot Herdr skill backup remains at $backup_dir"
+    fi
     return 1
   fi
 
   if [ -n "$backup_dir" ] && ! rm -rf -- "$backup_dir"; then
     warn "installed the Copilot Herdr skill but could not remove backup $backup_dir"
+  fi
+  if [ -n "$preserved_skill" ] && ! rm -rf -- "$preserved_skill"; then
+    warn "installed the Copilot Herdr skill but could not remove preserved backup $preserved_skill"
   fi
   ok "installed Copilot Herdr skill -> $skill_dir/SKILL.md"
 }
@@ -212,7 +258,7 @@ publish_copilot_herdr_skill() {
 main() {
   local node_version pi_version herdr_version packages sources managed_sources
   local current_subagents stale_sources stale_source profile package_source extension
-  local generated_copilot_skill="" legacy_pi_skill
+  local generated_copilot_skill="" preserved_copilot_skill="" legacy_pi_skill
   local manages_pi_herdr=false
 
   log "Checking prerequisites"
@@ -265,19 +311,82 @@ main() {
 
   log "Installing repository-managed Pi packages"
   while IFS= read -r package_source; do
+    [ "$package_source" = "$PI_HERDR_SOURCE" ] && continue
     if has_package_source "$package_source" "$sources"; then
       ok "$package_source is already installed"
     else
-      mise_exec pi install "$package_source"
+      if ! mise_exec pi install "$package_source"; then
+        [ -z "$generated_copilot_skill" ] || rm -f "$generated_copilot_skill"
+        die "failed to install $package_source"
+      fi
       ok "installed $package_source"
     fi
   done <<<"$managed_sources"
 
-  log "Installing repository-owned Pi extensions"
-  mkdir -p "$PI_AGENT_DIR/extensions"
-  for extension in "$DIR"/extensions/*.ts; do
-    sync_file "$extension" "$PI_AGENT_DIR/extensions/$(basename "$extension")"
-  done
+  if $manages_pi_herdr &&
+    [ "${SKIP_HERDR_SKILL:-0}" != "1" ] &&
+    has copilot; then
+    log "Preparing the Copilot Herdr skill"
+    if ! generated_copilot_skill="$(prepare_copilot_herdr_skill)"; then
+      die "failed to generate valid Copilot Herdr guidance; existing skills were left unchanged"
+    fi
+    if ! preserved_copilot_skill="$(preserve_copilot_herdr_skill)"; then
+      rm -f "$generated_copilot_skill"
+      die "failed to preserve the existing Copilot Herdr skill"
+    fi
+  fi
+
+  if $manages_pi_herdr; then
+    if has_package_source "$PI_HERDR_SOURCE" "$sources"; then
+      ok "$PI_HERDR_SOURCE is already installed"
+    else
+      if ! mise_exec pi install "$PI_HERDR_SOURCE"; then
+        [ -z "$generated_copilot_skill" ] || rm -f "$generated_copilot_skill"
+        [ -z "$preserved_copilot_skill" ] || rm -rf -- "$preserved_copilot_skill"
+        die "failed to install $PI_HERDR_SOURCE"
+      fi
+      ok "installed $PI_HERDR_SOURCE"
+    fi
+  fi
+
+  if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
+    if $manages_pi_herdr; then
+      log "Removing superseded standalone Herdr skill"
+      if ! mise_exec npx -y skills remove herdr -g -y; then
+        if [ -n "$generated_copilot_skill" ]; then
+          if ! publish_copilot_herdr_skill "$generated_copilot_skill" "$preserved_copilot_skill"; then
+            rm -f "$generated_copilot_skill"
+            die "failed to remove the standalone global Herdr skill and failed to restore Copilot guidance"
+          fi
+          generated_copilot_skill=""
+          preserved_copilot_skill=""
+        fi
+        die "failed to remove the standalone global Herdr skill"
+      fi
+      ok "removed standalone global Herdr skill; @narumitw/pi-herdr provides Pi's Herdr skill"
+      if [ -n "$generated_copilot_skill" ]; then
+        if ! publish_copilot_herdr_skill "$generated_copilot_skill" "$preserved_copilot_skill"; then
+          rm -f "$generated_copilot_skill"
+          die "failed to install the prepared Copilot Herdr skill"
+        fi
+        generated_copilot_skill=""
+        preserved_copilot_skill=""
+      fi
+
+      legacy_pi_skill="$PI_AGENT_DIR/skills/herdr"
+      if [ -e "$legacy_pi_skill" ] || [ -L "$legacy_pi_skill" ]; then
+        if ! rm -rf -- "$legacy_pi_skill"; then
+          die "failed to remove the legacy Pi Herdr skill link"
+        fi
+        ok "removed legacy Pi Herdr skill link"
+      else
+        ok "legacy Pi Herdr skill link is absent"
+      fi
+    else
+      log "Installing the official Herdr skill"
+      mise_exec npx -y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y
+    fi
+  fi
 
   log "Installing Herdr agent integrations"
   if $manages_pi_herdr; then
@@ -297,6 +406,12 @@ main() {
     warn "copilot CLI is not installed; skipping its Herdr integration"
   fi
 
+  log "Installing repository-owned Pi extensions"
+  mkdir -p "$PI_AGENT_DIR/extensions"
+  for extension in "$DIR"/extensions/*.ts; do
+    sync_file "$extension" "$PI_AGENT_DIR/extensions/$(basename "$extension")"
+  done
+
   if [ -n "$stale_sources" ]; then
     log "Removing superseded subagents packages"
     while IFS= read -r stale_source; do
@@ -312,50 +427,6 @@ main() {
   else
     mise_exec pi install "$SUBAGENTS_SOURCE"
     ok "installed $SUBAGENTS_SOURCE"
-  fi
-
-  if [ "${SKIP_HERDR_SKILL:-0}" != "1" ]; then
-    if $manages_pi_herdr; then
-      if has copilot; then
-        log "Preparing the Copilot Herdr skill"
-        if ! generated_copilot_skill="$(prepare_copilot_herdr_skill)"; then
-          die "failed to generate valid Copilot Herdr guidance; existing skills were left unchanged"
-        fi
-      fi
-
-      log "Removing superseded standalone Herdr skill"
-      legacy_pi_skill="$PI_AGENT_DIR/skills/herdr"
-      if [ -e "$legacy_pi_skill" ] || [ -L "$legacy_pi_skill" ]; then
-        if ! rm -rf -- "$legacy_pi_skill"; then
-          [ -z "$generated_copilot_skill" ] || rm -f "$generated_copilot_skill"
-          die "failed to remove the legacy Pi Herdr skill link"
-        fi
-        ok "removed legacy Pi Herdr skill link"
-      else
-        ok "legacy Pi Herdr skill link is absent"
-      fi
-      if ! mise_exec npx -y skills remove herdr -g -y; then
-        if [ -n "$generated_copilot_skill" ]; then
-          if ! publish_copilot_herdr_skill "$generated_copilot_skill"; then
-            rm -f "$generated_copilot_skill"
-            die "failed to remove the standalone global Herdr skill and failed to restore Copilot guidance"
-          fi
-          generated_copilot_skill=""
-        fi
-        die "failed to remove the standalone global Herdr skill"
-      fi
-      ok "removed standalone global Herdr skill; @narumitw/pi-herdr provides Pi's Herdr skill"
-      if [ -n "$generated_copilot_skill" ]; then
-        if ! publish_copilot_herdr_skill "$generated_copilot_skill"; then
-          rm -f "$generated_copilot_skill"
-          die "failed to install the prepared Copilot Herdr skill"
-        fi
-        generated_copilot_skill=""
-      fi
-    else
-      log "Installing the official Herdr skill"
-      mise_exec npx -y skills add herdrdev/herdr --skill herdr --agent pi github-copilot -g -y
-    fi
   fi
 
   log "Installing Pi subagent profiles"
