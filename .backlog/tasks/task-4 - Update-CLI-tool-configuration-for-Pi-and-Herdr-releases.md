@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:54'
-updated_date: '2026-10-01 17:31'
+updated_date: '2026-10-01 18:15'
 labels: []
 dependencies: []
 modified_files:
@@ -48,6 +48,8 @@ The local cli-update report shows Pi, Herdr, Pi extensions, and related CLI pack
 Implemented focused CLI configuration update: left fish/config.fish and Herdr prefix config unchanged; gitconfig now uses portable command -v gh credential helpers for github.com and gist.github.com; Pi agent-stack now merges built-in MCP config at mcp.json, no longer manages npm:pi-mcp-adapter, and shared Pi settings use theme system. Validation evidence: fish -n fish/config.fish (no output); herdr config check -> config: ok; node pi/agent-stack/tests/subagent-status.test.ts -> subagent-status tests passed; bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; bash pi/agent-stack/tests/install-git-version.sh -> installer Git version tests passed; bash pi/agent-stack/tests/reviewer-git-security.sh -> reviewer-git security test passed ... side effects: none; yamllint . (no output); git config --file gitconfig --get-urlmatch credential.helper for github.com and gist.github.com returned the portable gh helper; grep confirmed no pi-mcp-adapter/mcp-adapter references remain in README.md or pi/agent-stack; git ls-files/test confirmed no slack-webhook.sh.
 
 Reviewer fix: rerunning pi/agent-stack/install.sh now detects stale npm:pi-mcp-adapter in pi list, removes it through the existing stale package cleanup path, migrates servers from existing ~/.pi/agent/mcp-adapter.json into built-in mcp.json when safe, warns about adapter-only settings or conflicts, and retires the legacy file to mcp-adapter.json.migrated so the old adapter cannot start alongside Pi built-in MCP. Added install-runtime.sh upgrade coverage for mocked npm:pi-mcp-adapter removal and legacy config migration/warning behavior. Validation: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; node --check pi/agent-stack/bin/migrate-mcp-adapter.mjs -> no output; yamllint . -> no output; git diff --check -> no output; pi mcp list was not run because it can invoke configured MCP servers/npx on the local user environment.
+
+Copilot follow-up: updated MCP JSON migration/merge helpers to use null-prototype JSON dictionaries so a legacy MCP server named `__proto__` is preserved as an own key without prototype pollution; added install-runtime regression coverage for the migrated output.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
