@@ -30,16 +30,19 @@ function readJsonObject(path, missingValue = missingDefault) {
 }
 
 function isPlainObject(value) {
-  return value !== null &&
-    typeof value === "object" &&
-    !Array.isArray(value) &&
-    Object.getPrototypeOf(value) === Object.prototype;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function createJsonObject() {
+  return Object.create(null);
 }
 
 function clone(value) {
   if (Array.isArray(value)) return value.map((item) => clone(item));
   if (isPlainObject(value)) {
-    const result = {};
+    const result = createJsonObject();
     for (const [key, child] of Object.entries(value)) result[key] = clone(child);
     return result;
   }

@@ -6,6 +6,7 @@ INSTALLER="$DIR/../install.sh"
 REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
 SUBAGENTS_SOURCE="npm:pi-subagents"
 LEGACY_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
+MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
 PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
 MANAGED_PACKAGE_SOURCES=(
   "npm:pi-catppuccin-footer"
@@ -13,7 +14,6 @@ MANAGED_PACKAGE_SOURCES=(
   "npm:pi-web-access"
   "npm:pi-browser-harness"
   "npm:pi-memctx"
-  "npm:pi-mcp-adapter"
   "$PI_HERDR_SOURCE"
 )
 PREINSTALLED_MANAGED_PACKAGE="npm:pi-web-access"
@@ -153,6 +153,13 @@ case "$action" in
               fail "real node is unavailable for merge-json helper"
             [ "$#" -ge 3 ] || fail "unexpected merge-json arguments: $*"
             printf 'exec:node merge-json:%s\n' "$(basename "$2")" >> "$RUNTIME_TEST_LOG"
+            "$RUNTIME_TEST_REAL_NODE" "$@"
+            ;;
+          "$RUNTIME_TEST_REPO_ROOT/pi/agent-stack/bin/migrate-mcp-adapter.mjs")
+            [ -x "${RUNTIME_TEST_REAL_NODE:?}" ] ||
+              fail "real node is unavailable for MCP adapter migration helper"
+            [ "$#" -eq 3 ] || fail "unexpected MCP adapter migration arguments: $*"
+            printf 'exec:node migrate-mcp-adapter:%s\n' "$(basename "$2")" >> "$RUNTIME_TEST_LOG"
             "$RUNTIME_TEST_REAL_NODE" "$@"
             ;;
           *)
@@ -480,7 +487,7 @@ assert_no_agent_stack_mutations() {
   assert_count 0 "exec:herdr --skill" "$root/mise.log"
   [ ! -e "$root/pi-agent/settings.json" ] ||
     fail "$name installed shared settings before validating package state"
-  [ ! -e "$root/pi-agent/mcp-adapter.json" ] ||
+  [ ! -e "$root/pi-agent/mcp.json" ] ||
     fail "$name installed MCP config before validating package state"
   [ ! -e "$root/pi-agent/catppuccin-footer.json" ] ||
     fail "$name installed footer config before validating package state"
@@ -518,7 +525,7 @@ assert_shared_config() {
     'value.localOnly === true && value.lastChangelogVersion === "0.1.0" && value.packages[0] === "keep"' \
     "$name settings merge dropped local keys"
   assert_json "$agent_dir/settings.json" \
-    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-5.5" && value.defaultThinkingLevel === "medium" && value.theme === "dark" && value.tuiMode === "fullscreen"' \
+    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-5.5" && value.defaultThinkingLevel === "medium" && value.theme === "system" && value.tuiMode === "fullscreen"' \
     "$name settings merge did not apply shared top-level values"
   assert_json "$agent_dir/settings.json" \
     'value.subagents.localSetting === "preserved" && value.subagents.agentOverrides.worker.model === "github-copilot/gpt-5.5" && value.subagents.agentOverrides.scout.model === "github-copilot/gpt-5.4-mini" && value.subagents.agentOverrides.researcher.model === "github-copilot/gemini-3.8-flash" && value.subagents.agentOverrides.reviewer.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.oracle.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.localOnly.description === "preserved"' \
@@ -526,9 +533,9 @@ assert_shared_config() {
   assert_json "$agent_dir/extensions/subagent/config.json" \
     'value.fleetView === true && value.asyncWidget === false && value.authorityPolicy.inspectorOpen === "auto" && value.authorityPolicy.projectOpen === "confirm"' \
     "$name subagent config merge did not preserve local policy and apply shared rich-view defaults"
-  assert_json "$agent_dir/mcp-adapter.json" \
-    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest" && value.settings.mcpFooterStatus === "off" && value.settings.notifyOnStartupConnect === false' \
-    "$name MCP adapter merge did not preserve other servers and configure shared servers"
+  assert_json "$agent_dir/mcp.json" \
+    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
+    "$name MCP merge did not preserve other servers and configure shared servers"
   cmp -s "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
     "$agent_dir/catppuccin-footer.json" ||
     fail "$name did not install catppuccin-footer.json"
@@ -580,7 +587,7 @@ JSON
   }
 }
 JSON
-  cat > "$root/pi-agent/mcp-adapter.json" <<'JSON'
+  cat > "$root/pi-agent/mcp.json" <<'JSON'
 {
   "mcpServers": {
     "other": {
@@ -660,7 +667,7 @@ JSON
   assert_contains "installed subagent-status.ts" "$first_output"
   assert_contains "subagent-status.ts is up to date" "$second_output"
   assert_contains "settings.json is up to date" "$second_output"
-  assert_contains "mcp-adapter.json is up to date" "$second_output"
+  assert_contains "mcp.json is up to date" "$second_output"
   assert_contains "catppuccin-footer.json is up to date" "$second_output"
   assert_contains "reviewer.md is up to date" "$second_output"
   assert_contains "council-gpt.md is up to date" "$second_output"
@@ -832,7 +839,7 @@ run_invalid_settings_json() {
   assert_count 0 "exec:node merge-json:config.json" "$root/mise.log"
   assert_count 0 "exec:pi install:$SUBAGENTS_SOURCE" "$root/mise.log"
   assert_count 0 "exec:pi update:$SUBAGENTS_SOURCE" "$root/mise.log"
-  [ ! -e "$root/pi-agent/mcp-adapter.json" ] ||
+  [ ! -e "$root/pi-agent/mcp.json" ] ||
     fail "$name installed MCP config after invalid settings"
   [ ! -e "$root/pi-agent/catppuccin-footer.json" ] ||
     fail "$name installed footer config after invalid settings"
@@ -959,6 +966,63 @@ run_migration() {
   assert_no_runtime_markers "$name" "$root"
 }
 
+run_mcp_adapter_upgrade_migration() {
+  local name="mcp-adapter-upgrade-migration"
+  local root="$tmp/$name"
+  local log="$root/mise.log"
+  local output="$root/install.out"
+
+  setup_fixture "$root" "no" "no"
+  mkdir -p "$root/pi-agent"
+  cat > "$root/pi-agent/mcp.json" <<'JSON'
+{
+  "mcpServers": {
+    "existing": {
+      "command": "existing"
+    }
+  }
+}
+JSON
+  cat > "$root/pi-agent/mcp-adapter.json" <<'JSON'
+{
+  "mcpServers": {
+    "legacyOnly": {
+      "command": "legacy-only"
+    },
+    "__proto__": {
+      "command": "proto-server"
+    },
+    "playwright": {
+      "command": "old-playwright"
+    }
+  },
+  "settings": {
+    "mcpFooterStatus": "off"
+  }
+}
+JSON
+
+  if ! run_installer "$root" "Linux" 0 "$MCP_ADAPTER_SOURCE" >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name installer run failed"
+  fi
+
+  assert_count 1 "exec:node migrate-mcp-adapter:mcp-adapter.json" "$log"
+  assert_count 1 "exec:pi remove:$MCP_ADAPTER_SOURCE" "$log"
+  assert_contains "legacy mcp-adapter.json migrated 3 MCP server(s)" "$output"
+  assert_contains "legacy MCP adapter key 'settings' is adapter-specific and was not copied" "$output"
+  assert_contains "retired legacy mcp-adapter.json -> $root/pi-agent/mcp-adapter.json.migrated" "$output"
+  assert_contains "removed $MCP_ADAPTER_SOURCE" "$output"
+  assert_not_exists "$root/pi-agent/mcp-adapter.json"
+  assert_json "$root/pi-agent/mcp-adapter.json.migrated" \
+    'value.mcpServers.legacyOnly.command === "legacy-only" && Object.hasOwn(value.mcpServers, "__proto__") && value.mcpServers["__proto__"].command === "proto-server" && value.settings.mcpFooterStatus === "off"' \
+    "$name did not preserve the legacy adapter config backup"
+  assert_json "$root/pi-agent/mcp.json" \
+    'value.mcpServers.existing.command === "existing" && value.mcpServers.legacyOnly.command === "legacy-only" && Object.hasOwn(value.mcpServers, "__proto__") && value.mcpServers["__proto__"].command === "proto-server" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx"' \
+    "$name did not merge legacy and shared MCP servers into built-in mcp.json"
+  assert_no_runtime_markers "$name" "$root"
+}
+
 run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"
 run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
@@ -990,5 +1054,6 @@ run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
 run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
+run_mcp_adapter_upgrade_migration
 
 printf 'installer mise runtime tests passed\n'

@@ -2,7 +2,7 @@
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
-  "theme": "dark",
+  "theme": "system",
   "tuiMode": "fullscreen",
   "subagents": {
     "agentOverrides": {

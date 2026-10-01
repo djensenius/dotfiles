@@ -16,17 +16,19 @@ AGENTS_DIR="$PI_AGENT_DIR/agents"
 LEGACY_PROFILE_DIR="$PI_AGENT_DIR/herdr-subagents/agents"
 SUBAGENT_CONFIG_DIR="$PI_AGENT_DIR/extensions/subagent"
 SUBAGENT_CONFIG_PATH="$SUBAGENT_CONFIG_DIR/config.json"
-MCP_ADAPTER_CONFIG_PATH="$PI_AGENT_DIR/mcp-adapter.json"
+MCP_CONFIG_PATH="$PI_AGENT_DIR/mcp.json"
+LEGACY_MCP_ADAPTER_CONFIG_PATH="$PI_AGENT_DIR/mcp-adapter.json"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 PACKAGES_FILE="$DIR/packages.txt"
 SETTINGS_FILE="$DIR/settings.json"
 SUBAGENT_CONFIG_FILE="$DIR/subagent-config.json"
-MCP_ADAPTER_CONFIG_FILE="$DIR/mcp-adapter.json"
+MCP_CONFIG_FILE="$DIR/mcp.json"
 FOOTER_FILE="$DIR/catppuccin-footer.json"
 # nicobailon/pi-subagents, deliberately unpinned: Pi and Herdr float at latest
 # through mise, so the extension tracks latest too and is updated on every run.
 SUBAGENTS_PACKAGE="pi-subagents"
 SUBAGENTS_SOURCE="npm:$SUBAGENTS_PACKAGE"
+MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
 PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
 # The previous stack used maxedapps/pi-subagents-herdr, which is incompatible
 # with Herdr 0.9.1 (agent.start requires kind + pane). It is removed on upgrade.
@@ -159,6 +161,35 @@ merge_json_file() {
     die "failed to merge $label"
   fi
   ok "$label $result"
+}
+
+migrate_legacy_mcp_adapter_config() {
+  local backup_path result
+
+  if [ ! -e "$LEGACY_MCP_ADAPTER_CONFIG_PATH" ] &&
+    [ ! -L "$LEGACY_MCP_ADAPTER_CONFIG_PATH" ]; then
+    return 0
+  fi
+
+  log "Migrating legacy MCP adapter config"
+  if [ -f "$LEGACY_MCP_ADAPTER_CONFIG_PATH" ] &&
+    [ ! -L "$LEGACY_MCP_ADAPTER_CONFIG_PATH" ]; then
+    if ! result="$(mise_exec node "$DIR/bin/migrate-mcp-adapter.mjs" "$LEGACY_MCP_ADAPTER_CONFIG_PATH" "$MCP_CONFIG_PATH")"; then
+      die "failed to migrate legacy MCP adapter config"
+    fi
+    ok "legacy mcp-adapter.json $result"
+  else
+    warn "legacy mcp-adapter.json is not a regular file; moving it aside without migration"
+  fi
+
+  backup_path="$LEGACY_MCP_ADAPTER_CONFIG_PATH.migrated"
+  if [ -e "$backup_path" ] || [ -L "$backup_path" ]; then
+    backup_path="$LEGACY_MCP_ADAPTER_CONFIG_PATH.migrated.$$"
+  fi
+  if ! mv "$LEGACY_MCP_ADAPTER_CONFIG_PATH" "$backup_path"; then
+    die "failed to retire legacy MCP adapter config"
+  fi
+  ok "retired legacy mcp-adapter.json -> $backup_path"
 }
 
 prepare_copilot_herdr_skill() {
@@ -322,12 +353,13 @@ main() {
   current_subagents="$(grep -Fx "$SUBAGENTS_SOURCE" <<<"$sources" || true)"
   # Version-pinned pi-subagents entries and the legacy maxedapps extension are
   # replaced by the unpinned package.
-  stale_sources="$(grep -E "^npm:$SUBAGENTS_PACKAGE@|$LEGACY_SOURCE_PATTERN" <<<"$sources" || true)"
+  stale_sources="$(grep -E "^npm:$SUBAGENTS_PACKAGE@|$LEGACY_SOURCE_PATTERN|^$MCP_ADAPTER_SOURCE(@|$)" <<<"$sources" || true)"
 
   log "Installing shared Pi configuration"
   merge_json_file "$SETTINGS_FILE" "$PI_AGENT_DIR/settings.json" "settings.json"
   merge_json_file "$SUBAGENT_CONFIG_FILE" "$SUBAGENT_CONFIG_PATH" "subagent config.json"
-  merge_json_file "$MCP_ADAPTER_CONFIG_FILE" "$MCP_ADAPTER_CONFIG_PATH" "mcp-adapter.json"
+  migrate_legacy_mcp_adapter_config
+  merge_json_file "$MCP_CONFIG_FILE" "$MCP_CONFIG_PATH" "mcp.json"
   sync_file "$FOOTER_FILE" "$PI_AGENT_DIR/catppuccin-footer.json"
 
   log "Installing repository-managed Pi packages"
@@ -434,7 +466,7 @@ main() {
   done
 
   if [ -n "$stale_sources" ]; then
-    log "Removing superseded subagents packages"
+    log "Removing superseded Pi packages"
     while IFS= read -r stale_source; do
       mise_exec pi remove "$stale_source"
       ok "removed $stale_source"
