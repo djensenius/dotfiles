@@ -138,6 +138,48 @@ machine-local Git settings there, for example:
 The repo `gitconfig` keeps the shared identity (`user.name` and `user.email`)
 so machines that already link `~/.gitconfig` continue to commit after a pull.
 
+### After `git pull` on another device
+
+Repo-managed dotfiles are intended to keep working after a normal `git pull`.
+If a machine already has the repo links installed, linked files such as Fish,
+Neovim, tmux, Herdr scripts/config, GitHub CLI config, and `~/.gitconfig` update
+as soon as the clone updates. Machine-local state stays outside those links:
+Herdr and `gh` keep real config directories, secrets and credentials stay in
+local files such as `~/.gitconfig.local`, and installers back up drift before
+replacing repo-owned paths.
+
+Use the platform installer when a pull changes links, copied config, packages or
+plugin manifests:
+
+```bash
+# macOS: inspect first, then repair/sync repo-owned links and generated state
+./install-mac --check            # read-only; exits 2 when repo-managed state drifted
+./install-mac                    # safe to re-run; backs up replaced repo-owned paths
+
+# Raspberry Pi: relink configs and refresh mise/tmux/Neovim/Herdr plugin state
+git pull
+./install-pi                     # or ./install-pi --dry-run to preview
+
+# Pi/Herdr agent stack: rerun whenever pi/agent-stack changes
+./install-agent-stack
+```
+
+On macOS, `./install-mac --check` is the safe post-pull drift detector. It
+validates expected links and install targets without writing; run the full
+installer when it reports drift or when a pulled change updates Homebrew, mise,
+TPM, Neovim, Herdr plugins, or the Pi/Herdr agent stack. On Raspberry Pi,
+`./install-pi` is the supported post-pull refresh path and remains idempotent;
+it links repo configs, copies the Pi-specific mise manifest, and re-runs the
+package/plugin sync steps that plain symlinks cannot cover.
+
+`./install-agent-stack` merges shared Pi config into `~/.pi/agent` instead of
+replacing the directory, so local MCP servers, Pi settings and package state are
+preserved. Re-run it after pulling changes under `pi/agent-stack/`; package
+refreshes such as Playwright browser downloads may still need the command called
+out by Pi or the MCP server. GitHub Codespaces remains a bootstrap environment:
+`./install.sh` is the setup entry point, not a continuous post-pull repair
+service.
+
 ### Manual Local Installation
 
 For local installation, most configurations can be symlinked to your `~/.config` directory:
