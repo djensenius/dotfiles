@@ -41,3 +41,9 @@ Implemented Backlog.md adoption on `adopt-backlog-board`: initialized `.backlog/
 
 Validation evidence: `yamllint .` passed with no output after adding the YAML document start; README/AGENTS local Markdown link checker passed; AGENTS content checker passed; `git diff --check origin/main..HEAD` passed; `backlog doctor` passed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Adopted Backlog.md for `djensenius/dotfiles` on `adopt-backlog-board`: initialized the board config, added root `AGENTS.md` from `pi/agent-stack/templates/AGENTS.md` with dotfiles project notes and managed Backlog.md instructions, confirmed Copilot skip coverage for `.backlog/**`, and created TASK-1/TASK-2 follow-ups instead of adding `.backlog-sync.json`. Verified with `yamllint .`, README/AGENTS local link checking, AGENTS content checking, `git diff --check origin/main..HEAD`, and `backlog doctor`.
+<!-- SECTION:FINAL_SUMMARY:END -->
