@@ -1,9 +1,11 @@
 ---
 id: TASK-7
 title: Fix cli-update Pi and Herdr status icons
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-01 17:28'
+updated_date: '2026-10-01 17:30'
 labels: []
 dependencies:
   - TASK-4
