@@ -1,3 +1,4 @@
+---
 project_name: "dotfiles"
 default_status: "To Do"
 statuses: ["To Do", "In Progress", "Done"]
