@@ -1,7 +1,7 @@
 ---
 id: TASK-4
 title: Update CLI tool configuration for Pi and Herdr releases
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:54'
