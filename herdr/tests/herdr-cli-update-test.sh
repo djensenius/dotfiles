@@ -118,6 +118,29 @@ marker_time=202101010000
 new_time=202201010000
 complete_time=202301010000
 
+[ "$(manager_icon pi)" = 'π' ]
+[ "$(manager_icon herdr)" = 'H' ]
+status_render_bin="$TEST_ROOT/status-render-bin"
+mkdir -p "$status_render_bin"
+cat >"$status_render_bin/battery_hearts" <<'EOF'
+#!/usr/bin/env bash
+[ "$1" = --max-hearts ]
+[ "$2" = 5 ]
+printf '♥♥♡♡♡   \n'
+EOF
+chmod +x "$status_render_bin/battery_hearts"
+old_path=$PATH
+PATH="$status_render_bin:$PATH"
+rm -f "$OUTDATED_CACHE"/*.count "$OUTDATED_CACHE"/*.list
+no_update_output=$(render_tab_bar)
+[ "$no_update_output" = '♥♥♡♡♡' ]
+printf '1\n' >"$OUTDATED_CACHE/pi.count"
+printf '2\n' >"$OUTDATED_CACHE/herdr.count"
+status_output=$(render_tab_bar)
+[ "$status_output" = '♥♥♡♡♡  π 1  H 2' ]
+rm -f "$OUTDATED_CACHE/pi.count" "$OUTDATED_CACHE/herdr.count"
+PATH=$old_path
+
 printf 'legacy-generation\n' >"$COMPLETE_FILE"
 if complete_generation_token >/dev/null; then
     printf '%s\n' 'legacy status generation was accepted' >&2
@@ -195,6 +218,8 @@ rm -f "$refresh_marker"
 
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/../scripts/herdr-cli-update.sh"
+[ "$(manager_icon pi)" = 'π' ]
+[ "$(manager_icon herdr)" = 'H' ]
 
 printf '1\n' >"$LIVE_CACHE_DIR/pip.count"
 printf 'old-package\n' >"$LIVE_CACHE_DIR/pip.list"
@@ -275,9 +300,9 @@ cache_initialized=1
 add_manager pi "Pi" pi.count "pi update --extensions" pi.list
 add_manager herdr "Herdr" herdr.count "herdr plugin install <plugin> --yes" herdr.list
 draw_output=$(draw_screen)
-grep -q 'Pi' <<<"$draw_output"
+grep -q 'π Pi' <<<"$draw_output"
 grep -q 'pi-web-access 0.32.0 -> 0.33.0' <<<"$draw_output"
-grep -q 'Herdr' <<<"$draw_output"
+grep -q 'H Herdr' <<<"$draw_output"
 grep -q 'owner/new-plugin' <<<"$draw_output"
 
 cleanup_snapshot
