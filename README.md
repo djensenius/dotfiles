@@ -531,9 +531,13 @@ cp ~/.dotfiles/pi/agent-stack/templates/AGENTS.md ./AGENTS.md
 ```
 
 The template is deliberately opt-in because it requires a scout before
-implementation, one worktree worker at a time, reviewer approval before
-integration, a maintained `tasks/PLAN.md`, and pushing completed worker
-branches to `origin`.
+implementation, worktree workers (one at a time unless the owner allows
+parallel lanes), reviewer approval before integration, task tracking in
+[Backlog.md](https://github.com/MrLesk/Backlog.md) (`brew install backlog-md`,
+then `backlog init`; see the template's workflow section), and pushing
+completed worker branches to `origin`. After `backlog init`, run
+`backlog agents --update-instructions` to add the CLI's managed block; it keeps
+the rest of the file intact.
 
 On macOS, `xbuild` is a drop-in `xcodebuild` wrapper that serializes builds
 with the native `lockf` utility. Test runs default to two parallel workers and
