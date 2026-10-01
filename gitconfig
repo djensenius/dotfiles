@@ -32,6 +32,12 @@
 [github]
 	user = djensenius
 
+[credential "https://github.com"]
+	helper = "!f() { gh_path=$(command -v gh 2>/dev/null) || return 0; \"$gh_path\" auth git-credential \"$@\"; }; f"
+
+[credential "https://gist.github.com"]
+	helper = "!f() { gh_path=$(command -v gh 2>/dev/null) || return 0; \"$gh_path\" auth git-credential \"$@\"; }; f"
+
 [alias]
   m = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout
   mp = !git rev-parse --abbrev-ref origin/HEAD | cut -c8- | xargs -n 1 git checkout && git pull origin $(git rev-parse --abbrev-ref HEAD)
