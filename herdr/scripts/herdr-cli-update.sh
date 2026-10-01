@@ -161,7 +161,7 @@ manager_icon() {
     case "$1" in
         brew) printf '%s' '' ;;
         npm) printf '%s' '' ;;
-        pi) printf '%s' '' ;;
+        pi) printf '%s' 'π' ;;
         pip) printf '%s' '' ;;
         cargo) printf '%s' '' ;;
         composer) printf '%s' '' ;;
@@ -169,7 +169,7 @@ manager_icon() {
         apt) printf '%s' '' ;;
         dnf) printf '%s' '' ;;
         mise) printf '%s' '' ;;
-        herdr) printf '%s' '' ;;
+        herdr) printf '%s' 'H' ;;
         *) printf '%s' '󰏖' ;;
     esac
 }
