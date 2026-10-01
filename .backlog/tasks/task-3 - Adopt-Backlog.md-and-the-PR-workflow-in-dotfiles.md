@@ -1,7 +1,7 @@
 ---
 id: TASK-3
 title: Adopt Backlog.md and the PR workflow in dotfiles
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:05'
