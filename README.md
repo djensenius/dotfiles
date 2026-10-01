@@ -173,8 +173,11 @@ it links repo configs, copies the Pi-specific mise manifest, and re-runs the
 package/plugin sync steps that plain symlinks cannot cover.
 
 `./install-agent-stack` merges shared Pi config into `~/.pi/agent` instead of
-replacing the directory, so local MCP servers, Pi settings and package state are
-preserved. Re-run it after pulling changes under `pi/agent-stack/`; package
+replacing the directory. Non-overlapping user state, such as extra local MCP
+servers or unrelated Pi settings, is preserved, while repository-owned defaults
+such as shared model/theme values, managed package sources, and the shared
+`playwright`/`context7` MCP server definitions are intentionally reapplied on
+each run. Re-run it after pulling changes under `pi/agent-stack/`; package
 refreshes such as Playwright browser downloads may still need the command called
 out by Pi or the MCP server. GitHub Codespaces remains a bootstrap environment:
 `./install.sh` is the setup entry point, not a continuous post-pull repair
