@@ -1,9 +1,11 @@
 ---
 id: TASK-9
 title: Adopt Pi 1.0 agent-stack config refinements
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-01 19:27'
+updated_date: '2026-10-01 19:28'
 labels: []
 dependencies: []
 ordinal: 9000
@@ -22,3 +24,9 @@ Pi 1.0.0 shipped after the recent agent-stack updates. The release notes show mo
 - [ ] #3 README documents any Pi 1.0-specific shared defaults that were added or confirms why other 1.0 features remain user/account-specific
 - [ ] #4 Agent-stack runtime validation passes after the config changes
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Add the safe Pi 1.0 shared defaults: quietStartup "header" in pi/agent-stack/settings.json and descriptions on the two shared MCP servers. Update README and runtime tests to verify the merged settings/descriptions while leaving Radius/image generation/account-specific features as user choices.
+<!-- SECTION:PLAN:END -->
