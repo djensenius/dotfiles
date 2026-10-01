@@ -5,7 +5,7 @@ status: To Do
 assignee:
   - '@djensenius'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-01 16:04'
+updated_date: '2026-10-01 16:10'
 labels: []
 dependencies: []
 references:
@@ -16,13 +16,13 @@ ordinal: 2000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-install.sh already installs backlog-md for Codespaces/bootstrap environments. backlog-sync is released from djensenius/backlog-sync. This task depends on the djensenius/backlog-sync Homebrew packaging task being complete before dotfiles installs it from the tap.
+backlog-sync is released from djensenius/backlog-sync. The opt-in agent-stack installer (pi/agent-stack/install.sh, run by ./install-agent-stack) already installs backlog-md via install_backlog_cli, but repositories that mirror their backlog also need the backlog-sync binary, so they shouldn't have to build it by hand. Depends on djensenius/backlog-sync's Homebrew formula task (djensenius/tap/backlog-sync must exist first).
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 When Homebrew is available and backlog-sync has been released to its tap, install.sh installs it with `brew install djensenius/tap/backlog-sync`.
-- [ ] #2 If the backlog-sync Homebrew install fails, install.sh warns without failing the rest of the bootstrap.
-- [ ] #3 The install/help hint that mentions backlog-md or Backlog.md tooling is updated to include backlog-sync where appropriate.
-- [ ] #4 A test or install-script check is added or updated to cover the backlog-sync install path.
+- [ ] #1 pi/agent-stack/install.sh installs backlog-sync with `brew install djensenius/tap/backlog-sync` only on macOS with Homebrew, next to install_backlog_cli, and skips it when already on PATH
+- [ ] #2 A failed install warns and continues (like install_backlog_cli)
+- [ ] #3 The final setup hint in pi/agent-stack/install.sh mentions backlog-sync and links to djensenius/backlog-sync for non-Homebrew installs
+- [ ] #4 pi/agent-stack/tests/install-runtime.sh covers install, already-installed (zero brew calls) and brew-failure cases
 <!-- AC:END -->
