@@ -531,9 +531,9 @@ cp ~/.dotfiles/pi/agent-stack/templates/AGENTS.md ./AGENTS.md
 ```
 
 The template is deliberately opt-in because it requires a scout before
-implementation, worktree workers, reviewer approval before integration, PR-only
+implementation, worktree workers, reviewer approval before opening a PR, PR-only
 source changes, task tracking in [Backlog.md](https://github.com/MrLesk/Backlog.md),
-and pushing completed worker branches to `origin`. Set up Backlog.md with:
+and pushed task branches. Set up Backlog.md with:
 
 ```bash
 brew install backlog-md
@@ -552,6 +552,10 @@ Also include this two-line section in the repository's
 ## Backlog.md files
 Copilot code review must not review or comment on Backlog.md task files; `.github/instructions/backlog.instructions.md` owns the path rule.
 ```
+
+Land these setup files through a PR before relying on the workflow; Copilot reads
+instructions from the base branch. Enable automatic Copilot code review and a
+ruleset or branch protection that requires CI before merge.
 
 Optionally mirror `.backlog/` into a GitHub Project with
 [backlog-sync](https://github.com/djensenius/backlog-sync). The template's

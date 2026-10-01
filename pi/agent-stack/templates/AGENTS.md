@@ -24,22 +24,20 @@
   full 40-character commit SHA, files, and the checks it ran with their actual
   output lines (per-test pass/fail for test suites), not just "passed".
 - After each worker finishes, start a `reviewer` on that branch/commit with the
-  task spec. Require it to fetch every `review_git` output page. Only integrate
-  on APPROVE or APPROVE WITH NOTES. Save each review where the next worker can
-  read it, and send blocking items back in a fix round.
+  task spec. Require it to fetch every `review_git` output page. Push the branch
+  and open a PR only on APPROVE or APPROVE WITH NOTES. Save each review where
+  the next worker can read it, and send blocking items back in a fix round.
 - Never weaken a check to make it pass: no audit/test exclusions, no hiding
   content, no stand-in UI for audits, no raised timeouts without a diagnosed
   cause. Fix the cause or stop and ask the owner.
 - Product or scope decisions belong to the owner. Ask, record the answer in the
   task, and keep a decision visible in docs when it changes behaviour.
-- After integrating: build and run tests on the main checkout before pushing or
-  starting any dependent worker. Gate the push on the checks' exit codes, not
-  on reading the output afterwards. A test that fails once and passes on rerun
-  is flaky: track it as a task and fix the cause.
+- After the PR merges, update the main checkout and run the checks before
+  starting any dependent worker. Gate dependent work on the checks' exit codes,
+  not on reading the output afterwards. A test that fails once and passes on
+  rerun is flaky: track it as a task and fix the cause.
 - Infrastructure failures (simulator hangs, runner killed before connecting)
   get one rerun before you treat them as code failures; say which it was.
-- Then remove the task worktree with `git worktree remove` and push finished
-  branches to `origin` so work is not only in worktrees.
 
 ## Pull request workflow (all agents)
 Nothing reaches `main` directly. Every source change goes through a pull
@@ -98,8 +96,9 @@ except through triaged issues labelled `inbox`.
   follow-up task, or start a follow-up task without the owner's OK. Exception:
   Copilot findings about unchanged code become To Do follow-up Backlog tasks.
 - When finished: verify each acceptance criterion with real evidence, check it
-  (`--check-ac 1`), add notes, write `--final-summary`, and move the task to
-  `Done`. Leave criteria unchecked if they need evidence you don't have yet.
+  (`--check-ac 1`), add notes, write `--final-summary`, and set `Done` as the
+  branch's last task change. Leave criteria unchecked if they need evidence you
+  don't have yet.
 - If you're blocked, say so in the task notes, leave it `In Progress`, and tell
   the owner (subagents tell the coordinator).
 - Refresh the CLI's managed instruction block with
@@ -109,7 +108,10 @@ except through triaged issues labelled `inbox`.
 Tracking repo variant: when work spans several code repos, Backlog.md can live
 in a separate meta repo that accepts direct task-state commits. Code repos stay
 PR-only. Point agents at the meta repo with `BACKLOG_CWD`, and use one Backlog
-project per code repo.
+project per code repo. In that variant, branch-based task rules do not apply:
+task status does not ride in code PRs, and there are no `.backlog/` conflicts
+where the code branch's version should win, because tasks live only in the
+tracking repo.
 
 ## Build and test rules (all agents)
 - Never call `xcodebuild` directly. Always use `xbuild` with the same arguments;
