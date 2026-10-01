@@ -531,9 +531,35 @@ cp ~/.dotfiles/pi/agent-stack/templates/AGENTS.md ./AGENTS.md
 ```
 
 The template is deliberately opt-in because it requires a scout before
-implementation, one worktree worker at a time, reviewer approval before
-integration, a maintained `tasks/PLAN.md`, and pushing completed worker
-branches to `origin`.
+implementation, worktree workers, reviewer approval before opening a PR, PR-only
+source changes, task tracking in [Backlog.md](https://github.com/MrLesk/Backlog.md),
+and pushed task branches. Set up Backlog.md with:
+
+```bash
+brew install backlog-md
+backlog init --backlog-dir .backlog
+backlog config set autoCommit true
+backlog config set checkActiveBranches true
+backlog agents --update-instructions
+mkdir -p .github/instructions
+cp ~/.dotfiles/pi/agent-stack/templates/backlog.instructions.md .github/instructions/
+```
+
+Also include this two-line section in the repository's
+`.github/copilot-instructions.md`:
+
+```markdown
+## Backlog.md files
+Copilot code review must not review or comment on Backlog.md task files; `.github/instructions/backlog.instructions.md` owns the path rule.
+```
+
+Land these setup files through a PR before relying on the workflow; Copilot reads
+instructions from the base branch. Enable automatic Copilot code review and a
+ruleset or branch protection that requires CI before merge.
+
+Optionally mirror `.backlog/` into a GitHub Project with
+[backlog-sync](https://github.com/djensenius/backlog-sync). The template's
+workflow section describes the PR, backlog board, and `inbox` triage rules.
 
 On macOS, `xbuild` is a drop-in `xcodebuild` wrapper that serializes builds
 with the native `lockf` utility. Test runs default to two parallel workers and

@@ -2,6 +2,9 @@
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
+## Backlog.md files
+Copilot code review must not review or comment on Backlog.md task files; `.github/instructions/backlog.instructions.md` owns the path rule.
+
 ## Repository Overview
 
 This is a dotfiles repository containing configuration files for various development tools (neovim, tmux, fish shell, etc.) using the Catppuccin Mocha theme for consistent styling. The repository supports both GitHub Codespaces (automated setup) and local installation (manual symlinking).

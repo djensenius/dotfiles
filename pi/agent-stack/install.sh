@@ -118,6 +118,27 @@ node_ok() {
   ' "$MIN_NODE"
 }
 
+install_backlog_cli() {
+  if ! is_mac || ! has brew; then
+    return 0
+  fi
+
+  if has backlog; then
+    ok "backlog CLI is already installed"
+    return 0
+  fi
+
+  log "Installing Backlog.md CLI"
+  if HOMEBREW_NO_AUTO_UPDATE=1 \
+    HOMEBREW_NO_INSTALL_CLEANUP=1 \
+    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
+    brew install backlog-md; then
+    ok "installed backlog-md"
+  else
+    warn "failed to install backlog-md; continuing without the backlog CLI"
+  fi
+}
+
 sync_file() {
   local src="$1" dst="$2" mode="${3:-644}"
   if [ -f "$dst" ] && [ ! -L "$dst" ] && cmp -s "$src" "$dst"; then
@@ -456,6 +477,8 @@ main() {
     has xcodebuild || warn "xcodebuild is unavailable; install Xcode before using xbuild"
   fi
 
+  install_backlog_cli
+
   cat <<EOF
 
 Agent stack installed.
@@ -463,8 +486,21 @@ Agent stack installed.
 Subagents extension (latest):
   $SUBAGENTS_SOURCE
 
-Enable the coordinator workflow in a repository:
+Enable the coordinator workflow in a repository (land this setup through a PR,
+because Copilot reads instructions from the base branch):
+  # On non-Homebrew systems, install the Backlog.md CLI first:
+  # npm i -g backlog.md
   cp "$DIR/templates/AGENTS.md" ./AGENTS.md
+  backlog init --backlog-dir .backlog
+  backlog config set autoCommit true
+  backlog config set checkActiveBranches true
+  backlog agents --update-instructions
+  mkdir -p .github/instructions
+  cp "$DIR/templates/backlog.instructions.md" .github/instructions/
+  # Add this two-line Backlog section to the repo's .github/copilot-instructions.md:
+  # ## Backlog.md files
+  # Copilot code review must not review or comment on Backlog.md task files; \`.github/instructions/backlog.instructions.md\` owns the path rule.
+  # Then enable automatic Copilot code review and a ruleset requiring CI before merge.
 
 Smoke test from Pi (ideally in a Herdr pane):
   Use a scout subagent to map how this project is structured.
