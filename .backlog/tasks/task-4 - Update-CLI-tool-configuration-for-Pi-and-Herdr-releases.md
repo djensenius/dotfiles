@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:54'
-updated_date: '2026-10-01 16:54'
+updated_date: '2026-10-01 16:55'
 labels: []
 dependencies: []
 ordinal: 4000
@@ -27,3 +27,9 @@ The local cli-update report shows Pi, Herdr, Pi extensions, and related CLI pack
 - [ ] #6 Herdr 0.9 config changes are limited to useful non-conflicting settings; ctrl+s is not added as a prefix unless justified.
 - [ ] #7 Relevant shell, Herdr, agent-stack, YAML, and TOML validations are run and reported.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Replace the repo-managed Pi MCP adapter package/config with built-in MCP mcp.json wiring in pi/agent-stack/install.sh, packages.txt, and installer tests while preserving shared Playwright/context7 server merge behavior. 2. Update Pi README/settings docs for built-in MCP commands and system theme. 3. Add portable gh-based GitHub/Gist credential helpers to gitconfig without touching fish PATH or Herdr prefix config. 4. Run the targeted fish, Herdr, agent-stack, YAML, and status/security validations and commit the focused changes.
+<!-- SECTION:PLAN:END -->
