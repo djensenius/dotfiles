@@ -44,7 +44,7 @@ zig = 'latest'
 ## Ruby gems
 "gem:rubocop" = "latest"
 "gem:tmuxinator" = "latest"
-cargo-binstall = "1.17.9"
+cargo-binstall = "1.24.0"
 
 [settings]
 # tools can read the versions files used by other version managers
