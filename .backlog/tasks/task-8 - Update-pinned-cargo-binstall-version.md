@@ -1,9 +1,11 @@
 ---
 id: TASK-8
 title: Update pinned cargo-binstall version
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-01 19:21'
+updated_date: '2026-10-01 19:21'
 labels: []
 dependencies: []
 ordinal: 8000
@@ -21,3 +23,9 @@ The pre-merge local stash included a mise/config.toml bump from cargo-binstall 1
 - [ ] #2 TOML validation is run for the mise config change and reported
 - [ ] #3 No unrelated stashed PATH, credential-helper, or Slack webhook helper changes are included
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Update the cargo-binstall pin in mise/config.toml to the released 1.24.0 version discovered in the discarded stash, then run the repository TOML validation and ensure no unrelated stash changes are included.
+<!-- SECTION:PLAN:END -->
