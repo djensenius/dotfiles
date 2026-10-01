@@ -1,9 +1,11 @@
 ---
 id: TASK-10
 title: Symlink repo-owned Pi agent-stack artifacts
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-01 22:05'
+updated_date: '2026-10-01 22:05'
 labels: []
 dependencies: []
 ordinal: 10000
@@ -22,3 +24,9 @@ Pi stores mutable user state under ~/.pi/agent, so settings.json and mcp.json ne
 - [ ] #3 The installer safely replaces prior repo-owned copied files or symlinks while preserving non-repo user files
 - [ ] #4 Runtime tests cover symlink creation, rerun behavior, and local-state preservation for Pi agent-stack artifacts
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Update install-agent-stack to symlink only fully repo-owned Pi agent-stack artifacts (extensions/profiles and possibly footer config), leave settings.json and mcp.json merge-based, add runtime tests for creation/rerun/non-repo preservation, and validate the agent-stack installer tests.
+<!-- SECTION:PLAN:END -->
