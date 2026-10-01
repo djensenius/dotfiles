@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:05'
-updated_date: '2026-10-01 16:05'
+updated_date: '2026-10-01 16:06'
 labels: []
 dependencies: []
 ordinal: 3000
@@ -33,3 +33,11 @@ dotfiles now has the shared Pi agent-stack template available on origin/main. Ad
 2. Add root `AGENTS.md` from `pi/agent-stack/templates/AGENTS.md`, fill in dotfiles-specific notes, and refresh the managed Backlog.md instructions.
 3. Confirm Copilot skip coverage, create the requested follow-up tasks, validate YAML/Markdown changes, then check criteria and close the task.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented Backlog.md adoption on `adopt-backlog-board`: initialized `.backlog/config.yml` for project `dotfiles` with `autoCommit=true` and `checkActiveBranches=true`; added root `AGENTS.md` from `pi/agent-stack/templates/AGENTS.md` with dotfiles setup/lint/test notes and refreshed Backlog.md markers; confirmed `.github/instructions/backlog.instructions.md` applies to `.backlog/**`; created TASK-1 and TASK-2 follow-ups; kept `.backlog-sync.json` absent.
+
+Validation evidence: `yamllint .` passed with no output after adding the YAML document start; README/AGENTS local Markdown link checker passed; AGENTS content checker passed; `git diff --check origin/main..HEAD` passed; `backlog doctor` passed.
+<!-- SECTION:NOTES:END -->
