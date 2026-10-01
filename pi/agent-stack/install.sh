@@ -16,12 +16,12 @@ AGENTS_DIR="$PI_AGENT_DIR/agents"
 LEGACY_PROFILE_DIR="$PI_AGENT_DIR/herdr-subagents/agents"
 SUBAGENT_CONFIG_DIR="$PI_AGENT_DIR/extensions/subagent"
 SUBAGENT_CONFIG_PATH="$SUBAGENT_CONFIG_DIR/config.json"
-MCP_ADAPTER_CONFIG_PATH="$PI_AGENT_DIR/mcp-adapter.json"
+MCP_CONFIG_PATH="$PI_AGENT_DIR/mcp.json"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 PACKAGES_FILE="$DIR/packages.txt"
 SETTINGS_FILE="$DIR/settings.json"
 SUBAGENT_CONFIG_FILE="$DIR/subagent-config.json"
-MCP_ADAPTER_CONFIG_FILE="$DIR/mcp-adapter.json"
+MCP_CONFIG_FILE="$DIR/mcp.json"
 FOOTER_FILE="$DIR/catppuccin-footer.json"
 # nicobailon/pi-subagents, deliberately unpinned: Pi and Herdr float at latest
 # through mise, so the extension tracks latest too and is updated on every run.
@@ -327,7 +327,7 @@ main() {
   log "Installing shared Pi configuration"
   merge_json_file "$SETTINGS_FILE" "$PI_AGENT_DIR/settings.json" "settings.json"
   merge_json_file "$SUBAGENT_CONFIG_FILE" "$SUBAGENT_CONFIG_PATH" "subagent config.json"
-  merge_json_file "$MCP_ADAPTER_CONFIG_FILE" "$MCP_ADAPTER_CONFIG_PATH" "mcp-adapter.json"
+  merge_json_file "$MCP_CONFIG_FILE" "$MCP_CONFIG_PATH" "mcp.json"
   sync_file "$FOOTER_FILE" "$PI_AGENT_DIR/catppuccin-footer.json"
 
   log "Installing repository-managed Pi packages"

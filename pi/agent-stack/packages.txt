@@ -5,5 +5,4 @@ npm:@plannotator/pi-extension
 npm:pi-web-access
 npm:pi-browser-harness
 npm:pi-memctx
-npm:pi-mcp-adapter
 npm:@narumitw/pi-herdr

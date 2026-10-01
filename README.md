@@ -432,8 +432,8 @@ The stack also keeps a small shared Pi config under `pi/agent-stack/` and
 merges it into the user files instead of replacing them, so machine-local
 settings such as `lastChangelogVersion`, existing `packages`, local MCP
 servers, and other keys are preserved. Shared settings set the Pi defaults to
-GitHub Copilot `gpt-5.5`, medium thinking, dark fullscreen TUI mode, and these
-builtin subagent model overrides:
+GitHub Copilot `gpt-5.5`, medium thinking, the Pi `system` theme, fullscreen
+TUI mode, and these builtin subagent model overrides:
 
 | Agent | Model |
 | --- | --- |
@@ -449,8 +449,8 @@ unpinned: the installer installs `npm:pi-subagents` and runs
 keeps pace with Herdr API changes. Other shared Pi packages are also unpinned
 and installed only when absent from the `User packages:` section of `pi list`:
 `npm:pi-catppuccin-footer`, `npm:@plannotator/pi-extension`,
-`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`,
-`npm:pi-mcp-adapter`, and `npm:@narumitw/pi-herdr`. The `pi-herdr` package
+`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`, and
+`npm:@narumitw/pi-herdr`. The `pi-herdr` package
 replaces Herdr's standalone Pi lifecycle integration and Pi's use of the
 standalone global Herdr skill, so the installer removes
 `~/.pi/agent/extensions/herdr-agent-state.ts`, any legacy
@@ -469,20 +469,18 @@ leaves inspector opening on the documented automatic policy (`authorityPolicy.in
 dispatcher tries Herdr first, then Ghostty, then external providers, so Herdr is
 the default inspector surface when Pi is running inside Herdr.
 
-MCP servers are configured through `pi-mcp-adapter`'s user config,
-`~/.pi/agent/mcp-adapter.json` (or `$PI_CODING_AGENT_DIR/mcp-adapter.json`).
-The installer merges in two stdio servers and preserves any other servers:
+MCP servers are configured through Pi's built-in MCP config at
+`~/.pi/agent/mcp.json` (or `$PI_CODING_AGENT_DIR/mcp.json`). The installer
+merges in two stdio servers and preserves any other servers:
 
 - `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
 - `context7`: `npx -y @upstash/context7-mcp@latest`
 
-The shared adapter settings keep MCP quiet in the footer: `mcpFooterStatus: "off"`
-removes the routine connection status and `notifyOnStartupConnect: false` skips
-"servers connected" notices, while connection errors and auth warnings still
-show. Run `/mcp-adapter status` to check servers. The shared footer config
-(`pi/agent-stack/catppuccin-footer.json`) also hides the `browser` and `memctx`
-status items and drops the `git`, `gitDiff`, `lastTokens`, `cost` and `time`
-sections; Herdr's sidebar already shows each workspace's branch.
+Built-in MCP exposes configured servers to Pi directly; run `/mcp` in Pi or
+`pi mcp list` from the shell to check server availability. The shared footer
+config (`pi/agent-stack/catppuccin-footer.json`) hides the `browser` and
+`memctx` status items and drops the `git`, `gitDiff`, `lastTokens`, `cost` and
+`time` sections; Herdr's sidebar already shows each workspace's branch.
 Herdr's agent sidebar includes `state_text`, so while background subagents run
 the Pi pane shows the label pi-subagents publishes (workflow label, agent name
 or active count, with `⚠` when a subagent needs attention).
