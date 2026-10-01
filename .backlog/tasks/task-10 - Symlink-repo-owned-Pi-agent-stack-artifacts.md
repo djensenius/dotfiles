@@ -1,7 +1,7 @@
 ---
 id: TASK-10
 title: Symlink repo-owned Pi agent-stack artifacts
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 22:05'
