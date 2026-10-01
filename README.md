@@ -476,6 +476,15 @@ merges in two stdio servers and preserves any other servers:
 - `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
 - `context7`: `npx -y @upstash/context7-mcp@latest`
 
+On upgrade from the old `npm:pi-mcp-adapter` package, the installer copies any
+servers from `~/.pi/agent/mcp-adapter.json` into the built-in `mcp.json` when
+that can be done safely, then renames the legacy file to
+`mcp-adapter.json.migrated` and removes the adapter package so Pi does not start
+both MCP paths. Adapter-specific settings such as footer/status toggles are not
+copied because built-in MCP does not read them; if a legacy server conflicts
+with an existing built-in server, the built-in entry is kept and the old
+configuration remains in the `.migrated` backup for manual review.
+
 Built-in MCP exposes configured servers to Pi directly; run `/mcp` in Pi or
 `pi mcp list` from the shell to check server availability. The shared footer
 config (`pi/agent-stack/catppuccin-footer.json`) hides the `browser` and
