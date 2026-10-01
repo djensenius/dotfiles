@@ -175,6 +175,42 @@ sync_file() {
   ok "installed $(basename "$dst") -> $dst"
 }
 
+backup_path_for() {
+  local dst="$1" backup_path
+
+  backup_path="$dst.backup"
+  if [ -e "$backup_path" ] || [ -L "$backup_path" ]; then
+    backup_path="$dst.backup.$$"
+  fi
+  printf '%s\n' "$backup_path"
+}
+
+link_file() {
+  local src="$1" dst="$2" backup_path
+
+  if [ -L "$dst" ] && [ "$dst" -ef "$src" ]; then
+    ok "$(basename "$dst") is linked"
+    return
+  fi
+
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    if [ -f "$dst" ] && [ ! -L "$dst" ] && cmp -s "$src" "$dst"; then
+      rm -f "$dst"
+    else
+      backup_path="$(backup_path_for "$dst")"
+      if ! mv "$dst" "$backup_path"; then
+        die "failed to back up existing $(basename "$dst")"
+      fi
+      warn "moved existing $(basename "$dst") aside -> $backup_path"
+    fi
+  fi
+
+  if ! ln -s "$src" "$dst"; then
+    die "failed to link $(basename "$dst")"
+  fi
+  ok "linked $(basename "$dst") -> $dst"
+}
+
 merge_json_file() {
   local src="$1" dst="$2" label="$3" result
 
@@ -381,7 +417,7 @@ main() {
   merge_json_file "$SUBAGENT_CONFIG_FILE" "$SUBAGENT_CONFIG_PATH" "subagent config.json"
   migrate_legacy_mcp_adapter_config
   merge_json_file "$MCP_CONFIG_FILE" "$MCP_CONFIG_PATH" "mcp.json"
-  sync_file "$FOOTER_FILE" "$PI_AGENT_DIR/catppuccin-footer.json"
+  link_file "$FOOTER_FILE" "$PI_AGENT_DIR/catppuccin-footer.json"
 
   log "Installing repository-managed Pi packages"
   while IFS= read -r package_source; do
@@ -483,7 +519,7 @@ main() {
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
   for extension in "$DIR"/extensions/*.ts; do
-    sync_file "$extension" "$PI_AGENT_DIR/extensions/$(basename "$extension")"
+    link_file "$extension" "$PI_AGENT_DIR/extensions/$(basename "$extension")"
   done
 
   if [ -n "$stale_sources" ]; then
@@ -509,7 +545,7 @@ main() {
   # comma-separated lists, so any PI_CODING_AGENT_DIR works unmodified.
   mkdir -p "$AGENTS_DIR"
   for profile in "$DIR"/profiles/*.md; do
-    sync_file "$profile" "$AGENTS_DIR/$(basename "$profile")"
+    link_file "$profile" "$AGENTS_DIR/$(basename "$profile")"
   done
   for profile in reviewer.md worker.md; do
     if [ -f "$LEGACY_PROFILE_DIR/$profile" ]; then

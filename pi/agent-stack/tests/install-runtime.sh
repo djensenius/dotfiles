@@ -56,6 +56,13 @@ assert_not_exists() {
     fail "expected path to be absent: $path"
 }
 
+assert_symlink_to() {
+  local expected="$1" path="$2"
+  [ -L "$path" ] || fail "expected symlink: $path"
+  [ "$(readlink "$path")" = "$expected" ] ||
+    fail "expected $path to link to $expected, found $(readlink "$path")"
+}
+
 sanitize_source() {
   printf '%s' "$1" | sed 's/[^A-Za-z0-9_.-]/_/g'
 }
@@ -80,7 +87,7 @@ assert_json() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in awk basename cat chmod cmp cp dirname grep head install mkdir mktemp mv rm rmdir sed; do
+  for utility in awk basename cat chmod cmp cp dirname grep head install ln mkdir mktemp mv rm rmdir sed; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -514,16 +521,16 @@ assert_no_agent_stack_mutations() {
 assert_reviewer_profile() {
   local name="$1" agent_dir="$2"
 
-  cmp -s "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
-    "$agent_dir/agents/reviewer.md" ||
-    fail "$name did not install the reviewer profile"
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$agent_dir/agents/reviewer.md"
   grep -Fxq "extensions: ../extensions/reviewer-git.ts" \
     "$agent_dir/agents/reviewer.md" ||
     fail "$name reviewer profile does not load reviewer-git.ts relatively"
   # pi-subagents resolves ../ entries from the agent file's directory.
-  cmp -s "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
-    "$agent_dir/agents/../extensions/reviewer-git.ts" ||
-    fail "$name reviewer-git.ts is not where the profile resolves it"
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$agent_dir/agents/../extensions/reviewer-git.ts"
 }
 
 assert_shared_config() {
@@ -544,13 +551,13 @@ assert_shared_config() {
   assert_json "$agent_dir/mcp.json" \
     'value.mcpServers.other.command === "other" && value.mcpServers.playwright.description.includes("Playwright") && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.description.includes("Context7") && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
     "$name MCP merge did not preserve other servers and configure shared servers"
-  cmp -s "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
-    "$agent_dir/catppuccin-footer.json" ||
-    fail "$name did not install catppuccin-footer.json"
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+    "$agent_dir/catppuccin-footer.json"
   for profile in council-gpt.md council-claude.md council-gemini.md; do
-    cmp -s "$REPO_ROOT/pi/agent-stack/profiles/$profile" \
-      "$agent_dir/agents/$profile" ||
-      fail "$name did not install $profile"
+    assert_symlink_to \
+      "$REPO_ROOT/pi/agent-stack/profiles/$profile" \
+      "$agent_dir/agents/$profile"
   done
 }
 
@@ -566,6 +573,7 @@ run_success_scenario() {
   setup_fixture "$root" "$system_runtimes" "$with_lockf"
   mkdir -p \
     "$root/home/.agents/skills/herdr" \
+    "$root/pi-agent/agents" \
     "$root/pi-agent/extensions/subagent" \
     "$root/pi-agent/skills"
   printf 'standalone herdr skill\n' > "$root/home/.agents/skills/herdr/SKILL.md"
@@ -607,6 +615,12 @@ JSON
   }
 }
 JSON
+  cp "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+    "$root/pi-agent/catppuccin-footer.json"
+  cp "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$root/pi-agent/extensions/reviewer-git.ts"
+  cp "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$root/pi-agent/agents/reviewer.md"
 
   if ! run_installer "$root" "$system_name" 0 >"$first_output" 2>&1; then
     cat "$first_output" >&2
@@ -651,14 +665,12 @@ JSON
 
   assert_no_runtime_markers "$name" "$root"
 
-  cmp -s \
+  assert_symlink_to \
     "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
-    "$root/pi-agent/extensions/reviewer-git.ts" ||
-    fail "$name did not install the repository-owned extension"
-  cmp -s \
+    "$root/pi-agent/extensions/reviewer-git.ts"
+  assert_symlink_to \
     "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
-    "$root/pi-agent/extensions/subagent-status.ts" ||
-    fail "$name did not install the subagent status extension"
+    "$root/pi-agent/extensions/subagent-status.ts"
   [ ! -e "$root/pi-agent/extensions/herdr-agent-state.ts" ] ||
     fail "$name did not remove the standalone Herdr Pi lifecycle integration"
   assert_not_exists "$root/home/.agents/skills/herdr"
@@ -670,17 +682,17 @@ JSON
   assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
-  assert_contains "installed reviewer-git.ts" "$first_output"
-  assert_contains "reviewer-git.ts is up to date" "$second_output"
-  assert_contains "installed subagent-status.ts" "$first_output"
-  assert_contains "subagent-status.ts is up to date" "$second_output"
+  assert_contains "linked reviewer-git.ts" "$first_output"
+  assert_contains "reviewer-git.ts is linked" "$second_output"
+  assert_contains "linked subagent-status.ts" "$first_output"
+  assert_contains "subagent-status.ts is linked" "$second_output"
   assert_contains "settings.json is up to date" "$second_output"
   assert_contains "mcp.json is up to date" "$second_output"
-  assert_contains "catppuccin-footer.json is up to date" "$second_output"
-  assert_contains "reviewer.md is up to date" "$second_output"
-  assert_contains "council-gpt.md is up to date" "$second_output"
-  assert_contains "council-claude.md is up to date" "$second_output"
-  assert_contains "council-gemini.md is up to date" "$second_output"
+  assert_contains "catppuccin-footer.json is linked" "$second_output"
+  assert_contains "reviewer.md is linked" "$second_output"
+  assert_contains "council-gpt.md is linked" "$second_output"
+  assert_contains "council-claude.md is linked" "$second_output"
+  assert_contains "council-gemini.md is linked" "$second_output"
   assert_contains "On non-Homebrew systems, install the Backlog.md CLI and backlog-sync first" "$first_output"
   assert_contains "npm i -g backlog.md" "$first_output"
   assert_contains "Install backlog-sync from https://github.com/djensenius/backlog-sync" "$first_output"
@@ -1047,6 +1059,80 @@ JSON
   assert_no_runtime_markers "$name" "$root"
 }
 
+run_symlink_preserves_local_files() {
+  local name="symlink-preserves-local-files"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+
+  setup_fixture "$root" "no" "no"
+  mkdir -p \
+    "$root/pi-agent/agents" \
+    "$root/pi-agent/extensions/subagent"
+  printf 'local reviewer extension\n' > "$root/pi-agent/extensions/reviewer-git.ts"
+  printf 'local status extension\n' > "$root/pi-agent/extensions/subagent-status.ts"
+  printf 'local reviewer profile\n' > "$root/pi-agent/agents/reviewer.md"
+  printf 'local footer config\n' > "$root/pi-agent/catppuccin-footer.json"
+  cat > "$root/pi-agent/settings.json" <<'JSON'
+{
+  "localOnly": true
+}
+JSON
+  cat > "$root/pi-agent/mcp.json" <<'JSON'
+{
+  "mcpServers": {
+    "local": {
+      "command": "local"
+    }
+  }
+}
+JSON
+
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name installer run failed"
+  fi
+
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$root/pi-agent/extensions/reviewer-git.ts"
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
+    "$root/pi-agent/extensions/subagent-status.ts"
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$root/pi-agent/agents/reviewer.md"
+  assert_symlink_to \
+    "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+    "$root/pi-agent/catppuccin-footer.json"
+  grep -Fxq 'local reviewer extension' \
+    "$root/pi-agent/extensions/reviewer-git.ts.backup" ||
+    fail "$name did not back up the local reviewer extension"
+  grep -Fxq 'local status extension' \
+    "$root/pi-agent/extensions/subagent-status.ts.backup" ||
+    fail "$name did not back up the local status extension"
+  grep -Fxq 'local reviewer profile' \
+    "$root/pi-agent/agents/reviewer.md.backup" ||
+    fail "$name did not back up the local reviewer profile"
+  grep -Fxq 'local footer config' \
+    "$root/pi-agent/catppuccin-footer.json.backup" ||
+    fail "$name did not back up the local footer config"
+  [ ! -L "$root/pi-agent/settings.json" ] ||
+    fail "$name symlinked settings.json"
+  [ ! -L "$root/pi-agent/mcp.json" ] ||
+    fail "$name symlinked mcp.json"
+  assert_json "$root/pi-agent/settings.json" \
+    'value.localOnly === true && value.quietStartup === "header"' \
+    "$name did not preserve local settings while merging shared settings"
+  assert_json "$root/pi-agent/mcp.json" \
+    'value.mcpServers.local.command === "local" && value.mcpServers.playwright.command === "npx"' \
+    "$name did not preserve local MCP servers while merging shared MCP config"
+  assert_contains "moved existing reviewer-git.ts aside -> $root/pi-agent/extensions/reviewer-git.ts.backup" "$output"
+  assert_contains "moved existing subagent-status.ts aside -> $root/pi-agent/extensions/subagent-status.ts.backup" "$output"
+  assert_contains "moved existing reviewer.md aside -> $root/pi-agent/agents/reviewer.md.backup" "$output"
+  assert_contains "moved existing catppuccin-footer.json aside -> $root/pi-agent/catppuccin-footer.json.backup" "$output"
+  assert_no_runtime_markers "$name" "$root"
+}
+
 run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"
 run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
@@ -1079,5 +1165,6 @@ run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
 run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
 run_mcp_adapter_upgrade_migration
+run_symlink_preserves_local_files
 
 printf 'installer mise runtime tests passed\n'
