@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 22:05'
-updated_date: '2026-10-01 22:05'
+updated_date: '2026-10-01 22:08'
 labels: []
 dependencies: []
 ordinal: 10000
@@ -30,3 +30,9 @@ Pi stores mutable user state under ~/.pi/agent, so settings.json and mcp.json ne
 <!-- SECTION:PLAN:BEGIN -->
 Update install-agent-stack to symlink only fully repo-owned Pi agent-stack artifacts (extensions/profiles and possibly footer config), leave settings.json and mcp.json merge-based, add runtime tests for creation/rerun/non-repo preservation, and validate the agent-stack installer tests.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented symlink handling for repo-owned Pi agent-stack artifacts: extensions, profiles, and catppuccin-footer.json now link from pi/agent-stack into $PI_CODING_AGENT_DIR (default ~/.pi/agent). settings.json, mcp.json, and subagent config remain merge-based. Existing matching copied files are converted to links; differing local files are moved aside as .backup before linking.
+<!-- SECTION:NOTES:END -->
