@@ -58,16 +58,23 @@ work there except through the mirror's `inbox` label.
   acceptance criteria (`--ac`), `--dep` for ordering, `-p` for subtasks, `-m`
   for milestones, and `-a` when the owner is known. No implementation plan at
   creation time.
-- Before starting: pick a `To Do` task whose dependencies are `Done`, then
-  `backlog task edit task-12 -s "In Progress" -a @<your-name>`. Research the
-  code, then record a short plan with `--plan` before writing code.
+- Before starting: pick a `To Do` task whose dependencies are `Done`. On
+  `main` (the coordinator, before creating the branch), run
+  `backlog task edit task-12 -s "In Progress" -a @<worker-name>`, then create
+  the branch and worktree from that commit. `backlog board` on main prefers
+  main's copy of a task, so this keeps the board correct during the work. The
+  worker researches the code, then records a short plan with `--plan` before
+  writing code.
 - Put the task ID in the branch name and PR title (`task-12-short-slug`,
   "task-12: Short title"). Nested IDs keep every segment (`task-1.2.7-slug`).
-- Task changes are auto-committed on the branch you run the CLI on. Update a
-  branch's task only from that branch's worktree, never from main: `task list`
-  and `task view` read only the current checkout, `backlog board` lets the
-  current checkout's copy win, and `updated_date` has minute resolution, so
-  edits on main can mask a task's real state.
+- Task changes are auto-committed on the branch you run the CLI on. Once a
+  task is In Progress, make every further change (plan, notes, checked
+  criteria, final summary, Done) from its worktree, so it reaches main with the
+  merge. Don't edit that task on main while its branch is open: `task list` and
+  `task view` read only the current checkout, `backlog board` lets the current
+  checkout's copy win, and `updated_date` has minute resolution, so edits on
+  main can mask the branch's state. If a merge conflicts only in a task file
+  under `backlog/`, keep the branch's version.
 - While working, use `--append-notes`. Out-of-scope work becomes a follow-up
   task or needs the owner's OK.
 - When finished: verify each acceptance criterion with real evidence, check it
