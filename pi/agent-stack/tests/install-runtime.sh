@@ -335,6 +335,20 @@ EOF
   chmod 755 "$destination/lockf"
 }
 
+write_brew_mock() {
+  local destination="$1"
+  cat > "$destination/brew" <<'EOF'
+#!/bin/bash
+set -euo pipefail
+[ "${HOMEBREW_NO_AUTO_UPDATE:-}" = "1" ] || exit 9
+[ "${HOMEBREW_NO_INSTALL_CLEANUP:-}" = "1" ] || exit 9
+[ "${HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:-}" = "1" ] || exit 9
+[ "$#" -eq 2 ] && [ "$1" = "install" ] && [ "$2" = "backlog-md" ] || exit 9
+printf 'exec:brew install:%s\n' "$2" >> "${RUNTIME_TEST_LOG:?}"
+EOF
+  chmod 755 "$destination/brew"
+}
+
 write_system_runtime_mocks() {
   local destination="$1" runtime
   for runtime in node npx pi herdr; do
@@ -637,6 +651,13 @@ JSON
   assert_contains "council-gpt.md is up to date" "$second_output"
   assert_contains "council-claude.md is up to date" "$second_output"
   assert_contains "council-gemini.md is up to date" "$second_output"
+  assert_contains "cp \"$REPO_ROOT/pi/agent-stack/templates/AGENTS.md\" ./AGENTS.md" "$first_output"
+  assert_contains "backlog init --backlog-dir .backlog" "$first_output"
+  assert_contains "backlog config set autoCommit true" "$first_output"
+  assert_contains "backlog config set checkActiveBranches true" "$first_output"
+  assert_contains "backlog agents --update-instructions" "$first_output"
+  assert_contains "cp \"$REPO_ROOT/pi/agent-stack/templates/backlog.instructions.md\" .github/instructions/" "$first_output"
+  assert_contains "ruleset requiring CI before merge" "$first_output"
 
   if [ "$system_name" = "Darwin" ]; then
     cmp -s "$REPO_ROOT/pi/agent-stack/bin/xbuild" "$root/local-bin/xbuild" ||
@@ -647,6 +668,23 @@ JSON
     [ ! -e "$root/local-bin/xbuild" ] ||
       fail "$name unexpectedly installed xbuild on $system_name"
   fi
+}
+
+run_darwin_with_brew_installs_backlog_md() {
+  local name="darwin-with-brew-installs-backlog-md"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+
+  setup_fixture "$root" "no" "yes"
+  write_brew_mock "$root/system-bin"
+  if ! run_installer "$root" "Darwin" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name installer run failed"
+  fi
+
+  assert_count 1 "exec:brew install:backlog-md" "$root/mise.log"
+  assert_contains "Installing Backlog.md CLI" "$output"
+  assert_contains "installed backlog-md" "$output"
 }
 
 run_darwin_no_lockf() {
@@ -856,6 +894,7 @@ run_migration() {
 run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"
 run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
+run_darwin_with_brew_installs_backlog_md
 run_darwin_no_lockf
 run_pi_list_failure
 run_invalid_settings_json
