@@ -1,9 +1,11 @@
 ---
 id: TASK-3
 title: Adopt Backlog.md and the PR workflow in dotfiles
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-01 16:05'
+updated_date: '2026-10-01 16:05'
 labels: []
 dependencies: []
 ordinal: 3000
