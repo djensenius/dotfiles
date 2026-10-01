@@ -25,3 +25,11 @@ dotfiles now has the shared Pi agent-stack template available on origin/main. Ad
 - [ ] #4 Backlog follow-up tasks exist for the GitHub Project/backlog-sync mirror and for installing backlog-sync from the Homebrew tap once released.
 - [ ] #5 Changed YAML and Markdown files are validated with the repository's relevant lint/link checks.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Initialize `.backlog/config.yml` with the requested Backlog.md defaults and branch safety settings.
+2. Add root `AGENTS.md` from `pi/agent-stack/templates/AGENTS.md`, fill in dotfiles-specific notes, and refresh the managed Backlog.md instructions.
+3. Confirm Copilot skip coverage, create the requested follow-up tasks, validate YAML/Markdown changes, then check criteria and close the task.
+<!-- SECTION:PLAN:END -->
