@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 17:26'
-updated_date: '2026-10-01 18:31'
+updated_date: '2026-10-01 18:42'
 labels: []
 dependencies:
   - TASK-4
@@ -36,6 +36,8 @@ Dotfiles changes should become usable on another machine after a normal git pull
 
 <!-- SECTION:NOTES:BEGIN -->
 Documented the post-pull workflow in README.md: linked repo-managed dotfiles update immediately after git pull when links exist; macOS uses ./install-mac --check as a read-only drift detector and ./install-mac to repair/sync; Raspberry Pi uses git pull && ./install-pi; Pi/Herdr agent-stack changes require ./install-agent-stack, which merges shared config into ~/.pi/agent. Validation: bash mac/tests/install-mac-test.sh -> ok install-mac tests passed; bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed.
+
+Addressed Copilot PR #362 note by clarifying that install-agent-stack preserves non-overlapping local state but intentionally reapplies repository-owned defaults, managed package sources, and shared MCP server definitions.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
