@@ -9,7 +9,7 @@
   screenshots) and hand the next worker concrete root causes, not "try again".
 - Use `worker` subagents for implementation. Before each worker, create a
   persistent branch and worktree named after the task
-  (`git worktree add ../<repo>-task-12 -b task-12-short-slug`) and launch the
+  (`git worktree add ../sample-repo-task-12 -b task-12-short-slug`) and launch the
   worker with `cwd` set to that worktree. Create the worktree in a separate step
   that finishes before the launch; a workflow started in the same step can fail
   with "cwd does not exist". Do not use managed `worktree: true` runs here: they
@@ -41,50 +41,75 @@
 - Then remove the task worktree with `git worktree remove` and push finished
   branches to `origin` so work is not only in worktrees.
 
+## Pull request workflow (all agents)
+Nothing reaches `main` directly. Every source change goes through a pull
+request:
+1. Work on the task branch (`task-12-short-slug`); task status changes ride in
+   the same branch.
+2. Push the branch and open a PR titled `task-12: Short title` that names the
+   Backlog task and lists the checks run.
+3. Automatic Copilot code review and CI must run before merge. Address findings,
+   push fixes, reply on each comment, and request a new Copilot review.
+4. Review-loop stopping rule: fix high-severity findings and re-request review.
+   Medium/low or not-applicable findings are fixed or answered with reasoning
+   and resolved. Findings about code the PR didn't change become To Do follow-up
+   Backlog tasks. Merge when the latest Copilot review has no unresolved
+   high-severity findings and CI is green.
+5. Either the owner or the coordinator merges. Afterwards, update the main
+   checkout, re-run the checks, and remove the task worktree.
+
 ## Backlog.md task workflow (all agents)
-Backlog.md (`backlog/`) is the single source of truth for work. Any GitHub
-issues or Project for it are a one-way mirror (e.g. `backlog-sync`); never track
-work there except through the mirror's `inbox` label.
+Backlog.md (`.backlog/`) is the single source of truth for work. Initialize it
+with `backlog init --backlog-dir .backlog`, then run
+`backlog config set autoCommit true` and
+`backlog config set checkActiveBranches true`. Any GitHub Project mirrored by
+[backlog-sync](https://github.com/djensenius/backlog-sync) is the live board;
+`backlog board` on main catches up when PRs merge. Do not track work on GitHub
+except through triaged issues labelled `inbox`.
 
 - At the start of a session run `backlog instructions overview`, and read
   `backlog instructions task-creation`, `task-execution` or `task-finalization`
-  before creating, working on, or finishing tasks.
+  before creating, working on, or finishing tasks. Also check GitHub issues
+  labelled `inbox`, search for existing tasks first, triage each issue into a
+  task, then remove the label.
 - Always use the `backlog` CLI to read and change tasks, with `--plain` for
-  agent output (`--json` for scripts). Never create or edit files in `backlog/`
+  agent output (`--json` for scripts). Never create or edit files in `.backlog/`
   directly. Pass task text with backticks as argv or single-quoted strings so the
   shell doesn't run it.
-- Search first (`backlog search "<words>" --plain`) and don't create duplicates.
+- Search first (`backlog search "words" --plain`) and don't create duplicates.
   New tasks need a description that says why the work exists, testable
   acceptance criteria (`--ac`), `--dep` for ordering, `-p` for subtasks, `-m`
   for milestones, and `-a` when the owner is known. No implementation plan at
   creation time.
-- Before starting: pick a `To Do` task whose dependencies are `Done`. On
-  `main` (the coordinator, before creating the branch), run
-  `backlog task edit task-12 -s "In Progress" -a @<worker-name>`, then create
-  the branch and worktree from that commit. `backlog board` on main prefers
-  main's copy of a task, so this keeps the board correct during the work. The
-  worker researches the code, then records a short plan with `--plan` before
-  writing code.
+- Start a task from its own branch. In that branch's worktree, run
+  `backlog task edit task-12 -s "In Progress" -a @pi-worker`, then research the
+  code and record a short plan with `--plan` before writing code.
 - Put the task ID in the branch name and PR title (`task-12-short-slug`,
-  "task-12: Short title"). Nested IDs keep every segment (`task-1.2.7-slug`).
-- Task changes are auto-committed on the branch you run the CLI on. Once a
-  task is In Progress, make every further change (plan, notes, checked
-  criteria, final summary, Done) from its worktree, so it reaches main with the
-  merge. Don't edit that task on main while its branch is open: `task list` and
+  `task-12: Short title`). Nested IDs keep every segment (`task-1.2.7-slug`).
+- Task changes are auto-committed on the branch you run the CLI on. Once a task
+  is In Progress, make every further change (plan, notes, checked criteria,
+  final summary, Done) from its worktree, so it reaches main with the merge.
+  Don't edit that task on main while its branch is open: `task list` and
   `task view` read only the current checkout, `backlog board` lets the current
   checkout's copy win, and `updated_date` has minute resolution, so edits on
-  main can mask the branch's state. If a merge conflicts only in a task file
-  under `backlog/`, keep the branch's version.
-- While working, use `--append-notes`. Out-of-scope work becomes a follow-up
-  task or needs the owner's OK.
+  main can mask the branch's state. If a merge conflicts only in a `.backlog/`
+  task file, keep the branch's version.
+- While working, use `--append-notes`. Do not add out-of-scope work, create a
+  follow-up task, or start a follow-up task without the owner's OK. Exception:
+  Copilot findings about unchanged code become To Do follow-up Backlog tasks.
 - When finished: verify each acceptance criterion with real evidence, check it
-  (`--check-ac <n>`), add notes, write `--final-summary`, and move the task to
+  (`--check-ac 1`), add notes, write `--final-summary`, and move the task to
   `Done`. Leave criteria unchecked if they need evidence you don't have yet.
 - If you're blocked, say so in the task notes, leave it `In Progress`, and tell
   the owner (subagents tell the coordinator).
 - Refresh the CLI's managed instruction block with
   `backlog agents --update-instructions`. It only rewrites the text between its
   `BACKLOG.MD GUIDELINES` markers, so keep project rules outside them.
+
+Tracking repo variant: when work spans several code repos, Backlog.md can live
+in a separate meta repo that accepts direct task-state commits. Code repos stay
+PR-only. Point agents at the meta repo with `BACKLOG_CWD`, and use one Backlog
+project per code repo.
 
 ## Build and test rules (all agents)
 - Never call `xcodebuild` directly. Always use `xbuild` with the same arguments;
