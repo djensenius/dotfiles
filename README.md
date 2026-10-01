@@ -478,7 +478,12 @@ merges it into the user files instead of replacing them, so machine-local
 settings such as `lastChangelogVersion`, existing `packages`, local MCP
 servers, and other keys are preserved. Shared settings set the Pi defaults to
 GitHub Copilot `gpt-5.5`, medium thinking, the Pi `system` theme, fullscreen
-TUI mode, and these builtin subagent model overrides:
+TUI mode, and Pi 1.0's `quietStartup: "header"` mode so launches keep the
+version/key-hint header without the longer loaded-resource listing. Other Pi 1.0
+features such as Radius sign-in, image generation from codemode, and custom MCP
+OAuth metadata are account- or server-specific, so they are left for each user
+or MCP server instead of being forced by the shared dotfiles config. The stack
+also sets these builtin subagent model overrides:
 
 | Agent | Model |
 | --- | --- |
@@ -518,8 +523,10 @@ MCP servers are configured through Pi's built-in MCP config at
 `~/.pi/agent/mcp.json` (or `$PI_CODING_AGENT_DIR/mcp.json`). The installer
 merges in two stdio servers and preserves any other servers:
 
-- `playwright`: `npx -y @playwright/mcp@latest --browser firefox`
-- `context7`: `npx -y @upstash/context7-mcp@latest`
+- `playwright`: `npx -y @playwright/mcp@latest --browser firefox`, described
+  as browser automation and page inspection through Playwright using Firefox.
+- `context7`: `npx -y @upstash/context7-mcp@latest`, described as current
+  library documentation lookup through Context7.
 
 On upgrade from the old `npm:pi-mcp-adapter` package, the installer copies any
 servers from `~/.pi/agent/mcp-adapter.json` into the built-in `mcp.json` when

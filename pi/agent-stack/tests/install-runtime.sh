@@ -525,7 +525,7 @@ assert_shared_config() {
     'value.localOnly === true && value.lastChangelogVersion === "0.1.0" && value.packages[0] === "keep"' \
     "$name settings merge dropped local keys"
   assert_json "$agent_dir/settings.json" \
-    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-5.5" && value.defaultThinkingLevel === "medium" && value.theme === "system" && value.tuiMode === "fullscreen"' \
+    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-5.5" && value.defaultThinkingLevel === "medium" && value.theme === "system" && value.tuiMode === "fullscreen" && value.quietStartup === "header"' \
     "$name settings merge did not apply shared top-level values"
   assert_json "$agent_dir/settings.json" \
     'value.subagents.localSetting === "preserved" && value.subagents.agentOverrides.worker.model === "github-copilot/gpt-5.5" && value.subagents.agentOverrides.scout.model === "github-copilot/gpt-5.4-mini" && value.subagents.agentOverrides.researcher.model === "github-copilot/gemini-3.8-flash" && value.subagents.agentOverrides.reviewer.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.oracle.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.localOnly.description === "preserved"' \
@@ -534,7 +534,7 @@ assert_shared_config() {
     'value.fleetView === true && value.asyncWidget === false && value.authorityPolicy.inspectorOpen === "auto" && value.authorityPolicy.projectOpen === "confirm"' \
     "$name subagent config merge did not preserve local policy and apply shared rich-view defaults"
   assert_json "$agent_dir/mcp.json" \
-    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
+    'value.mcpServers.other.command === "other" && value.mcpServers.playwright.description.includes("Playwright") && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.description.includes("Context7") && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
     "$name MCP merge did not preserve other servers and configure shared servers"
   cmp -s "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
     "$agent_dir/catppuccin-footer.json" ||

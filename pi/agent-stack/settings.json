@@ -4,6 +4,7 @@
   "defaultThinkingLevel": "medium",
   "theme": "system",
   "tuiMode": "fullscreen",
+  "quietStartup": "header",
   "subagents": {
     "agentOverrides": {
       "scout": {
