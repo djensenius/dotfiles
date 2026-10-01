@@ -135,7 +135,13 @@ tracking repo.
 - Pi agent-stack checks live under `pi/agent-stack/tests/`; the footer/status
   extension is tested with `node pi/agent-stack/tests/subagent-status.test.ts`.
   Shell/security checks there include `install-git-version.sh`,
-  `install-runtime.sh`, and `reviewer-git-security.sh`.
+  `install-runtime.sh`, and `reviewer-git-security.sh`; run them with
+  `bash pi/agent-stack/tests/<name>.sh`.
+- The template's Xcode/`xbuild` build rules above don't apply here: this repo
+  has no Apple project (it only ships the `xbuild` wrapper for other repos).
+- `.backlog/config.yml` starts with `---` for yamllint's document-start rule;
+  `backlog config set` may rewrite the file without it, so re-run `yamllint .`
+  after changing Backlog config.
 - When editing Markdown instructions, check relevant README/AGENTS links. Never
   run broad `find`/`grep` commands above the repository root.
 - The Backlog.md GitHub Project mirror is intentionally not configured during
