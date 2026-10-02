@@ -1,7 +1,7 @@
 ---
 id: TASK-1
 title: Mirror this repo's backlog to a GitHub Project with backlog-sync
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
@@ -19,10 +19,10 @@ The owner tracks every repository's work on GitHub Projects. This dotfiles board
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A GitHub Project exists for djensenius/dotfiles with To Do, In Progress, and Done columns/statuses mapped from Backlog.md.
-- [ ] #2 `.backlog-sync.json` is added with `defaultRepo` set to `djensenius/dotfiles` and inbox mode set to manual.
-- [ ] #3 A launchd agent is installed with its own label and log files for the backlog-sync mirror.
-- [ ] #4 A real backlog-sync run is recorded with its result, followed by a no-op second run recorded with its result.
+- [x] #1 A GitHub Project exists for djensenius/dotfiles with To Do, In Progress, and Done columns/statuses mapped from Backlog.md.
+- [x] #2 `.backlog-sync.json` is added with `defaultRepo` set to `djensenius/dotfiles` and inbox mode set to manual.
+- [x] #3 A launchd agent is installed with its own label and log files for the backlog-sync mirror.
+- [x] #4 A real backlog-sync run is recorded with its result, followed by a no-op second run recorded with its result.
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -44,3 +44,9 @@ Launchd: scripts/install-dotfiles-backlog-sync-launchd.sh --root /Users/david/De
 
 Real sync: /Users/david/bin/backlog-sync -root . -config .backlog-sync.json -no-inbox -verbose created issues djensenius/dotfiles#365-#374, added them to project 10, set statuses, and ended: sync complete: 10 created, 8 updated, 10 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations. Immediate second run of the same command ended: sync complete: 0 created, 0 updated, 0 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Implemented the dotfiles backlog-sync mirror by creating GitHub Project #10, adding .backlog-sync.json with defaultRepo djensenius/dotfiles and manual inbox mode, adding and installing/loading the launchd mirror agent, and running a real sync plus immediate no-op second run. Verified project status options/items with gh project commands, config with upstream README/examples and backlog-sync -dry-run, launchd with plutil/launchctl/logs, and sync output showing 10 created then 0 changes.
+<!-- SECTION:FINAL_SUMMARY:END -->
