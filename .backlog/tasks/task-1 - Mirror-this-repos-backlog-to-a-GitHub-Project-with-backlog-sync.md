@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-02 01:39'
+updated_date: '2026-10-02 01:40'
 labels: []
 dependencies: []
 ordinal: 1000
@@ -24,3 +24,9 @@ The owner tracks every repository's work on GitHub Projects. This dotfiles board
 - [ ] #3 A launchd agent is installed with its own label and log files for the backlog-sync mirror.
 - [ ] #4 A real backlog-sync run is recorded with its result, followed by a no-op second run recorded with its result.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Create or reuse a user-owned GitHub Project titled dotfiles, verify the Status field has To Do, In Progress, and Done options, and record the project number/URL. 2. Add a repo .backlog-sync.json based on upstream minimal-single-repo config with defaultRepo djensenius/dotfiles and inbox.mode manual. 3. Add an idempotent launchd installer plus repo-owned plist template for com.djensenius.dotfiles.backlog-sync using /Users/david/bin/backlog-sync, repo-root -root/-config, -no-inbox, unique /tmp logs, then install/load it from this worktree. 4. Run backlog-sync dry-run, then two real -root . -config .backlog-sync.json -no-inbox -verbose runs, recording the first real sync and second no-op evidence in task notes. 5. Validate plist, diff, and task criteria before finalizing TASK-1.
+<!-- SECTION:PLAN:END -->
