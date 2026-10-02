@@ -1,11 +1,11 @@
 ---
 id: TASK-1
 title: Mirror this repo's backlog to a GitHub Project with backlog-sync
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-02 01:44'
+updated_date: '2026-10-02 02:00'
 labels: []
 dependencies: []
 ordinal: 1000
@@ -43,6 +43,8 @@ Dry run: /Users/david/bin/backlog-sync -dry-run -root . -config .backlog-sync.js
 Launchd: scripts/install-dotfiles-backlog-sync-launchd.sh --root /Users/david/Developer/dotfiles-task-1-backlog-sync-mirror wrote /Users/david/Library/LaunchAgents/com.djensenius.dotfiles.backlog-sync.plist. plutil -lint passed. The installed agent uses label com.djensenius.dotfiles.backlog-sync, /Users/david/bin/backlog-sync, -root /Users/david/Developer/dotfiles-task-1-backlog-sync-mirror, -config /Users/david/Developer/dotfiles-task-1-backlog-sync-mirror/.backlog-sync.json, -no-inbox, -verbose, stdout /tmp/dotfiles-backlog-sync.out.log, and stderr /tmp/dotfiles-backlog-sync.err.log. Loaded with --load; launchctl list showed com.djensenius.dotfiles.backlog-sync exit 0 after RunAtLoad, and the stdout log ended with sync complete: 0 created, 0 updated, 0 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations.
 
 Real sync: /Users/david/bin/backlog-sync -root . -config .backlog-sync.json -no-inbox -verbose created issues djensenius/dotfiles#365-#374, added them to project 10, set statuses, and ended: sync complete: 10 created, 8 updated, 10 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations. Immediate second run of the same command ended: sync complete: 0 created, 0 updated, 0 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations.
+
+Coordinator follow-up after initial completion: subagent reviewer/worker attempts failed with provider Connection error (reported as recurring 400s). Direct investigation found the dotfiles LaunchAgent had been loaded from the task worktree; it was booted out to avoid a persistent agent pointing at a disposable checkout. backlog-sync upstream docs confirm cross-worktree scanning is intentional, but the launchd installer should prevent --load from non-main/task worktrees unless explicitly overridden.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
