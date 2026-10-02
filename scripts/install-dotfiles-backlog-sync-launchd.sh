@@ -2,7 +2,7 @@
 set -euo pipefail
 
 LABEL="com.djensenius.dotfiles.backlog-sync"
-BINARY="/Users/david/bin/backlog-sync"
+BINARY="$(command -v backlog-sync || true)"
 ROOT=""
 STDOUT_LOG="/tmp/dotfiles-backlog-sync.out.log"
 STDERR_LOG="/tmp/dotfiles-backlog-sync.err.log"
@@ -25,7 +25,7 @@ removed after merge.
 
 Options:
   --root <repo-root>       Repository root to mirror (default: git top-level of cwd)
-  --binary <path>          backlog-sync binary (default: /Users/david/bin/backlog-sync)
+  --binary <path>          backlog-sync binary (default: first backlog-sync on PATH)
   --stdout-log <path>      launchd stdout log (default: /tmp/dotfiles-backlog-sync.out.log)
   --stderr-log <path>      launchd stderr log (default: /tmp/dotfiles-backlog-sync.err.log)
   --load                   Bootstrap and kickstart the LaunchAgent after writing it
