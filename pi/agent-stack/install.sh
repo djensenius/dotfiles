@@ -176,12 +176,14 @@ sync_file() {
 }
 
 backup_path_for() {
-  local dst="$1" backup_path
+  local dst="$1" backup_path suffix
 
   backup_path="$dst.backup"
-  if [ -e "$backup_path" ] || [ -L "$backup_path" ]; then
-    backup_path="$dst.backup.$$"
-  fi
+  suffix=1
+  while [ -e "$backup_path" ] || [ -L "$backup_path" ]; do
+    backup_path="$dst.backup.$suffix"
+    suffix=$((suffix + 1))
+  done
   printf '%s\n' "$backup_path"
 }
 

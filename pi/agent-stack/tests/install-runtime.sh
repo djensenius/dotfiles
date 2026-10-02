@@ -1069,6 +1069,7 @@ run_symlink_preserves_local_files() {
     "$root/pi-agent/agents" \
     "$root/pi-agent/extensions/subagent"
   printf 'local reviewer extension\n' > "$root/pi-agent/extensions/reviewer-git.ts"
+  printf 'existing reviewer backup\n' > "$root/pi-agent/extensions/reviewer-git.ts.backup"
   printf 'local status extension\n' > "$root/pi-agent/extensions/subagent-status.ts"
   printf 'local reviewer profile\n' > "$root/pi-agent/agents/reviewer.md"
   printf 'local footer config\n' > "$root/pi-agent/catppuccin-footer.json"
@@ -1104,9 +1105,12 @@ JSON
   assert_symlink_to \
     "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
     "$root/pi-agent/catppuccin-footer.json"
-  grep -Fxq 'local reviewer extension' \
+  grep -Fxq 'existing reviewer backup' \
     "$root/pi-agent/extensions/reviewer-git.ts.backup" ||
-    fail "$name did not back up the local reviewer extension"
+    fail "$name overwrote the existing reviewer backup"
+  grep -Fxq 'local reviewer extension' \
+    "$root/pi-agent/extensions/reviewer-git.ts.backup.1" ||
+    fail "$name did not choose a unique backup for the local reviewer extension"
   grep -Fxq 'local status extension' \
     "$root/pi-agent/extensions/subagent-status.ts.backup" ||
     fail "$name did not back up the local status extension"
@@ -1126,7 +1130,7 @@ JSON
   assert_json "$root/pi-agent/mcp.json" \
     'value.mcpServers.local.command === "local" && value.mcpServers.playwright.command === "npx"' \
     "$name did not preserve local MCP servers while merging shared MCP config"
-  assert_contains "moved existing reviewer-git.ts aside -> $root/pi-agent/extensions/reviewer-git.ts.backup" "$output"
+  assert_contains "moved existing reviewer-git.ts aside -> $root/pi-agent/extensions/reviewer-git.ts.backup.1" "$output"
   assert_contains "moved existing subagent-status.ts aside -> $root/pi-agent/extensions/subagent-status.ts.backup" "$output"
   assert_contains "moved existing reviewer.md aside -> $root/pi-agent/agents/reviewer.md.backup" "$output"
   assert_contains "moved existing catppuccin-footer.json aside -> $root/pi-agent/catppuccin-footer.json.backup" "$output"
