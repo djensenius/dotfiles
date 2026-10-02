@@ -69,9 +69,9 @@ fi
 
 mkdir -p "$PLIST_DIR" "$(dirname "$STDOUT_LOG")" "$(dirname "$STDERR_LOG")"
 
-python3 - "$TEMPLATE" "$PLIST" <<'PY' \
-  "$LABEL" "$BINARY" "$ROOT" "$CONFIG" "$STDOUT_LOG" "$STDERR_LOG" \
-  "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" "$HOME"
+python3 - "$TEMPLATE" "$PLIST" "$LABEL" "$BINARY" "$ROOT" "$CONFIG" \
+  "$STDOUT_LOG" "$STDERR_LOG" \
+  "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin" "$HOME" <<'PY'
 import html
 import pathlib
 import sys
