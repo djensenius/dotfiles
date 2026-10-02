@@ -1,0 +1,28 @@
+{
+  "projectOwner": "djensenius",
+  "projectOwnerType": "user",
+  "projectNumber": 10,
+  "repos": {},
+  "defaultRepo": "djensenius/dotfiles",
+  "mainBranch": "main",
+  "statusMap": {},
+  "inbox": {
+    "enabled": true,
+    "label": "inbox",
+    "mode": "manual"
+  },
+  "adoptReferencedIssues": false,
+  "labels": {
+    "managed": ["*"],
+    "addAlways": []
+  },
+  "fields": {
+    "priority": "Priority",
+    "milestone": "Backlog milestone",
+    "area": "Area",
+    "taskId": "Task ID",
+    "branch": "Branch"
+  },
+  "subIssues": true,
+  "timeoutSeconds": 60
+}
