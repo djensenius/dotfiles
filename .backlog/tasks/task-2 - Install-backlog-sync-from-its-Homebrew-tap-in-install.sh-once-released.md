@@ -1,11 +1,11 @@
 ---
 id: TASK-2
 title: Install backlog-sync from its Homebrew tap in install.sh once released
-status: To Do
+status: In Progress
 assignee:
-  - '@djensenius'
+  - '@david'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-01 16:10'
+updated_date: '2026-10-02 03:17'
 labels: []
 dependencies: []
 references:
@@ -26,3 +26,11 @@ backlog-sync is released from djensenius/backlog-sync. The opt-in agent-stack in
 - [ ] #3 The final setup hint in pi/agent-stack/install.sh mentions backlog-sync and links to djensenius/backlog-sync for non-Homebrew installs
 - [ ] #4 pi/agent-stack/tests/install-runtime.sh covers install, already-installed (zero brew calls) and brew-failure cases
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Update pi/agent-stack/install.sh so macOS Homebrew installs both backlog-md and djensenius/tap/backlog-sync when missing.
+2. Update runtime installer tests and brew mocks to cover backlog-sync install, existing binary skip, and failure warning behavior.
+3. Run the affected pi/agent-stack installer runtime test and commit the task/update evidence.
+<!-- SECTION:PLAN:END -->
