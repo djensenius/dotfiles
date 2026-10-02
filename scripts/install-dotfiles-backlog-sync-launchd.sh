@@ -7,15 +7,21 @@ ROOT=""
 STDOUT_LOG="/tmp/dotfiles-backlog-sync.out.log"
 STDERR_LOG="/tmp/dotfiles-backlog-sync.err.log"
 LOAD=0
+ALLOW_NON_MAIN_ROOT=0
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/install-dotfiles-backlog-sync-launchd.sh [--root <repo-root>] [--binary <path>] [--stdout-log <path>] [--stderr-log <path>] [--load]
+Usage: scripts/install-dotfiles-backlog-sync-launchd.sh [--root <repo-root>] [--binary <path>] [--stdout-log <path>] [--stderr-log <path>] [--load] [--allow-non-main-root]
 
 Renders and installs ~/Library/LaunchAgents/com.djensenius.dotfiles.backlog-sync.plist
 for this repository's Backlog.md to GitHub Project mirror. The launchd job runs
 backlog-sync with -root, -config, -no-inbox, and -verbose so inbox import remains
 manual/disabled for unattended runs.
+
+Use --load only from the long-lived main checkout after the mirror config has
+landed there. backlog-sync intentionally reads local task worktrees, but the
+LaunchAgent root itself must not point at a disposable task worktree that will be
+removed after merge.
 
 Options:
   --root <repo-root>       Repository root to mirror (default: git top-level of cwd)
@@ -23,6 +29,7 @@ Options:
   --stdout-log <path>      launchd stdout log (default: /tmp/dotfiles-backlog-sync.out.log)
   --stderr-log <path>      launchd stderr log (default: /tmp/dotfiles-backlog-sync.err.log)
   --load                   Bootstrap and kickstart the LaunchAgent after writing it
+  --allow-non-main-root    Allow --load from a non-main checkout (for diagnostics only)
 USAGE
 }
 
@@ -33,6 +40,7 @@ while [[ $# -gt 0 ]]; do
     --stdout-log) STDOUT_LOG="$2"; shift 2 ;;
     --stderr-log) STDERR_LOG="$2"; shift 2 ;;
     --load) LOAD=1; shift ;;
+    --allow-non-main-root) ALLOW_NON_MAIN_ROOT=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -65,6 +73,31 @@ fi
 if [[ ! -f "$TEMPLATE" ]]; then
   echo "missing launchd template: $TEMPLATE" >&2
   exit 1
+fi
+
+if [[ "$LOAD" -eq 1 && "$ALLOW_NON_MAIN_ROOT" -ne 1 ]]; then
+  current_branch="$(git -C "$ROOT" branch --show-current)"
+  main_branch="$(python3 - <<'PY' "$CONFIG"
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as f:
+    print(json.load(f).get("mainBranch") or "main")
+PY
+)"
+  if [[ "$current_branch" != "$main_branch" ]]; then
+    cat >&2 <<EOF
+refusing to load ${LABEL} from ${ROOT}: current branch is ${current_branch:-detached}, expected ${main_branch}
+
+Install the LaunchAgent from the long-lived main checkout after this branch is
+merged, for example:
+  cd /Users/david/Developer/dotfiles
+  scripts/install-dotfiles-backlog-sync-launchd.sh --load
+
+Use --allow-non-main-root only for short-lived diagnostics, then bootout the job
+before deleting that worktree.
+EOF
+    exit 2
+  fi
 fi
 
 mkdir -p "$PLIST_DIR" "$(dirname "$STDOUT_LOG")" "$(dirname "$STDERR_LOG")"
