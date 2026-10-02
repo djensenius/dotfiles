@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-02 02:35'
+updated_date: '2026-10-02 02:40'
 labels: []
 dependencies: []
 ordinal: 1000
@@ -49,6 +49,8 @@ Coordinator follow-up after initial completion: subagent reviewer/worker attempt
 Fix checkpoint: updated scripts/install-dotfiles-backlog-sync-launchd.sh so --load refuses to bootstrap com.djensenius.dotfiles.backlog-sync from a non-main checkout unless --allow-non-main-root is explicitly passed. Validation: scripts/install-dotfiles-backlog-sync-launchd.sh --root "$PWD" --load exits 2 with a refusal naming task-1-backlog-sync-mirror vs expected main; plutil -lint launchd/com.djensenius.dotfiles.backlog-sync.plist.template -> OK; git diff --check -> no output. The dotfiles LaunchAgent remains unloaded.
 
 Homebrew follow-up: owner noted backlog-sync should now be installed from Homebrew. Verified `command -v backlog-sync` -> `/opt/homebrew/bin/backlog-sync`, `backlog-sync -version` -> `version=0.1.0 commit=0eca8d7caf8d727f2bbc54c54c14bd9607388f6d date=2026-10-02T02:03:15Z`, and `brew list --versions backlog-sync` -> `backlog-sync 0.1.0`. Updated `scripts/install-dotfiles-backlog-sync-launchd.sh` to default to the first `backlog-sync` on PATH instead of hard-coding `/Users/david/bin/backlog-sync`. Validation after rebase onto origin/main: `scripts/install-dotfiles-backlog-sync-launchd.sh --root "$PWD" --load` exits 2 and refuses to load from branch `task-1-backlog-sync-mirror` instead of main; `plutil -lint launchd/com.djensenius.dotfiles.backlog-sync.plist.template` -> OK; bounded dry-run with `timeout 120 backlog-sync -dry-run -root . -config .backlog-sync.json -no-inbox -verbose` completed with `sync complete: 1 created, 1 updated, 2 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations`; `bash -n scripts/install-dotfiles-backlog-sync-launchd.sh`, `shellcheck scripts/install-dotfiles-backlog-sync-launchd.sh`, `yamllint .`, and `git diff --check` all passed with no output. The dotfiles LaunchAgent remains intentionally unloaded until this branch lands on main, then it should be installed from the canonical checkout with `scripts/install-dotfiles-backlog-sync-launchd.sh --load`.
+
+Copilot review fix: hardened scripts/install-dotfiles-backlog-sync-launchd.sh so value-taking options (`--root`, `--binary`, `--stdout-log`, `--stderr-log`) validate their argument before dereferencing under `set -u`, and so the non-main checkout guard runs before writing any live plist, not only before `--load`. Validation: non-load run from task branch exits 2 before writing; `--root` without a value exits 2 with usage instead of an unbound variable; explicit `--allow-non-main-root` render succeeded for diagnostics, then the temporary non-main plist was removed and launchctl confirmed the dotfiles service is absent; `bash -n scripts/install-dotfiles-backlog-sync-launchd.sh`, `shellcheck scripts/install-dotfiles-backlog-sync-launchd.sh`, `plutil -lint launchd/com.djensenius.dotfiles.backlog-sync.plist.template`, `yamllint .`, and `git diff --check` passed.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
