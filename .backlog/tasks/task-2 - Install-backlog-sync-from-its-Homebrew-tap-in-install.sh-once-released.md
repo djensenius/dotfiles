@@ -1,7 +1,7 @@
 ---
 id: TASK-2
 title: Install backlog-sync from its Homebrew tap in install.sh once released
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
