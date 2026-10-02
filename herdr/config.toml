@@ -24,6 +24,12 @@ default_shell = "fish"
 shell_mode = "auto"
 new_cwd = "follow"
 
+# Render pane images with the Kitty graphics protocol. In remote Herdr sessions,
+# the remote server config controls PTY graphics parsing and the local client
+# config controls output to the outer terminal; keep this explicit in both
+# places even though current Herdr defaults it on.
+kitty_graphics = true
+
 # ==================== UI =========================
 [ui]
 # tmux draws pane borders with the catppuccin theme; keep parity.
@@ -335,10 +341,3 @@ resume_agents_on_restore = true
 
 [advanced]
 scrollback_limit_bytes = 10000000
-
-# ================ Experimental ====================
-# Client-side Kitty graphics rendering, so image output (yazi previews, plots,
-# `timg`) draws inside panes instead of being swallowed. Requires a
-# Kitty-graphics-capable outer terminal: Ghostty, wezterm and Rio all qualify.
-[experimental]
-kitty_graphics = true

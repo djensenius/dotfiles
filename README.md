@@ -335,7 +335,7 @@ Gopod is a tool for making radio programs that are streaming online into podcast
 ### [herdr](https://herdr.dev)
 Herdr is a terminal workspace manager for AI coding agents. Its config is a deliberate mirror of `tmux/tmux.conf` — same `Ctrl+a` prefix, same Catppuccin Mocha palette, and the same muscle memory — so switching between the two costs nothing.
 - **Directory**: `herdr/`
-- **Files**: `herdr/config.toml`, status and popup helpers in `herdr/scripts/`
+- **Files**: `herdr/config.toml`, status/popup helpers, and the Kitty graphics diagnostic in `herdr/scripts/`
 - **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. The installers link `config.toml` and `scripts/` individually.
 
 #### tmux → herdr keymap
@@ -418,8 +418,29 @@ not polled into the Herdr tab bar.
 
 #### Kitty graphics
 
-`[experimental] kitty_graphics = true` turns on client-side Kitty graphics rendering, so image output (yazi previews, plots, `timg`) draws inside panes. It needs a Kitty-graphics-capable outer terminal — Ghostty, wezterm and Rio all qualify. Detach and reattach after enabling; the flag is negotiated when a client attaches.
+`[terminal] kitty_graphics = true` is set in `herdr/config.toml` so image output
+(yazi previews, plots, `timg`, `kitten icat`) renders inside panes through the
+Kitty graphics protocol. It needs a Kitty-graphics-capable outer terminal —
+Kitty, Ghostty, wezterm and Rio all qualify. Restart or reload the Herdr server
+and detach/reattach after changing the setting; graphics support is negotiated
+when the client attaches.
 
+Remote Herdr sessions need the setting on **both** machines. The remote server's
+config controls whether pane PTY graphics are parsed, while the local client's
+config controls whether Herdr emits graphics to the outer terminal. Run the
+normal installer on the remote host (`./install-pi` on Raspberry Pi/Linux or
+`./install-mac --only links,mise,herdr-plugins,agent-stack` on macOS) so
+`~/.config/herdr/config.toml` points at this repo's config there too. If images
+still do not render, run `~/.config/herdr/scripts/herdr-image-doctor.sh` locally
+and on the remote host and compare:
+
+- `terminal.kitty_graphics` should be `true` on both ends.
+- `herdr status --json` should not report a stale server binary; use
+  `herdr update --handoff` or restart Herdr if the client and server are out of
+  sync.
+- Plain SSH image output should be tested separately from Herdr remote output;
+  that distinguishes terminal/SSH capability problems from Herdr transport or
+  config problems.
 
 #### Tab naming
 
