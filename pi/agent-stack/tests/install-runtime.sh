@@ -1037,6 +1037,8 @@ JSON
   }
 }
 JSON
+  printf 'preserved migration backup\n' > "$root/pi-agent/mcp-adapter.json.migrated"
+  printf 'preserved numbered migration backup\n' > "$root/pi-agent/mcp-adapter.json.migrated.1"
 
   if ! run_installer "$root" "Linux" 0 "$MCP_ADAPTER_SOURCE" >"$output" 2>&1; then
     cat "$output" >&2
@@ -1047,12 +1049,16 @@ JSON
   assert_count 1 "exec:pi remove:$MCP_ADAPTER_SOURCE" "$log"
   assert_contains "legacy mcp-adapter.json migrated 3 MCP server(s)" "$output"
   assert_contains "legacy MCP adapter key 'settings' is adapter-specific and was not copied" "$output"
-  assert_contains "retired legacy mcp-adapter.json -> $root/pi-agent/mcp-adapter.json.migrated" "$output"
+  assert_contains "retired legacy mcp-adapter.json -> $root/pi-agent/mcp-adapter.json.migrated.2" "$output"
   assert_contains "removed $MCP_ADAPTER_SOURCE" "$output"
   assert_not_exists "$root/pi-agent/mcp-adapter.json"
-  assert_json "$root/pi-agent/mcp-adapter.json.migrated" \
+  assert_json "$root/pi-agent/mcp-adapter.json.migrated.2" \
     'value.mcpServers.legacyOnly.command === "legacy-only" && Object.hasOwn(value.mcpServers, "__proto__") && value.mcpServers["__proto__"].command === "proto-server" && value.settings.mcpFooterStatus === "off"' \
     "$name did not preserve the legacy adapter config backup"
+  grep -Fxq 'preserved migration backup' "$root/pi-agent/mcp-adapter.json.migrated" ||
+    fail "$name overwrote the existing legacy MCP backup"
+  grep -Fxq 'preserved numbered migration backup' "$root/pi-agent/mcp-adapter.json.migrated.1" ||
+    fail "$name overwrote the existing numbered legacy MCP backup"
   assert_json "$root/pi-agent/mcp.json" \
     'value.mcpServers.existing.command === "existing" && value.mcpServers.legacyOnly.command === "legacy-only" && Object.hasOwn(value.mcpServers, "__proto__") && value.mcpServers["__proto__"].command === "proto-server" && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.command === "npx"' \
     "$name did not merge legacy and shared MCP servers into built-in mcp.json"

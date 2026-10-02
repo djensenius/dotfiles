@@ -223,7 +223,7 @@ merge_json_file() {
 }
 
 migrate_legacy_mcp_adapter_config() {
-  local backup_path result
+  local backup_path result suffix
 
   if [ ! -e "$LEGACY_MCP_ADAPTER_CONFIG_PATH" ] &&
     [ ! -L "$LEGACY_MCP_ADAPTER_CONFIG_PATH" ]; then
@@ -242,9 +242,11 @@ migrate_legacy_mcp_adapter_config() {
   fi
 
   backup_path="$LEGACY_MCP_ADAPTER_CONFIG_PATH.migrated"
-  if [ -e "$backup_path" ] || [ -L "$backup_path" ]; then
-    backup_path="$LEGACY_MCP_ADAPTER_CONFIG_PATH.migrated.$$"
-  fi
+  suffix=1
+  while [ -e "$backup_path" ] || [ -L "$backup_path" ]; do
+    backup_path="$LEGACY_MCP_ADAPTER_CONFIG_PATH.migrated.$suffix"
+    suffix=$((suffix + 1))
+  done
   if ! mv "$LEGACY_MCP_ADAPTER_CONFIG_PATH" "$backup_path"; then
     die "failed to retire legacy MCP adapter config"
   fi
