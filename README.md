@@ -487,19 +487,22 @@ enforcement and checks it before making integration or extension changes.
 Upgrade Git with Homebrew (`brew install git`) on macOS or the operating
 system's package manager; Git is intentionally not managed by mise. The
 installer uses the mise-managed Node, Pi, and Herdr binaries, installs the
-Copilot Herdr integration when Copilot is available, copies the repository-owned
-`review_git` extension into Pi's agent directory, copies the shared Catppuccin
-footer config, copies the
+Copilot Herdr integration when Copilot is available, links the repository-owned
+`review_git` and status extensions into Pi's agent directory, links the shared
+Catppuccin footer config, links the
 `reviewer` and `council-gpt`/`council-claude`/`council-gemini` profiles into
 `~/.pi/agent/agents/` (the reviewer loads `../extensions/reviewer-git.ts`
-relative to itself), and installs `xbuild` into `~/.local/bin`.
+relative to itself), and installs `xbuild` into `~/.local/bin`. Re-running the
+installer converts older copied extension/profile/footer files into symlinks;
+if a non-repo file already exists at one of those paths, it is moved aside to a
+`.backup` file before the repo link is installed.
 
 The stack also keeps a small shared Pi config under `pi/agent-stack/` and
-merges it into the user files instead of replacing them, so machine-local
-settings such as `lastChangelogVersion`, existing `packages`, local MCP
-servers, and other keys are preserved. Shared settings set the Pi defaults to
-GitHub Copilot `gpt-5.5`, medium thinking, the Pi `system` theme, fullscreen
-TUI mode, and Pi 1.0's `quietStartup: "header"` mode so launches keep the
+merges it into the user files instead of replacing them or symlinking them, so
+machine-local settings such as `lastChangelogVersion`, existing `packages`,
+local MCP servers, and other keys are preserved. Shared settings set the Pi
+defaults to GitHub Copilot `gpt-5.5`, medium thinking, the Pi `system` theme,
+fullscreen TUI mode, and Pi 1.0's `quietStartup: "header"` mode so launches keep the
 version/key-hint header without the longer loaded-resource listing. Other Pi 1.0
 features such as Radius sign-in, image generation from codemode, and custom MCP
 OAuth metadata are account- or server-specific, so they are left for each user
