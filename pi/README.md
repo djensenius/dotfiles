@@ -39,7 +39,7 @@ is the update path.
 | --- | --- | --- |
 | 1 | apt packages | `git`, `build-essential`, `python3`, `btop`, `tmuxinator`, and friends. Falls back to installing one by one if a package is missing on your release. Generates a UTF-8 locale if the image has none. |
 | 2 | mise | Installed from [its own apt repository](https://mise.jdx.dev), keyring and all. With `--skip-apt` it falls back to `https://mise.run`. |
-| 3 | Symlinks | Links this repo into `~/.config` (fish, nvim, tmux, starship, atuin, bat, bottom, btop, delta, eza, fastfetch, yazi, zellij, tmuxinator, gh, gh-dash, herdr) plus `~/.gitconfig` and friends. Anything already there is moved to `~/.dotfiles-backup/<timestamp>/`, under its path relative to `~`, first. |
+| 3 | Symlinks | Links this repo into `~/.config` (fish, nvim, tmux, starship, atuin, bat, bottom, btop, delta, eza, fastfetch, yazi, zellij, tmuxinator, gh, gh-dash, herdr) plus `~/.gitconfig` and friends. The Herdr link includes `terminal.kitty_graphics = true` and the `herdr-image-doctor.sh` diagnostic so remote SSH machines parse Kitty graphics the same way as the local client. Anything already there is moved to `~/.dotfiles-backup/<timestamp>/`, under its path relative to `~`, first. |
 | 4 | Tools | Copies [`mise.toml`](mise.toml) to `~/.config/mise/config.toml`, trusts it, and runs `mise install` outside the clone so the workstation manifest is not merged. |
 | 5 | tmux plugins | Clones tpm and installs the plugin set. `tmux-thumbs` and `tmux-floax` build with cargo, which is why the manifest includes rust. |
 | 6 | Neovim | `nvim --headless "+Lazy! sync" +qa`. |
