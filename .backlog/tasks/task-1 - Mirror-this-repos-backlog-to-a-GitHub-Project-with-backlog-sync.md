@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-02 02:00'
+updated_date: '2026-10-02 02:01'
 labels: []
 dependencies: []
 ordinal: 1000
@@ -45,6 +45,8 @@ Launchd: scripts/install-dotfiles-backlog-sync-launchd.sh --root /Users/david/De
 Real sync: /Users/david/bin/backlog-sync -root . -config .backlog-sync.json -no-inbox -verbose created issues djensenius/dotfiles#365-#374, added them to project 10, set statuses, and ended: sync complete: 10 created, 8 updated, 10 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations. Immediate second run of the same command ended: sync complete: 0 created, 0 updated, 0 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations.
 
 Coordinator follow-up after initial completion: subagent reviewer/worker attempts failed with provider Connection error (reported as recurring 400s). Direct investigation found the dotfiles LaunchAgent had been loaded from the task worktree; it was booted out to avoid a persistent agent pointing at a disposable checkout. backlog-sync upstream docs confirm cross-worktree scanning is intentional, but the launchd installer should prevent --load from non-main/task worktrees unless explicitly overridden.
+
+Fix checkpoint: updated scripts/install-dotfiles-backlog-sync-launchd.sh so --load refuses to bootstrap com.djensenius.dotfiles.backlog-sync from a non-main checkout unless --allow-non-main-root is explicitly passed. Validation: scripts/install-dotfiles-backlog-sync-launchd.sh --root "$PWD" --load exits 2 with a refusal naming task-1-backlog-sync-mirror vs expected main; plutil -lint launchd/com.djensenius.dotfiles.backlog-sync.plist.template -> OK; git diff --check -> no output. The dotfiles LaunchAgent remains unloaded.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
