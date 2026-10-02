@@ -141,6 +141,27 @@ install_backlog_cli() {
   fi
 }
 
+install_backlog_sync() {
+  if ! is_mac || ! has brew; then
+    return 0
+  fi
+
+  if has backlog-sync; then
+    ok "backlog-sync is already installed"
+    return 0
+  fi
+
+  log "Installing backlog-sync"
+  if HOMEBREW_NO_AUTO_UPDATE=1 \
+    HOMEBREW_NO_INSTALL_CLEANUP=1 \
+    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
+    brew install djensenius/tap/backlog-sync; then
+    ok "installed backlog-sync"
+  else
+    warn "failed to install backlog-sync; continuing without backlog-sync"
+  fi
+}
+
 sync_file() {
   local src="$1" dst="$2" mode="${3:-644}"
   if [ -f "$dst" ] && [ ! -L "$dst" ] && cmp -s "$src" "$dst"; then
@@ -510,6 +531,7 @@ main() {
   fi
 
   install_backlog_cli
+  install_backlog_sync
 
   cat <<EOF
 
@@ -520,8 +542,9 @@ Subagents extension (latest):
 
 Enable the coordinator workflow in a repository (land this setup through a PR,
 because Copilot reads instructions from the base branch):
-  # On non-Homebrew systems, install the Backlog.md CLI first:
+  # On non-Homebrew systems, install the Backlog.md CLI and backlog-sync first:
   # npm i -g backlog.md
+  # Install backlog-sync from https://github.com/djensenius/backlog-sync
   cp "$DIR/templates/AGENTS.md" ./AGENTS.md
   backlog init --backlog-dir .backlog
   backlog config set autoCommit true
