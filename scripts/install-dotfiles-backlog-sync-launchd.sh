@@ -33,12 +33,21 @@ Options:
 USAGE
 }
 
+require_value() {
+  local option="$1"
+  if [[ $# -lt 2 || -z "${2:-}" || "${2:-}" == --* ]]; then
+    echo "missing value for $option" >&2
+    usage >&2
+    exit 2
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --root) ROOT="$2"; shift 2 ;;
-    --binary) BINARY="$2"; shift 2 ;;
-    --stdout-log) STDOUT_LOG="$2"; shift 2 ;;
-    --stderr-log) STDERR_LOG="$2"; shift 2 ;;
+    --root) require_value "$1" "${2:-}"; ROOT="$2"; shift 2 ;;
+    --binary) require_value "$1" "${2:-}"; BINARY="$2"; shift 2 ;;
+    --stdout-log) require_value "$1" "${2:-}"; STDOUT_LOG="$2"; shift 2 ;;
+    --stderr-log) require_value "$1" "${2:-}"; STDERR_LOG="$2"; shift 2 ;;
     --load) LOAD=1; shift ;;
     --allow-non-main-root) ALLOW_NON_MAIN_ROOT=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -75,7 +84,7 @@ if [[ ! -f "$TEMPLATE" ]]; then
   exit 1
 fi
 
-if [[ "$LOAD" -eq 1 && "$ALLOW_NON_MAIN_ROOT" -ne 1 ]]; then
+if [[ "$ALLOW_NON_MAIN_ROOT" -ne 1 ]]; then
   current_branch="$(git -C "$ROOT" branch --show-current)"
   main_branch="$(python3 - <<'PY' "$CONFIG"
 import json
@@ -88,8 +97,8 @@ PY
     cat >&2 <<EOF
 refusing to load ${LABEL} from ${ROOT}: current branch is ${current_branch:-detached}, expected ${main_branch}
 
-Install the LaunchAgent from the long-lived main checkout after this branch is
-merged, for example:
+Render and install the LaunchAgent from the long-lived main checkout after this
+branch is merged, for example:
   cd /Users/david/Developer/dotfiles
   scripts/install-dotfiles-backlog-sync-launchd.sh --load
 
