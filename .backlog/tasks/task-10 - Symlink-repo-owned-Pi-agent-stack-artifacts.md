@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 22:05'
-updated_date: '2026-10-02 03:27'
+updated_date: '2026-10-02 03:30'
 labels: []
 dependencies: []
 ordinal: 10000
@@ -39,6 +39,8 @@ Implemented symlink handling for repo-owned Pi agent-stack artifacts: extensions
 Validation passed after code commit afbb905: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; node pi/agent-stack/tests/subagent-status.test.ts -> subagent-status tests passed; yamllint . -> no output; git diff --check 0c24a37..HEAD -> no output.
 
 Coordinator rebase/review update: rebased task-10-pi-agent-symlinks onto origin/main after TASK-1/TASK-2/TASK-11 merges. Resolved install-runtime conflict by keeping TASK-10 linked-file expectations and TASK-2 backlog-sync setup hint assertions. Main-thread validation passed: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; node pi/agent-stack/tests/subagent-status.test.ts -> subagent-status tests passed; shellcheck pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh -> no output; yamllint $(git ls-files "*.yml" "*.yaml") -> no output; git diff --check -> no output.
+
+Copilot review fix: backup_path_for now loops until it finds an unused backup path instead of falling back to a single PID-derived name. Added install-runtime coverage where reviewer-git.ts.backup already exists; installer preserves that existing backup and writes the local file to reviewer-git.ts.backup.1. Validation rerun: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; node pi/agent-stack/tests/subagent-status.test.ts -> subagent-status tests passed; shellcheck pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh -> no output; yamllint $(git ls-files "*.yml" "*.yaml") -> no output; git diff --check -> no output.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
