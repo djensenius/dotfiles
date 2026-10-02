@@ -38,3 +38,9 @@ backlog-sync is released from djensenius/backlog-sync. The opt-in agent-stack in
 <!-- SECTION:NOTES:BEGIN -->
 Implemented backlog-sync Homebrew install helper, wired it into pi/agent-stack/install.sh after install_backlog_cli, updated setup hint with https://github.com/djensenius/backlog-sync, and extended install-runtime brew mocks/tests for install, already-installed zero-brew, and failure paths. Validation: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; shellcheck pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh -> passed with no output; yamllint . -> passed with no output; git diff --check -> passed with no output.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Implemented backlog-sync Homebrew installation in pi/agent-stack/install.sh beside install_backlog_cli, including PATH skip, warn-and-continue failure handling, and a final setup hint pointing non-Homebrew users to https://github.com/djensenius/backlog-sync. Extended pi/agent-stack/tests/install-runtime.sh to cover backlog-sync install, already-installed zero-brew behavior, and brew failure. Verified with install-runtime.sh, shellcheck, yamllint, and git diff --check.
+<!-- SECTION:FINAL_SUMMARY:END -->
