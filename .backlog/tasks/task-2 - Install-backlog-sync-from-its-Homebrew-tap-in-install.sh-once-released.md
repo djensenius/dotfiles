@@ -26,3 +26,9 @@ backlog-sync is released from djensenius/backlog-sync. The opt-in agent-stack in
 - [ ] #3 The final setup hint in pi/agent-stack/install.sh mentions backlog-sync and links to djensenius/backlog-sync for non-Homebrew installs
 - [ ] #4 pi/agent-stack/tests/install-runtime.sh covers install, already-installed (zero brew calls) and brew-failure cases
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Add an install_backlog_sync helper next to install_backlog_cli that is macOS/Homebrew-gated, skips when backlog-sync is on PATH, installs djensenius/tap/backlog-sync with the same Homebrew environment flags, and warns without exiting on failure. 2. Call the helper in the agent-stack install flow beside install_backlog_cli and update the final repository setup hint to mention backlog-sync plus the upstream URL for non-Homebrew installs. 3. Extend install-runtime brew mocks/tests to cover backlog-sync install, already-installed skip with zero brew calls, and brew failure while preserving backlog-md coverage. 4. Run the requested shell/runtime/lint validation and record evidence before finalizing TASK-2.
+<!-- SECTION:PLAN:END -->
