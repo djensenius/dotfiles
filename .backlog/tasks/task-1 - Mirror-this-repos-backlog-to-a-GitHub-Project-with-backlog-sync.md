@@ -1,11 +1,11 @@
 ---
 id: TASK-1
 title: Mirror this repo's backlog to a GitHub Project with backlog-sync
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-02 02:01'
+updated_date: '2026-10-02 02:35'
 labels: []
 dependencies: []
 ordinal: 1000
@@ -47,10 +47,12 @@ Real sync: /Users/david/bin/backlog-sync -root . -config .backlog-sync.json -no-
 Coordinator follow-up after initial completion: subagent reviewer/worker attempts failed with provider Connection error (reported as recurring 400s). Direct investigation found the dotfiles LaunchAgent had been loaded from the task worktree; it was booted out to avoid a persistent agent pointing at a disposable checkout. backlog-sync upstream docs confirm cross-worktree scanning is intentional, but the launchd installer should prevent --load from non-main/task worktrees unless explicitly overridden.
 
 Fix checkpoint: updated scripts/install-dotfiles-backlog-sync-launchd.sh so --load refuses to bootstrap com.djensenius.dotfiles.backlog-sync from a non-main checkout unless --allow-non-main-root is explicitly passed. Validation: scripts/install-dotfiles-backlog-sync-launchd.sh --root "$PWD" --load exits 2 with a refusal naming task-1-backlog-sync-mirror vs expected main; plutil -lint launchd/com.djensenius.dotfiles.backlog-sync.plist.template -> OK; git diff --check -> no output. The dotfiles LaunchAgent remains unloaded.
+
+Homebrew follow-up: owner noted backlog-sync should now be installed from Homebrew. Verified `command -v backlog-sync` -> `/opt/homebrew/bin/backlog-sync`, `backlog-sync -version` -> `version=0.1.0 commit=0eca8d7caf8d727f2bbc54c54c14bd9607388f6d date=2026-10-02T02:03:15Z`, and `brew list --versions backlog-sync` -> `backlog-sync 0.1.0`. Updated `scripts/install-dotfiles-backlog-sync-launchd.sh` to default to the first `backlog-sync` on PATH instead of hard-coding `/Users/david/bin/backlog-sync`. Validation after rebase onto origin/main: `scripts/install-dotfiles-backlog-sync-launchd.sh --root "$PWD" --load` exits 2 and refuses to load from branch `task-1-backlog-sync-mirror` instead of main; `plutil -lint launchd/com.djensenius.dotfiles.backlog-sync.plist.template` -> OK; bounded dry-run with `timeout 120 backlog-sync -dry-run -root . -config .backlog-sync.json -no-inbox -verbose` completed with `sync complete: 1 created, 1 updated, 2 status changes, 0 imported, 0 inbox issues need triage, 0 failed operations`; `bash -n scripts/install-dotfiles-backlog-sync-launchd.sh`, `shellcheck scripts/install-dotfiles-backlog-sync-launchd.sh`, `yamllint .`, and `git diff --check` all passed with no output. The dotfiles LaunchAgent remains intentionally unloaded until this branch lands on main, then it should be installed from the canonical checkout with `scripts/install-dotfiles-backlog-sync-launchd.sh --load`.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Implemented the dotfiles backlog-sync mirror by creating GitHub Project #10, adding .backlog-sync.json with defaultRepo djensenius/dotfiles and manual inbox mode, adding and installing/loading the launchd mirror agent, and running a real sync plus immediate no-op second run. Verified project status options/items with gh project commands, config with upstream README/examples and backlog-sync -dry-run, launchd with plutil/launchctl/logs, and sync output showing 10 created then 0 changes.
+Configured the dotfiles backlog-sync mirror with GitHub Project #10, `.backlog-sync.json` for `djensenius/dotfiles` and manual inbox mode, and a repo-owned launchd installer/template for `com.djensenius.dotfiles.backlog-sync`. The first implementation created/updated the live mirror and recorded a real sync plus no-op run; follow-up fixes made the persistent installer refuse `--load` from disposable task worktrees and switched the default binary to the Homebrew `backlog-sync` on PATH. Verified Homebrew backlog-sync 0.1.0, launchd plist lint, non-main load guard, bounded dry-run, shell syntax, shellcheck, yamllint, and whitespace checks. After merge, reinstall/load from the canonical main checkout so the LaunchAgent points at `/Users/david/Developer/dotfiles`.
 <!-- SECTION:FINAL_SUMMARY:END -->
