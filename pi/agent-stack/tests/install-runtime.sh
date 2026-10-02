@@ -350,7 +350,11 @@ set -euo pipefail
 [ "${HOMEBREW_NO_AUTO_UPDATE:-}" = "1" ] || exit 9
 [ "${HOMEBREW_NO_INSTALL_CLEANUP:-}" = "1" ] || exit 9
 [ "${HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:-}" = "1" ] || exit 9
-[ "$#" -eq 2 ] && [ "$1" = "install" ] && [ "$2" = "backlog-md" ] || exit 9
+[ "$#" -eq 2 ] && [ "$1" = "install" ] || exit 9
+case "$2" in
+  backlog-md|djensenius/tap/backlog-sync) ;;
+  *) exit 9 ;;
+esac
 printf 'exec:brew install:%s\n' "$2" >> "${RUNTIME_TEST_LOG:?}"
 EOF
   chmod 755 "$destination/brew"
@@ -364,7 +368,11 @@ set -euo pipefail
 [ "${HOMEBREW_NO_AUTO_UPDATE:-}" = "1" ] || exit 9
 [ "${HOMEBREW_NO_INSTALL_CLEANUP:-}" = "1" ] || exit 9
 [ "${HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:-}" = "1" ] || exit 9
-[ "$#" -eq 2 ] && [ "$1" = "install" ] && [ "$2" = "backlog-md" ] || exit 9
+[ "$#" -eq 2 ] && [ "$1" = "install" ] || exit 9
+case "$2" in
+  backlog-md|djensenius/tap/backlog-sync) ;;
+  *) exit 9 ;;
+esac
 printf 'exec:brew install:%s\n' "$2" >> "${RUNTIME_TEST_LOG:?}"
 exit 66
 EOF
@@ -673,7 +681,8 @@ JSON
   assert_contains "council-gpt.md is up to date" "$second_output"
   assert_contains "council-claude.md is up to date" "$second_output"
   assert_contains "council-gemini.md is up to date" "$second_output"
-  assert_contains "On non-Homebrew systems, install the Backlog.md CLI first" "$first_output"
+  assert_contains "On non-Homebrew systems, install the Backlog.md CLI and backlog-sync first" "$first_output"
+  assert_contains "See https://github.com/djensenius/backlog-sync for backlog-sync install options." "$first_output"
   assert_contains "npm i -g backlog.md" "$first_output"
   assert_contains "cp \"$REPO_ROOT/pi/agent-stack/templates/AGENTS.md\" ./AGENTS.md" "$first_output"
   assert_contains "backlog init --backlog-dir .backlog" "$first_output"
@@ -710,8 +719,11 @@ run_darwin_with_brew_installs_backlog_md() {
   fi
 
   assert_count 1 "exec:brew install:backlog-md" "$root/mise.log"
+  assert_count 1 "exec:brew install:djensenius/tap/backlog-sync" "$root/mise.log"
   assert_contains "Installing Backlog.md CLI" "$output"
   assert_contains "installed backlog-md" "$output"
+  assert_contains "Installing backlog-sync" "$output"
+  assert_contains "installed djensenius/tap/backlog-sync" "$output"
 }
 
 run_darwin_with_existing_backlog_skips_brew() {
@@ -726,7 +738,12 @@ run_darwin_with_existing_backlog_skips_brew() {
 set -euo pipefail
 exit 0
 EOF
-  chmod 755 "$root/system-bin/backlog"
+  cat > "$root/system-bin/backlog-sync" <<'EOF'
+#!/bin/bash
+set -euo pipefail
+exit 0
+EOF
+  chmod 755 "$root/system-bin/backlog" "$root/system-bin/backlog-sync"
 
   if ! run_installer "$root" "Darwin" 0 >"$output" 2>&1; then
     cat "$output" >&2
@@ -734,8 +751,11 @@ EOF
   fi
 
   assert_count 0 "exec:brew install:backlog-md" "$root/mise.log"
+  assert_count 0 "exec:brew install:djensenius/tap/backlog-sync" "$root/mise.log"
   assert_contains "backlog CLI is already installed" "$output"
+  assert_contains "backlog-sync is already installed" "$output"
   assert_not_contains "Installing Backlog.md CLI" "$output"
+  assert_not_contains "Installing backlog-sync" "$output"
 }
 
 run_darwin_with_failing_brew_warns_and_continues() {
@@ -757,8 +777,11 @@ run_darwin_with_failing_brew_warns_and_continues() {
     fail "$name installer exited with $status"
   }
   assert_count 1 "exec:brew install:backlog-md" "$root/mise.log"
+  assert_count 1 "exec:brew install:djensenius/tap/backlog-sync" "$root/mise.log"
   assert_contains "Installing Backlog.md CLI" "$output"
   assert_contains "failed to install backlog-md; continuing without the backlog CLI" "$output"
+  assert_contains "Installing backlog-sync" "$output"
+  assert_contains "failed to install djensenius/tap/backlog-sync; continuing without backlog-sync" "$output"
   assert_contains "Agent stack installed." "$output"
 }
 
