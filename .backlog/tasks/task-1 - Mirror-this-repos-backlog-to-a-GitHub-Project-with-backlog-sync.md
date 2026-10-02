@@ -1,10 +1,11 @@
 ---
 id: TASK-1
 title: Mirror this repo's backlog to a GitHub Project with backlog-sync
-status: To Do
+status: In Progress
 assignee:
-  - '@djensenius'
+  - '@pi-worker'
 created_date: '2026-10-01 16:04'
+updated_date: '2026-10-02 01:39'
 labels: []
 dependencies: []
 ordinal: 1000
