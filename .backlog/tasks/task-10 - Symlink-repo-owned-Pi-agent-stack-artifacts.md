@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 22:05'
-updated_date: '2026-10-01 22:09'
+updated_date: '2026-10-02 03:27'
 labels: []
 dependencies: []
 ordinal: 10000
@@ -37,6 +37,8 @@ Update install-agent-stack to symlink only fully repo-owned Pi agent-stack artif
 Implemented symlink handling for repo-owned Pi agent-stack artifacts: extensions, profiles, and catppuccin-footer.json now link from pi/agent-stack into $PI_CODING_AGENT_DIR (default ~/.pi/agent). settings.json, mcp.json, and subagent config remain merge-based. Existing matching copied files are converted to links; differing local files are moved aside as .backup before linking.
 
 Validation passed after code commit afbb905: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; node pi/agent-stack/tests/subagent-status.test.ts -> subagent-status tests passed; yamllint . -> no output; git diff --check 0c24a37..HEAD -> no output.
+
+Coordinator rebase/review update: rebased task-10-pi-agent-symlinks onto origin/main after TASK-1/TASK-2/TASK-11 merges. Resolved install-runtime conflict by keeping TASK-10 linked-file expectations and TASK-2 backlog-sync setup hint assertions. Main-thread validation passed: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; node pi/agent-stack/tests/subagent-status.test.ts -> subagent-status tests passed; shellcheck pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh -> no output; yamllint $(git ls-files "*.yml" "*.yaml") -> no output; git diff --check -> no output.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
