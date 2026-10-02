@@ -35,4 +35,6 @@ The owner tracks every repository's work on GitHub Projects. This dotfiles board
 
 <!-- SECTION:NOTES:BEGIN -->
 GitHub Project: created user-owned project 'dotfiles' number 10 at https://github.com/users/djensenius/projects/10 (id PVT_kwHOAAvwsM4BlZoW). Verified Status field PVTSSF_lAHOAAvwsM4BlZoWzhkGqak options are To Do, In Progress, and Done with gh project field-list 10 --owner djensenius --format json. Synced items after the run: issues #365-#374 across TASK-1 through TASK-10 with statuses In Progress/To Do/Done as shown by gh project item-list 10.
+
+Config/schema: confirmed /Users/david/bin/backlog-sync version=dev commit=358dbcd7f5b2 date=unknown supports -config, -dry-run, -no-inbox, -repo, and -root. Confirmed upstream README/examples define projectOwner/projectOwnerType/projectNumber/defaultRepo/mainBranch/statusMap and inbox.mode manual. Added .backlog-sync.json with projectNumber 10, defaultRepo djensenius/dotfiles, inbox.enabled true, inbox.label inbox, and inbox.mode manual.
 <!-- SECTION:NOTES:END -->
