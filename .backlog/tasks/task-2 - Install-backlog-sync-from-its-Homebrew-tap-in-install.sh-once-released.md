@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-01 16:04'
-updated_date: '2026-10-02 03:13'
+updated_date: '2026-10-02 03:14'
 labels: []
 dependencies: []
 references:
@@ -32,3 +32,9 @@ backlog-sync is released from djensenius/backlog-sync. The opt-in agent-stack in
 <!-- SECTION:PLAN:BEGIN -->
 1. Add an install_backlog_sync helper next to install_backlog_cli that is macOS/Homebrew-gated, skips when backlog-sync is on PATH, installs djensenius/tap/backlog-sync with the same Homebrew environment flags, and warns without exiting on failure. 2. Call the helper in the agent-stack install flow beside install_backlog_cli and update the final repository setup hint to mention backlog-sync plus the upstream URL for non-Homebrew installs. 3. Extend install-runtime brew mocks/tests to cover backlog-sync install, already-installed skip with zero brew calls, and brew failure while preserving backlog-md coverage. 4. Run the requested shell/runtime/lint validation and record evidence before finalizing TASK-2.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented backlog-sync Homebrew install helper, wired it into pi/agent-stack/install.sh after install_backlog_cli, updated setup hint with https://github.com/djensenius/backlog-sync, and extended install-runtime brew mocks/tests for install, already-installed zero-brew, and failure paths. Validation: bash pi/agent-stack/tests/install-runtime.sh -> installer mise runtime tests passed; shellcheck pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh -> passed with no output; yamllint . -> passed with no output; git diff --check -> passed with no output.
+<!-- SECTION:NOTES:END -->
