@@ -3,6 +3,7 @@
 # Editor and tools
 set -gx EDITOR nvim
 set -gx MISE_FISH_AUTO_ACTIVATE 0
+set -gx COPILOT_INLINE_IMAGES_HERDR 1
 
 # eza config
 set -gx EZA_CONFIG_DIR "$HOME/.config/eza"
