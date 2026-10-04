@@ -35,3 +35,9 @@ Copilot CLI requires COPILOT_INLINE_IMAGES_HERDR=1 to render attachments inside 
 <!-- SECTION:NOTES:BEGIN -->
 Implemented the opt-in once in fish/conf.d/00-env.fish, matching the shared session-scoped environment convention. Verification passed: Fish syntax checks; fresh Fish output COPILOT_INLINE_IMAGES_HERDR=1; normal/Codespaces, macOS links-only, and Raspberry Pi links-only installs each resolved ~/.config/fish to this worktree shared fish/ directory; a fresh Fish through the Pi-created link also returned 1; repository search found exactly one tracked definition.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added the exported COPILOT_INLINE_IMAGES_HERDR=1 opt-in to the shared Fish conf.d environment file so every supported installation path inherits it without Pi-specific duplication. Verified Fish syntax and fresh-shell export, exercised the normal/Codespaces link function plus macOS and Raspberry Pi link installers against isolated project-local homes, and confirmed all linked the shared fish/ directory.
+<!-- SECTION:FINAL_SUMMARY:END -->
