@@ -1,9 +1,11 @@
 ---
 id: TASK-12
 title: Persist Copilot inline images in Herdr
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-04 19:38'
+updated_date: '2026-10-04 19:40'
 labels: []
 dependencies: []
 ordinal: 11000
