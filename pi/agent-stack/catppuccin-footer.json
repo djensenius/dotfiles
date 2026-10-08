@@ -28,8 +28,7 @@
   "statusItems": {
     "include": [],
     "exclude": [
-      "browser",
-      "memctx"
+      "browser"
     ]
   }
 }

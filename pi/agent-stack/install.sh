@@ -29,6 +29,7 @@ FOOTER_FILE="$DIR/catppuccin-footer.json"
 SUBAGENTS_PACKAGE="pi-subagents"
 SUBAGENTS_SOURCE="npm:$SUBAGENTS_PACKAGE"
 MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
+MEMCTX_SOURCE="npm:pi-memctx"
 PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
 # The previous stack used maxedapps/pi-subagents-herdr, which is incompatible
 # with Herdr 0.9.1 (agent.start requires kind + pane). It is removed on upgrade.
@@ -412,9 +413,9 @@ main() {
   fi
   sources="$(package_sources "$packages")"
   current_subagents="$(grep -Fx "$SUBAGENTS_SOURCE" <<<"$sources" || true)"
-  # Version-pinned pi-subagents entries and the legacy maxedapps extension are
-  # replaced by the unpinned package.
-  stale_sources="$(grep -E "^npm:$SUBAGENTS_PACKAGE@|$LEGACY_SOURCE_PATTERN|^$MCP_ADAPTER_SOURCE(@|$)" <<<"$sources" || true)"
+  # Version-pinned pi-subagents entries, the legacy maxedapps extension, and
+  # superseded packages are removed after their replacements are installed.
+  stale_sources="$(grep -E "^npm:$SUBAGENTS_PACKAGE@|$LEGACY_SOURCE_PATTERN|^$MCP_ADAPTER_SOURCE(@|$)|^$MEMCTX_SOURCE(@|$)" <<<"$sources" || true)"
 
   log "Installing shared Pi configuration"
   merge_json_file "$SETTINGS_FILE" "$PI_AGENT_DIR/settings.json" "settings.json"

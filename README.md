@@ -523,10 +523,12 @@ unpinned: the installer installs `npm:pi-subagents` and runs
 keeps pace with Herdr API changes. Other shared Pi packages are also unpinned
 and installed only when absent from the `User packages:` section of `pi list`:
 `npm:pi-catppuccin-footer`, `npm:@plannotator/pi-extension`,
-`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`, and
-`npm:@narumitw/pi-herdr`. The `pi-herdr` package
-replaces Herdr's standalone Pi lifecycle integration and Pi's use of the
-standalone global Herdr skill, so the installer removes
+`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memory`, and
+`npm:@narumitw/pi-herdr`. When upgrading from the superseded
+`npm:pi-memctx` memory extension, the installer removes `npm:pi-memctx` after
+installing `npm:pi-memory` so both memory extensions do not load. The
+`pi-herdr` package replaces Herdr's standalone Pi lifecycle integration and
+Pi's use of the standalone global Herdr skill, so the installer removes
 `~/.pi/agent/extensions/herdr-agent-state.ts`, any legacy
 `~/.pi/agent/skills/herdr` link, and the canonical `~/.agents/skills/herdr`
 skill. When Copilot CLI is installed, the installer first prepares valid,
@@ -563,9 +565,9 @@ configuration remains in the `.migrated` backup for manual review.
 
 Built-in MCP exposes configured servers to Pi directly; run `/mcp` in Pi or
 `pi mcp list` from the shell to check server availability. The shared footer
-config (`pi/agent-stack/catppuccin-footer.json`) hides the `browser` and
-`memctx` status items and drops the `git`, `gitDiff`, `lastTokens`, `cost` and
-`time` sections; Herdr's sidebar already shows each workspace's branch.
+config (`pi/agent-stack/catppuccin-footer.json`) hides the `browser` status
+item and drops the `git`, `gitDiff`, `lastTokens`, `cost` and `time` sections;
+Herdr's sidebar already shows each workspace's branch.
 Herdr's agent sidebar includes `state_text`, so while background subagents run
 the Pi pane shows the label pi-subagents publishes (workflow label, agent name
 or active count, with `⚠` when a subagent needs attention).

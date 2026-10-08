@@ -4,5 +4,5 @@ npm:pi-catppuccin-footer
 npm:@plannotator/pi-extension
 npm:pi-web-access
 npm:pi-browser-harness
-npm:pi-memctx
+npm:pi-memory
 npm:@narumitw/pi-herdr
