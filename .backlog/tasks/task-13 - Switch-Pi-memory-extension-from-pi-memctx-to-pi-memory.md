@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-08 13:47'
-updated_date: '2026-10-08 13:48'
+updated_date: '2026-10-08 13:49'
 labels: []
 dependencies: []
 ordinal: 12000
@@ -24,3 +24,11 @@ The installed pi-memctx extension keeps triggering Pi extension loader warnings 
 - [ ] #3 Agent-stack tests or fixtures that assert the package list are updated consistently
 - [ ] #4 The relevant validation checks pass and their output is recorded in the task notes
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Replace npm:pi-memctx with npm:pi-memory in the repo-managed Pi package list.
+2. Update the README default shared Pi package documentation to name npm:pi-memory.
+3. Update install-runtime.sh managed package expectations and validate with the runtime test plus grep consistency checks.
+<!-- SECTION:PLAN:END -->
