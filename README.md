@@ -523,7 +523,7 @@ unpinned: the installer installs `npm:pi-subagents` and runs
 keeps pace with Herdr API changes. Other shared Pi packages are also unpinned
 and installed only when absent from the `User packages:` section of `pi list`:
 `npm:pi-catppuccin-footer`, `npm:@plannotator/pi-extension`,
-`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memctx`, and
+`npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memory`, and
 `npm:@narumitw/pi-herdr`. The `pi-herdr` package
 replaces Herdr's standalone Pi lifecycle integration and Pi's use of the
 standalone global Herdr skill, so the installer removes

@@ -13,7 +13,7 @@ MANAGED_PACKAGE_SOURCES=(
   "npm:@plannotator/pi-extension"
   "npm:pi-web-access"
   "npm:pi-browser-harness"
-  "npm:pi-memctx"
+  "npm:pi-memory"
   "$PI_HERDR_SOURCE"
 )
 PREINSTALLED_MANAGED_PACKAGE="npm:pi-web-access"
