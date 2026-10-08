@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-08 13:47'
-updated_date: '2026-10-08 13:52'
+updated_date: '2026-10-08 13:54'
 labels: []
 dependencies: []
 ordinal: 12000
@@ -40,6 +40,16 @@ Validation run after replacing pi-memctx with pi-memory:
 - `grep -nH 'pi-memory' pi/agent-stack/packages.txt README.md pi/agent-stack/tests/install-runtime.sh` -> `pi/agent-stack/packages.txt:7:npm:pi-memory`; `README.md:526:\`npm:pi-web-access\`, \`npm:pi-browser-harness\`, \`npm:pi-memory\`, and`; `pi/agent-stack/tests/install-runtime.sh:16:  "npm:pi-memory"`
 
 Reviewer blocker on commit 6ea5d7328b7ed2184fffc9599a943cd09ddc4512: installer did not remove superseded npm:pi-memctx on upgrade, and README/footer fixture still documented stale memctx footer exclusion even though pi-memory does not publish that status key.
+
+Fix-round validation for reviewer blocker on commit 6ea5d7328b7ed2184fffc9599a943cd09ddc4512:
+- Updated `pi/agent-stack/install.sh` so stale package detection includes `^$MEMCTX_SOURCE(@|$)` for superseded `npm:pi-memctx` installs, including version-suffixed sources.
+- Added `pi/agent-stack/tests/install-runtime.sh` scenario `run_memctx_upgrade_migration`, which asserts `exec:pi remove:npm:pi-memctx` exactly once, `exec:pi install:npm:pi-memory` exactly once through the normal managed package flow, and subagents still install/update.
+- Updated README upgrade/footer documentation and `pi/agent-stack/catppuccin-footer.json` so footer config no longer excludes or documents stale `memctx` status.
+- `bash pi/agent-stack/tests/install-runtime.sh` -> `installer mise runtime tests passed`.
+- `grep -nH -E 'pi-memctx|pi-memory' README.md pi/agent-stack/packages.txt pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh pi/agent-stack/catppuccin-footer.json || true` key lines: `README.md:526` lists `npm:pi-memory`; `README.md:528-529` documents removal of `npm:pi-memctx` after installing `npm:pi-memory`; `pi/agent-stack/packages.txt:7:npm:pi-memory`; `pi/agent-stack/install.sh:32:MEMCTX_SOURCE="npm:pi-memctx"`; `pi/agent-stack/tests/install-runtime.sh:10-11` define `MEMCTX_SOURCE`/`PI_MEMORY_SOURCE`.
+- `grep -nH 'MEMCTX_SOURCE\|PI_MEMORY_SOURCE\|stale_sources\|exec:pi remove' pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh | sed -n '1,80p'` key lines: `pi/agent-stack/install.sh:418` includes `^$MEMCTX_SOURCE(@|$)` in `stale_sources`; `pi/agent-stack/tests/install-runtime.sh:1025-1026` assert remove of memctx and install of pi-memory.
+- `grep -nH '"memctx"' pi/agent-stack/catppuccin-footer.json || true` -> no output.
+Residual risk: validation uses the mocked installer/runtime harness, not a live Pi upgrade with real npm packages.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
