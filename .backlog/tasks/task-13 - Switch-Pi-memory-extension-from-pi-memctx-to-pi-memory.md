@@ -32,3 +32,12 @@ The installed pi-memctx extension keeps triggering Pi extension loader warnings 
 2. Update the README default shared Pi package documentation to name npm:pi-memory.
 3. Update install-runtime.sh managed package expectations and validate with the runtime test plus grep consistency checks.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Validation run after replacing pi-memctx with pi-memory:
+- `bash pi/agent-stack/tests/install-runtime.sh` -> `installer mise runtime tests passed`
+- `grep -nH 'pi-memctx' pi/agent-stack/packages.txt README.md pi/agent-stack/tests/install-runtime.sh || true` -> no matches in touched package/docs/test files
+- `grep -nH 'pi-memory' pi/agent-stack/packages.txt README.md pi/agent-stack/tests/install-runtime.sh` -> `pi/agent-stack/packages.txt:7:npm:pi-memory`; `README.md:526:\`npm:pi-web-access\`, \`npm:pi-browser-harness\`, \`npm:pi-memory\`, and`; `pi/agent-stack/tests/install-runtime.sh:16:  "npm:pi-memory"`
+<!-- SECTION:NOTES:END -->
