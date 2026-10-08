@@ -1,9 +1,11 @@
 ---
 id: TASK-13
 title: Switch Pi memory extension from pi-memctx to pi-memory
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-08 13:47'
+updated_date: '2026-10-08 13:48'
 labels: []
 dependencies: []
 ordinal: 12000
