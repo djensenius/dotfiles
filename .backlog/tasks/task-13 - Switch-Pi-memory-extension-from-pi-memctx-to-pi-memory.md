@@ -1,7 +1,7 @@
 ---
 id: TASK-13
 title: Switch Pi memory extension from pi-memctx to pi-memory
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-08 13:47'
@@ -55,5 +55,5 @@ Residual risk: validation uses the mocked installer/runtime harness, not a live 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Switched the repo-managed Pi memory extension from npm:pi-memctx to npm:pi-memory in the package list, README default package documentation, and install-runtime test expectations. Verified with bash pi/agent-stack/tests/install-runtime.sh and grep consistency checks recorded in the implementation notes.
+Fix round for TASK-13 removed the reviewer blocker by retiring superseded npm:pi-memctx during agent-stack upgrades (including version-suffixed sources), adding a mocked migration test that verifies one pi remove for memctx and normal managed npm:pi-memory installation, and removing stale memctx footer documentation/configuration. Verified with bash pi/agent-stack/tests/install-runtime.sh plus targeted grep consistency checks; residual risk is limited to not exercising a live Pi/npm upgrade.
 <!-- SECTION:FINAL_SUMMARY:END -->
