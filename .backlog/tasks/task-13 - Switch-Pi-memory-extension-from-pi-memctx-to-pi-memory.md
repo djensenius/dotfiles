@@ -1,11 +1,11 @@
 ---
 id: TASK-13
 title: Switch Pi memory extension from pi-memctx to pi-memory
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-08 13:47'
-updated_date: '2026-10-08 13:49'
+updated_date: '2026-10-08 13:50'
 labels: []
 dependencies: []
 ordinal: 12000
@@ -19,10 +19,10 @@ The installed pi-memctx extension keeps triggering Pi extension loader warnings 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Repo-managed Pi package configuration installs npm:pi-memory instead of npm:pi-memctx
-- [ ] #2 README or relevant agent-stack documentation names pi-memory instead of pi-memctx where the default extension set is documented
-- [ ] #3 Agent-stack tests or fixtures that assert the package list are updated consistently
-- [ ] #4 The relevant validation checks pass and their output is recorded in the task notes
+- [x] #1 Repo-managed Pi package configuration installs npm:pi-memory instead of npm:pi-memctx
+- [x] #2 README or relevant agent-stack documentation names pi-memory instead of pi-memctx where the default extension set is documented
+- [x] #3 Agent-stack tests or fixtures that assert the package list are updated consistently
+- [x] #4 The relevant validation checks pass and their output is recorded in the task notes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -41,3 +41,9 @@ Validation run after replacing pi-memctx with pi-memory:
 - `grep -nH 'pi-memctx' pi/agent-stack/packages.txt README.md pi/agent-stack/tests/install-runtime.sh || true` -> no matches in touched package/docs/test files
 - `grep -nH 'pi-memory' pi/agent-stack/packages.txt README.md pi/agent-stack/tests/install-runtime.sh` -> `pi/agent-stack/packages.txt:7:npm:pi-memory`; `README.md:526:\`npm:pi-web-access\`, \`npm:pi-browser-harness\`, \`npm:pi-memory\`, and`; `pi/agent-stack/tests/install-runtime.sh:16:  "npm:pi-memory"`
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Switched the repo-managed Pi memory extension from npm:pi-memctx to npm:pi-memory in the package list, README default package documentation, and install-runtime test expectations. Verified with bash pi/agent-stack/tests/install-runtime.sh and grep consistency checks recorded in the implementation notes.
+<!-- SECTION:FINAL_SUMMARY:END -->
