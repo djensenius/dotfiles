@@ -7,13 +7,15 @@ REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
 SUBAGENTS_SOURCE="npm:pi-subagents"
 LEGACY_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
 MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
+MEMCTX_SOURCE="npm:pi-memctx"
+PI_MEMORY_SOURCE="npm:pi-memory"
 PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
 MANAGED_PACKAGE_SOURCES=(
   "npm:pi-catppuccin-footer"
   "npm:@plannotator/pi-extension"
   "npm:pi-web-access"
   "npm:pi-browser-harness"
-  "npm:pi-memory"
+  "$PI_MEMORY_SOURCE"
   "$PI_HERDR_SOURCE"
 )
 PREINSTALLED_MANAGED_PACKAGE="npm:pi-web-access"
@@ -1002,6 +1004,36 @@ run_migration() {
   assert_no_runtime_markers "$name" "$root"
 }
 
+run_memctx_upgrade_migration() {
+  local name="memctx-upgrade-migration"
+  local root="$tmp/$name"
+  local log="$root/mise.log"
+  local first_output="$root/first.out"
+  local second_output="$root/second.out"
+
+  setup_fixture "$root" "no" "no"
+
+  if ! run_installer "$root" "Linux" 0 "$MEMCTX_SOURCE" >"$first_output" 2>&1; then
+    cat "$first_output" >&2
+    fail "$name first installer run failed"
+  fi
+  if ! run_installer "$root" "Linux" 0 "$MEMCTX_SOURCE" >"$second_output" 2>&1; then
+    cat "$second_output" >&2
+    fail "$name second installer run failed"
+  fi
+
+  assert_count 1 "exec:pi remove:$MEMCTX_SOURCE" "$log"
+  assert_count 1 "exec:pi install:$PI_MEMORY_SOURCE" "$log"
+  assert_count 1 "exec:pi install:$SUBAGENTS_SOURCE" "$log"
+  assert_count 1 "exec:pi update:$SUBAGENTS_SOURCE" "$log"
+  assert_contains "installed $PI_MEMORY_SOURCE" "$first_output"
+  assert_contains "$PI_MEMORY_SOURCE is already installed" "$second_output"
+  assert_contains "removed $MEMCTX_SOURCE" "$first_output"
+  assert_contains "updated $SUBAGENTS_SOURCE" "$second_output"
+  assert_reviewer_profile "$name" "$root/pi-agent"
+  assert_no_runtime_markers "$name" "$root"
+}
+
 run_mcp_adapter_upgrade_migration() {
   local name="mcp-adapter-upgrade-migration"
   local root="$tmp/$name"
@@ -1174,6 +1206,7 @@ run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
 run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
+run_memctx_upgrade_migration
 run_mcp_adapter_upgrade_migration
 run_symlink_preserves_local_files
 
