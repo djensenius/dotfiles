@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-08 13:47'
-updated_date: '2026-10-08 13:54'
+updated_date: '2026-10-08 13:55'
 labels: []
 dependencies: []
 ordinal: 12000
@@ -28,7 +28,11 @@ The installed pi-memctx extension keeps triggering Pi extension loader warnings 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Reopen TASK-13 and record the reviewer blocker and revised plan before source edits.\n2. Add npm:pi-memctx, including @version suffixes, to install.sh stale package removal while preserving pi-memory as the managed package.\n3. Add an install-runtime migration test for existing npm:pi-memctx removal and pi-memory managed installation.\n4. Update README upgrade/footer documentation and catppuccin footer fixture to remove stale memctx footer exclusion text.\n5. Run install-runtime.sh and targeted grep consistency checks, then record evidence and finalize TASK-13 with residual mocked-install risk noted.
+1. Reopen TASK-13 and record the reviewer blocker and revised plan before source edits.
+2. Add npm:pi-memctx, including @version suffixes, to install.sh stale package removal while preserving pi-memory as the managed package.
+3. Add an install-runtime migration test for existing npm:pi-memctx removal and pi-memory managed installation.
+4. Update README upgrade/footer documentation and catppuccin footer fixture to remove stale memctx footer exclusion text.
+5. Run install-runtime.sh and targeted grep consistency checks, then record evidence and finalize TASK-13 with residual mocked-install risk noted.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
