@@ -1,7 +1,7 @@
 ---
 id: TASK-14
 title: Remove deprecated mise setting and add qmd tooling
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-10 03:37'
