@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-10 03:37'
-updated_date: '2026-10-10 03:46'
+updated_date: '2026-10-10 03:47'
 labels: []
 dependencies: []
 modified_files:
@@ -39,8 +39,7 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 2. Update pi/agent-stack/install.sh so qmd/npm:@tobilu/qmd is installed and verified by the existing mise-managed toolchain path.
 3. Add targeted install-runtime test coverage for the qmd mise install behavior and update minimal user-facing messaging/docs only if the installer output needs to name the tooling.
 4. Validate targeted agent-stack runtime tests plus required mise/TOML/deprecated-setting checks, then finalize the task again.
-
-5. Final polish after review: quote the mise binary lookup, verify qmd by running a managed \qmd 2.8.3 (facd35e) command, add a targeted runtime-test failure path for qmd verification, and re-run the requested validation before marking the task Done again.
+5. Final polish after review: quote the mise binary lookup, verify qmd by running a managed qmd --version command, add a targeted runtime-test failure path for qmd verification, and re-run the requested validation before marking the task Done again.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
