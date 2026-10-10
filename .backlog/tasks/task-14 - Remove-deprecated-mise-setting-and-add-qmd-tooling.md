@@ -5,12 +5,15 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-10 03:37'
-updated_date: '2026-10-10 03:43'
+updated_date: '2026-10-10 03:44'
 labels: []
 dependencies: []
 modified_files:
   - mise/config.toml
   - mise/config-test.toml
+  - README.md
+  - pi/agent-stack/install.sh
+  - pi/agent-stack/tests/install-runtime.sh
 type: chore
 ordinal: 13000
 ---
@@ -42,9 +45,9 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 <!-- SECTION:NOTES:BEGIN -->
 Implemented in mise/config.toml and mise/config-test.toml: removed plugin_autoupdate_last_check_duration and its obsolete explanatory comment block; added "npm:@tobilu/qmd" = "latest" to the npm package tools.
 Validation passed:
-- git grep -n "plugin_autoupdate_last_check_duration" -- '*.toml' produced no matches.
-- git grep -n 'npm:@tobilu/qmd' -- mise/config.toml mise/config-test.toml reported entries in both files.
-- python3 tomllib parsed both edited TOML files and found npm:@tobilu/qmd='latest'.
+- git grep -n "plugin_autoupdate_last_check_duration" -- "*.toml" produced no matches.
+- git grep -n "npm:@tobilu/qmd" -- mise/config.toml mise/config-test.toml reported entries in both files.
+- python3 tomllib parsed both edited TOML files and found npm:@tobilu/qmd="latest".
 - tomllint mise/config.toml mise/config-test.toml passed.
 - Project TOML lint command `for f in **/*.toml; do [ -f "$f" ] && tomllint "$f"; done` passed.
 
@@ -54,7 +57,7 @@ Fix-round implementation after reviewer note/user clarification:
 - Updated `pi/agent-stack/install.sh` to install `npm:@tobilu/qmd` in the unified mise install command with node/npm/pi/herdr, then verify the `qmd` shim with `mise -C "$REPO_ROOT" which qmd`.
 - Updated `pi/agent-stack/tests/install-runtime.sh` mock expectations so runtime tests fail unless qmd is included in the mise install argument list and `which qmd` runs after install; added qmd stale/system runtime mocks to prove the script stays on the managed mise path.
 - Added a minimal README note that the agent-stack installer installs `npm:@tobilu/qmd` for `pi-memory` memory_search.
-- Source/docs commit: dd36a024af03bd3e0d9ef3ca2b50f9d5acbf9871f.
+- Source/docs commit: dd36a02758eac122c8aa59eb67d3ca880783030e.
 Validation passed:
 - `bash pi/agent-stack/tests/install-runtime.sh` -> `installer mise runtime tests passed`.
 - `bash mac/tests/brewfile-mise-lint.sh` -> `ok Brewfiles do not overlap mise-owned tools`.
@@ -64,8 +67,6 @@ Validation passed:
 - `bash -n pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh` -> no output.
 - `git diff --check` -> no output.
 - qmd grep assertions showed `QMD_SOURCE`, the mise install command, `which qmd`, and install-runtime `install:node npm pi herdr $QMD_SOURCE` / `which:qmd` assertions.
-
-Correction: the full source/docs commit SHA is dd36a02758eac122c8aa59eb67d3ca880783030e.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
