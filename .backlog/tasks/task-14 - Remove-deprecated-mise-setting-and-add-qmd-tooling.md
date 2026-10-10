@@ -1,11 +1,11 @@
 ---
 id: TASK-14
 title: Remove deprecated mise setting and add qmd tooling
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-10 03:37'
-updated_date: '2026-10-10 03:38'
+updated_date: '2026-10-10 03:41'
 labels: []
 dependencies: []
 modified_files:
@@ -31,11 +31,7 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Inspect the mise configs to locate the deprecated setting and workstation tool manifest entries.
-2. Remove plugin_autoupdate_last_check_duration and its explanatory comment block from both mise configs.
-3. Add qmd via npm:@tobilu/qmd to the managed workstation tools, keeping config-test aligned where it mirrors the workstation manifest.
-4. Validate the deprecated key is absent and both edited TOML files parse successfully; run targeted relevant checks.
-5. Record evidence, finalize the Backlog task, and commit the Backlog and config changes.
+1. Inspect standalone agent-stack installer, root wrapper, and runtime test mocks for managed mise npm tool handling.\n2. Update pi/agent-stack/install.sh so qmd/npm:@tobilu/qmd is installed and verified by the existing mise-managed toolchain path.\n3. Add targeted install-runtime test coverage for the qmd mise install behavior and update minimal user-facing messaging/docs only if the installer output needs to name the tooling.\n4. Validate targeted agent-stack runtime tests plus required mise/TOML/deprecated-setting checks, then finalize the task again.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -48,6 +44,8 @@ Validation passed:
 - python3 tomllib parsed both edited TOML files and found npm:@tobilu/qmd='latest'.
 - tomllint mise/config.toml mise/config-test.toml passed.
 - Project TOML lint command `for f in **/*.toml; do [ -f "$f" ] && tomllint "$f"; done` passed.
+
+Fix round reopened after reviewer note and user clarification: standalone Pi/Herdr agent-stack installer must install qmd through mise, not raw npm.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
