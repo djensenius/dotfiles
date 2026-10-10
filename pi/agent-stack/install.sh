@@ -31,6 +31,7 @@ SUBAGENTS_SOURCE="npm:$SUBAGENTS_PACKAGE"
 MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
 MEMCTX_SOURCE="npm:pi-memctx"
 PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
+QMD_SOURCE="npm:@tobilu/qmd"
 # The previous stack used maxedapps/pi-subagents-herdr, which is incompatible
 # with Herdr 0.9.1 (agent.start requires kind + pane). It is removed on upgrade.
 LEGACY_SOURCE_PATTERN='^(npm:@maxedapps/pi-subagents-herdr|git:github\.com/maxedapps/pi-subagents-herdr)(@|$)'
@@ -370,7 +371,7 @@ publish_copilot_herdr_skill() {
 }
 
 main() {
-  local node_version pi_version herdr_version packages sources managed_sources
+  local node_version pi_version herdr_version qmd_path qmd_version packages sources managed_sources
   local current_subagents stale_sources stale_source profile package_source extension
   local generated_copilot_skill="" preserved_copilot_skill="" legacy_pi_skill
   local manages_pi_herdr=false
@@ -384,9 +385,9 @@ main() {
     has lockf || die "macOS lockf is required by xbuild"
   fi
 
-  log "Installing mise-managed Node, Pi, and Herdr"
+  log "Installing mise-managed Node, Pi, Herdr, and qmd"
   "$MISE_BIN" -C "$REPO_ROOT" trust "$REPO_ROOT/mise/config.toml" >/dev/null
-  "$MISE_BIN" -C "$REPO_ROOT" install node npm pi herdr
+  "$MISE_BIN" -C "$REPO_ROOT" install node npm pi herdr "$QMD_SOURCE"
   "$MISE_BIN" -C "$REPO_ROOT" reshim
   export PATH="$HOME/.local/share/mise/shims:$PATH"
   hash -r
@@ -399,7 +400,11 @@ main() {
     die "mise-managed pi is unavailable after installation"
   herdr_version="$(mise_exec herdr --version | head -n1)" ||
     die "mise-managed herdr is unavailable after installation"
-  ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version"
+  qmd_path="$("$MISE_BIN" -C "$REPO_ROOT" which qmd)" ||
+    die "mise-managed qmd is unavailable after installing $QMD_SOURCE"
+  qmd_version="$(mise_exec qmd --version | head -n1)" ||
+    die "mise-managed qmd is unavailable after installing $QMD_SOURCE"
+  ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version, qmd ($qmd_version) at $qmd_path"
 
   [ -r "$PACKAGES_FILE" ] || die "missing package list: $PACKAGES_FILE"
   managed_sources="$(managed_package_sources)"
