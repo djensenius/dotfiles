@@ -27,3 +27,9 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 - [ ] #2 The managed workstation tool manifest includes qmd so `memory_search` prerequisites are installed with the dotfiles toolchain.
 - [ ] #3 Validation confirms the deprecated setting is gone and the edited TOML remains parseable.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Inspect the mise configs to locate the deprecated setting and workstation tool manifest entries.\n2. Remove plugin_autoupdate_last_check_duration and its explanatory comment block from both mise configs.\n3. Add qmd via npm:@tobilu/qmd to the managed workstation tools, keeping config-test aligned where it mirrors the workstation manifest.\n4. Validate the deprecated key is absent and both edited TOML files parse successfully; run targeted relevant checks.\n5. Record evidence, finalize the Backlog task, and commit the Backlog and config changes.
+<!-- SECTION:PLAN:END -->
