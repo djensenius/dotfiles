@@ -307,6 +307,18 @@ SKILL
           fail "unexpected herdr arguments: $*"
         fi
         ;;
+      qmd)
+        [ "$#" -eq 1 ] && [ "$1" = "--version" ] ||
+          fail "unexpected qmd arguments: $*"
+        [ -f "$RUNTIME_TEST_STATE/qmd-installed" ] ||
+          fail "qmd version checked before install"
+        printf 'exec:qmd --version\n' >> "$RUNTIME_TEST_LOG"
+        if [ "${RUNTIME_TEST_QMD_VERSION_FAILURE:-0}" = "1" ]; then
+          printf 'mock qmd version failure\n' >&2
+          exit 76
+        fi
+        printf 'qmd 0.1.0\n'
+        ;;
       *)
         fail "unexpected runtime: $runtime"
         ;;
@@ -474,6 +486,7 @@ run_installer() {
     RUNTIME_TEST_LOG="$root/mise.log" \
     RUNTIME_TEST_MANAGED_PACKAGE_SOURCES="$managed_package_sources" \
     RUNTIME_TEST_QMD_SOURCE="$QMD_SOURCE" \
+    RUNTIME_TEST_QMD_VERSION_FAILURE="${RUNTIME_TEST_QMD_VERSION_FAILURE:-0}" \
     RUNTIME_TEST_MARKERS="$root/markers" \
     RUNTIME_TEST_HERDR_SKILL_FAILURE="${RUNTIME_TEST_HERDR_SKILL_FAILURE:-0}" \
     RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
@@ -649,6 +662,7 @@ JSON
   assert_count 2 "install:node npm pi herdr $QMD_SOURCE" "$log"
   assert_count 2 "reshim" "$log"
   assert_count 2 "which:qmd" "$log"
+  assert_count 2 "exec:qmd --version" "$log"
   assert_count 2 "exec:node -p" "$log"
   assert_count 2 "exec:node -e" "$log"
   assert_count 2 "exec:npx --version" "$log"
@@ -862,6 +876,30 @@ run_pi_list_failure() {
   assert_no_agent_stack_mutations "$name" "$root"
   [ ! -e "$root/state/pi-installed" ] ||
     fail "$name changed Pi package state after inspection failed"
+  assert_no_runtime_markers "$name" "$root"
+}
+
+run_qmd_version_failure() {
+  local name="qmd-version-failure"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local status
+
+  setup_fixture "$root" "no" "no"
+
+  set +e
+  RUNTIME_TEST_QMD_VERSION_FAILURE=1 \
+    run_installer "$root" "Linux" 0 >"$output" 2>&1
+  status=$?
+  set -e
+
+  [ "$status" -ne 0 ] || fail "$name unexpectedly succeeded"
+  assert_contains "mock qmd version failure" "$output"
+  assert_contains "mise-managed qmd is unavailable after installing $QMD_SOURCE" "$output"
+  assert_count 1 "install:node npm pi herdr $QMD_SOURCE" "$root/mise.log"
+  assert_count 1 "which:qmd" "$root/mise.log"
+  assert_count 1 "exec:qmd --version" "$root/mise.log"
+  assert_no_agent_stack_mutations "$name" "$root"
   assert_no_runtime_markers "$name" "$root"
 }
 
@@ -1195,6 +1233,7 @@ run_darwin_with_existing_backlog_tools_skips_brew
 run_darwin_with_failing_brew_warns_and_continues
 run_darwin_no_lockf
 run_pi_list_failure
+run_qmd_version_failure
 run_invalid_settings_json
 run_herdr_skill_generation_failure
 run_copilot_skill_publish_failure

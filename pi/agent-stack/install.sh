@@ -371,7 +371,7 @@ publish_copilot_herdr_skill() {
 }
 
 main() {
-  local node_version pi_version herdr_version qmd_path packages sources managed_sources
+  local node_version pi_version herdr_version qmd_path qmd_version packages sources managed_sources
   local current_subagents stale_sources stale_source profile package_source extension
   local generated_copilot_skill="" preserved_copilot_skill="" legacy_pi_skill
   local manages_pi_herdr=false
@@ -400,9 +400,11 @@ main() {
     die "mise-managed pi is unavailable after installation"
   herdr_version="$(mise_exec herdr --version | head -n1)" ||
     die "mise-managed herdr is unavailable after installation"
-  qmd_path="$($MISE_BIN -C "$REPO_ROOT" which qmd)" ||
+  qmd_path="$("$MISE_BIN" -C "$REPO_ROOT" which qmd)" ||
     die "mise-managed qmd is unavailable after installing $QMD_SOURCE"
-  ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version, qmd at $qmd_path"
+  qmd_version="$(mise_exec qmd --version | head -n1)" ||
+    die "mise-managed qmd is unavailable after installing $QMD_SOURCE"
+  ok "git $GIT_VERSION, node v$node_version, pi $pi_version, $herdr_version, qmd ($qmd_version) at $qmd_path"
 
   [ -r "$PACKAGES_FILE" ] || die "missing package list: $PACKAGES_FILE"
   managed_sources="$(managed_package_sources)"
