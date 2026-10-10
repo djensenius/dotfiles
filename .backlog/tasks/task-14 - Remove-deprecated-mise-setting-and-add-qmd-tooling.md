@@ -61,6 +61,8 @@ Validation passed:
 - `bash -n pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh` -> no output.
 - `git diff --check` -> no output.
 - qmd grep assertions showed `QMD_SOURCE`, the mise install command, `which qmd`, and install-runtime `install:node npm pi herdr $QMD_SOURCE` / `which:qmd` assertions.
+
+Correction: the full source/docs commit SHA is dd36a02758eac122c8aa59eb67d3ca880783030e.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
