@@ -1,11 +1,11 @@
 ---
 id: TASK-14
 title: Remove deprecated mise setting and add qmd tooling
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-10 03:37'
-updated_date: '2026-10-10 03:41'
+updated_date: '2026-10-10 03:43'
 labels: []
 dependencies: []
 modified_files:
@@ -46,10 +46,25 @@ Validation passed:
 - Project TOML lint command `for f in **/*.toml; do [ -f "$f" ] && tomllint "$f"; done` passed.
 
 Fix round reopened after reviewer note and user clarification: standalone Pi/Herdr agent-stack installer must install qmd through mise, not raw npm.
+
+Fix-round implementation after reviewer note/user clarification:
+- Updated `pi/agent-stack/install.sh` to install `npm:@tobilu/qmd` in the unified mise install command with node/npm/pi/herdr, then verify the `qmd` shim with `mise -C "$REPO_ROOT" which qmd`.
+- Updated `pi/agent-stack/tests/install-runtime.sh` mock expectations so runtime tests fail unless qmd is included in the mise install argument list and `which qmd` runs after install; added qmd stale/system runtime mocks to prove the script stays on the managed mise path.
+- Added a minimal README note that the agent-stack installer installs `npm:@tobilu/qmd` for `pi-memory` memory_search.
+- Source/docs commit: dd36a024af03bd3e0d9ef3ca2b50f9d5acbf9871f.
+Validation passed:
+- `bash pi/agent-stack/tests/install-runtime.sh` -> `installer mise runtime tests passed`.
+- `bash mac/tests/brewfile-mise-lint.sh` -> `ok Brewfiles do not overlap mise-owned tools`.
+- `git grep -n "plugin_autoupdate_last_check_duration" -- "*.toml" || true` -> no output.
+- python3 tomllib parsed `mise/config.toml` and `mise/config-test.toml`, confirming `npm:@tobilu/qmd=latest` in both.
+- `tomllint mise/config.toml mise/config-test.toml` -> no output.
+- `bash -n pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh` -> no output.
+- `git diff --check` -> no output.
+- qmd grep assertions showed `QMD_SOURCE`, the mise install command, `which qmd`, and install-runtime `install:node npm pi herdr $QMD_SOURCE` / `which:qmd` assertions.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Removed the deprecated mise plugin_autoupdate_last_check_duration setting and obsolete comment block from both workstation mise configs, then added npm:@tobilu/qmd to the managed npm tools so qmd is installed by the dotfiles toolchain. Verified no deprecated TOML key remains, both qmd manifest entries exist, edited TOML parses with python3 tomllib, and tomllint passes.
+Fix round for TASK-14 now makes the standalone Pi/Herdr agent-stack installer install npm:@tobilu/qmd through mise alongside node/npm/pi/herdr and verify qmd via mise which. Runtime tests now assert qmd is part of the mocked mise install flow and verified after install; README minimally documents qmd as the pi-memory memory_search dependency. Verified with install-runtime.sh, brewfile/mise lint, deprecated-setting grep, tomllib/tomllint checks for the mise manifests, bash -n, grep assertions, and git diff --check.
 <!-- SECTION:FINAL_SUMMARY:END -->
