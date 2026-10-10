@@ -1,7 +1,7 @@
 ---
 id: TASK-14
 title: Remove deprecated mise setting and add qmd tooling
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-10 03:37'
@@ -23,9 +23,9 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No repository mise config contains `plugin_autoupdate_last_check_duration`.
-- [ ] #2 The managed workstation tool manifest includes qmd so `memory_search` prerequisites are installed with the dotfiles toolchain.
-- [ ] #3 Validation confirms the deprecated setting is gone and the edited TOML remains parseable.
+- [x] #1 No repository mise config contains `plugin_autoupdate_last_check_duration`.
+- [x] #2 The managed workstation tool manifest includes qmd so `memory_search` prerequisites are installed with the dotfiles toolchain.
+- [x] #3 Validation confirms the deprecated setting is gone and the edited TOML remains parseable.
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -37,3 +37,21 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 4. Validate the deprecated key is absent and both edited TOML files parse successfully; run targeted relevant checks.
 5. Record evidence, finalize the Backlog task, and commit the Backlog and config changes.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented in mise/config.toml and mise/config-test.toml: removed plugin_autoupdate_last_check_duration and its obsolete explanatory comment block; added "npm:@tobilu/qmd" = "latest" to the npm package tools.
+Validation passed:
+- git grep -n "plugin_autoupdate_last_check_duration" -- '*.toml' produced no matches.
+- git grep -n 'npm:@tobilu/qmd' -- mise/config.toml mise/config-test.toml reported entries in both files.
+- python3 tomllib parsed both edited TOML files and found npm:@tobilu/qmd='latest'.
+- tomllint mise/config.toml mise/config-test.toml passed.
+- Project TOML lint command `for f in **/*.toml; do [ -f "$f" ] && tomllint "$f"; done` passed.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Removed the deprecated mise plugin_autoupdate_last_check_duration setting and obsolete comment block from both workstation mise configs, then added npm:@tobilu/qmd to the managed npm tools so qmd is installed by the dotfiles toolchain. Verified no deprecated TOML key remains, both qmd manifest entries exist, edited TOML parses with python3 tomllib, and tomllint passes.
+<!-- SECTION:FINAL_SUMMARY:END -->
