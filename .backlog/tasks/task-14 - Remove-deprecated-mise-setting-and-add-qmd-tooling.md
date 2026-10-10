@@ -31,7 +31,10 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Inspect standalone agent-stack installer, root wrapper, and runtime test mocks for managed mise npm tool handling.\n2. Update pi/agent-stack/install.sh so qmd/npm:@tobilu/qmd is installed and verified by the existing mise-managed toolchain path.\n3. Add targeted install-runtime test coverage for the qmd mise install behavior and update minimal user-facing messaging/docs only if the installer output needs to name the tooling.\n4. Validate targeted agent-stack runtime tests plus required mise/TOML/deprecated-setting checks, then finalize the task again.
+1. Inspect standalone agent-stack installer, root wrapper, and runtime test mocks for managed mise npm tool handling.
+2. Update pi/agent-stack/install.sh so qmd/npm:@tobilu/qmd is installed and verified by the existing mise-managed toolchain path.
+3. Add targeted install-runtime test coverage for the qmd mise install behavior and update minimal user-facing messaging/docs only if the installer output needs to name the tooling.
+4. Validate targeted agent-stack runtime tests plus required mise/TOML/deprecated-setting checks, then finalize the task again.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
