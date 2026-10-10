@@ -29,6 +29,7 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 - [x] #1 No repository mise config contains `plugin_autoupdate_last_check_duration`.
 - [x] #2 The managed workstation tool manifest includes qmd so `memory_search` prerequisites are installed with the dotfiles toolchain.
 - [x] #3 Validation confirms the deprecated setting is gone and the edited TOML remains parseable.
+- [ ] #4 The standalone Pi/Herdr agent-stack installer installs and verifies qmd through the repo's managed mise path, including a cheap qmd command, so pi-memory memory_search works without a separate manual qmd install.
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -38,6 +39,8 @@ mise now warns that `plugin_autoupdate_last_check_duration` was never implemente
 2. Update pi/agent-stack/install.sh so qmd/npm:@tobilu/qmd is installed and verified by the existing mise-managed toolchain path.
 3. Add targeted install-runtime test coverage for the qmd mise install behavior and update minimal user-facing messaging/docs only if the installer output needs to name the tooling.
 4. Validate targeted agent-stack runtime tests plus required mise/TOML/deprecated-setting checks, then finalize the task again.
+
+5. Final polish after review: quote the mise binary lookup, verify qmd by running a managed \qmd 2.8.3 (facd35e) command, add a targeted runtime-test failure path for qmd verification, and re-run the requested validation before marking the task Done again.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -67,6 +70,8 @@ Validation passed:
 - `bash -n pi/agent-stack/install.sh pi/agent-stack/tests/install-runtime.sh` -> no output.
 - `git diff --check` -> no output.
 - qmd grep assertions showed `QMD_SOURCE`, the mise install command, `which qmd`, and install-runtime `install:node npm pi herdr $QMD_SOURCE` / `which:qmd` assertions.
+
+Final polish started after reviewer APPROVE WITH NOTES: addressing qmd availability quoting, managed qmd command verification, targeted failure-path coverage, and explicit standalone installer acceptance criteria.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
