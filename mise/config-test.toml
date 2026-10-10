@@ -16,6 +16,7 @@ zig = 'latest'
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@githubnext/github-copilot-cli" = "latest"
 "npm:@mermaid-js/mermaid-cli" = "latest"
+"npm:@tobilu/qmd" = "latest"
 "npm:corepack" = "latest"
 "npm:eslint_d" = "latest"
 "npm:neovim" = "latest"
@@ -44,11 +45,6 @@ idiomatic_version_file_enable_tools = ['go', 'node', 'python', 'ruby', 'rust', '
 # configure `mise install` to always keep the downloaded archive
 always_keep_download = false        # deleted after install by default
 always_keep_install = false         # deleted on failure by default
-
-# configure how frequently (in minutes) to fetch updated plugin repository changes
-# this is updated whenever a new runtime is installed
-# (note: this isn't currently implemented but there are plans to add it: https://github.com/jdx/mise/discussions/6735)
-plugin_autoupdate_last_check_duration = '1 week' # set to 0 to disable updates
 
 # config files with these prefixes will be trusted by default
 trusted_config_paths = [
