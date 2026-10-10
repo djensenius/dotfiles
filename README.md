@@ -517,10 +517,12 @@ also sets these builtin subagent model overrides:
 | `reviewer` | `github-copilot/claude-opus-5.5` |
 | `oracle` | `github-copilot/claude-opus-5.5` |
 
-Like Pi and Herdr (both `latest` in mise), `pi-subagents` is deliberately
-unpinned: the installer installs `npm:pi-subagents` and runs
-`pi update --extension npm:pi-subagents` on every re-run, so the extension
-keeps pace with Herdr API changes. Other shared Pi packages are also unpinned
+The installer also installs `npm:@tobilu/qmd` through mise so the
+`pi-memory` `memory_search` command has its qmd CLI dependency. Like Pi and
+Herdr (both `latest` in mise), `pi-subagents` is deliberately unpinned: the
+installer installs `npm:pi-subagents` and runs `pi update --extension npm:pi-subagents`
+on every re-run, so the extension keeps pace with Herdr API changes. Other
+shared Pi packages are also unpinned
 and installed only when absent from the `User packages:` section of `pi list`:
 `npm:pi-catppuccin-footer`, `npm:@plannotator/pi-extension`,
 `npm:pi-web-access`, `npm:pi-browser-harness`, `npm:pi-memory`, and

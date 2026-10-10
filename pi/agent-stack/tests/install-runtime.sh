@@ -10,6 +10,7 @@ MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
 MEMCTX_SOURCE="npm:pi-memctx"
 PI_MEMORY_SOURCE="npm:pi-memory"
 PI_HERDR_SOURCE="npm:@narumitw/pi-herdr"
+QMD_SOURCE="npm:@tobilu/qmd"
 MANAGED_PACKAGE_SOURCES=(
   "npm:pi-catppuccin-footer"
   "npm:@plannotator/pi-extension"
@@ -129,13 +130,22 @@ case "$action" in
     printf 'trust:%s\n' "$1" >> "$RUNTIME_TEST_LOG"
     ;;
   install)
-    [ "$#" -eq 4 ] && [ "$*" = "node npm pi herdr" ] ||
+    [ "$#" -eq 5 ] && [ "$*" = "node npm pi herdr ${RUNTIME_TEST_QMD_SOURCE:?}" ] ||
       fail "expected unified runtime install, got: $*"
+    : > "$RUNTIME_TEST_STATE/qmd-installed"
     printf 'install:%s\n' "$*" >> "$RUNTIME_TEST_LOG"
     ;;
   reshim)
     [ "$#" -eq 0 ] || fail "unexpected reshim arguments: $*"
     printf 'reshim\n' >> "$RUNTIME_TEST_LOG"
+    ;;
+  which)
+    [ "$#" -eq 1 ] && [ "$1" = "qmd" ] ||
+      fail "unexpected which arguments: $*"
+    [ -f "$RUNTIME_TEST_STATE/qmd-installed" ] ||
+      fail "qmd availability checked before install"
+    printf 'which:qmd\n' >> "$RUNTIME_TEST_LOG"
+    printf '/mock/mise/shims/qmd\n'
     ;;
   exec)
     [ "${1:-}" = "--" ] || fail "missing exec separator: $*"
@@ -390,7 +400,7 @@ EOF
 
 write_system_runtime_mocks() {
   local destination="$1" runtime
-  for runtime in node npx pi herdr; do
+  for runtime in node npx pi herdr qmd; do
     cat > "$destination/$runtime" <<'EOF'
 #!/bin/bash
 set -euo pipefail
@@ -411,7 +421,7 @@ EOF
 write_stale_shims() {
   local destination="$1" runtime
   mkdir -p "$destination"
-  for runtime in mise node npx pi herdr; do
+  for runtime in mise node npx pi herdr qmd; do
     cat > "$destination/$runtime" <<'EOF'
 #!/bin/bash
 set -euo pipefail
@@ -463,6 +473,7 @@ run_installer() {
     BIN_DIR="$root/local-bin" \
     RUNTIME_TEST_LOG="$root/mise.log" \
     RUNTIME_TEST_MANAGED_PACKAGE_SOURCES="$managed_package_sources" \
+    RUNTIME_TEST_QMD_SOURCE="$QMD_SOURCE" \
     RUNTIME_TEST_MARKERS="$root/markers" \
     RUNTIME_TEST_HERDR_SKILL_FAILURE="${RUNTIME_TEST_HERDR_SKILL_FAILURE:-0}" \
     RUNTIME_TEST_PI_LIST_FAILURE="$pi_list_failure" \
@@ -635,8 +646,9 @@ JSON
   fi
 
   assert_count 2 "trust:$REPO_ROOT/mise/config.toml" "$log"
-  assert_count 2 "install:node npm pi herdr" "$log"
+  assert_count 2 "install:node npm pi herdr $QMD_SOURCE" "$log"
   assert_count 2 "reshim" "$log"
+  assert_count 2 "which:qmd" "$log"
   assert_count 2 "exec:node -p" "$log"
   assert_count 2 "exec:node -e" "$log"
   assert_count 2 "exec:npx --version" "$log"
