@@ -1,9 +1,11 @@
 ---
 id: TASK-18
 title: Remove unneeded Homebrew CLI packages
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-13 20:45'
+updated_date: '2026-10-13 20:45'
 labels: []
 dependencies: []
 ordinal: 16000
