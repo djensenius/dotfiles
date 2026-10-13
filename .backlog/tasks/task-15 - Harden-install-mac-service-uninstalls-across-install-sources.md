@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 17:28'
+updated_date: '2026-10-13 18:18'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -61,6 +61,8 @@ Copilot PR feedback addressed: homebrew_formula_installed_on_request now validat
 Latest Copilot PR feedback addressed: homebrew_formula_installed now reads the complete `brew list --formula` output, reports probe failures as section failures, and only greps successful output for actionlint. Added regression coverage for `brew list --formula` failure in normal and --check modes while preserving requested uninstall, dependency-only, and absent formula behavior. Validation passed locally: `bash -n mac/install.sh mac/tests/install-mac-test.sh` (status 0, no output); `git diff --check` (status 0, no output); `bash mac/tests/install-mac-test.sh` (status 0, ok install-mac tests passed); `shellcheck mac/install.sh mac/tests/install-mac-test.sh` (status 0, no output).
 
 Latest high-severity Copilot feedback fix started/applied: Homebrew actionlint cleanup is now gated on the repo mise config being active at ~/.config/mise/config.toml and actionlint resolving to a usable mise shim before check/dry-run/uninstall. Added regression coverage for --only mise/unlinked config so fake mise install no longer implies a cleanup-safe replacement, plus verified cleanup/check/dry-run cases when the repo config and shim are explicit. Validation passed locally: bash -n mac/install.sh mac/tests/install-mac-test.sh; git diff --check; bash mac/tests/install-mac-test.sh; shellcheck mac/install.sh mac/tests/install-mac-test.sh.
+
+Latest Copilot dry-run feedback fix started: adjust actionlint Homebrew cleanup so --dry-run can report a conditional uninstall plan without requiring the mise shim to exist, while preserving runtime replacement verification before real uninstall.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
