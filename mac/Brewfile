@@ -30,7 +30,7 @@ brew "bat"
 brew "bat-extras"
 brew "bottom"
 brew "btop"
-brew "dlvhdr/formulae/diffnav"
+brew "dlvhdr/formulae/diffnav", trusted: true
 brew "dust"
 brew "eza"
 brew "fastfetch"
@@ -41,7 +41,7 @@ brew "glow"
 brew "gping"
 brew "lazygit"
 brew "lazyjj"
-brew "morantron/tmux-fingers/tmux-fingers"
+brew "morantron/tmux-fingers/tmux-fingers", trusted: true
 brew "neovim"
 brew "onefetch"
 brew "ripgrep"
@@ -85,7 +85,7 @@ brew "yt-dlp"
 
 # Network, database and service clients.
 brew "azure-cli"
-brew "influxdata/tap/influxctl"
+brew "influxdata/tap/influxctl", trusted: true
 brew "influxdb-cli"
 brew "lynx"
 brew "minidlna"
@@ -107,11 +107,11 @@ brew "fastlane"
 brew "jadx"
 brew "mupen64plus"
 brew "rgbds"
-brew "tuios"
+brew "timescam/tap/tuios", trusted: true
 
 # Personal/owner CLIs from this laptop.
-brew "djensenius/tap/telephone-booth-operator-cli"
-brew "djensenius/tap/worldcup26"
+brew "djensenius/tap/telephone-booth-operator-cli", trusted: true
+brew "djensenius/tap/worldcup26", trusted: true
 brew "eget"
 brew "opencode"
 

@@ -764,9 +764,19 @@ EOF
     rm -rf "$tmp"
 }
 
-test_brewfile_declares_gitmux_trust_and_omits_deprecated_services_tap() {
-    grep -Fx -q 'brew "arl/arl/gitmux", trusted: true' "$ROOT/mac/Brewfile" || \
-        fail_test 'mac/Brewfile does not declare arl/arl/gitmux as trusted'
+test_brewfile_declares_formula_trust_and_omits_deprecated_services_tap() {
+    local trusted_formula
+    for trusted_formula in \
+        'brew "arl/arl/gitmux", trusted: true' \
+        'brew "dlvhdr/formulae/diffnav", trusted: true' \
+        'brew "influxdata/tap/influxctl", trusted: true' \
+        'brew "morantron/tmux-fingers/tmux-fingers", trusted: true' \
+        'brew "timescam/tap/tuios", trusted: true' \
+        'brew "djensenius/tap/telephone-booth-operator-cli", trusted: true' \
+        'brew "djensenius/tap/worldcup26", trusted: true'; do
+        grep -Fx -q "$trusted_formula" "$ROOT/mac/Brewfile" || \
+            fail_test "mac/Brewfile does not declare trusted formula: $trusted_formula"
+    done
     ! grep -Fx -q 'tap "homebrew/services"' "$ROOT/mac/Brewfile" || \
         fail_test 'mac/Brewfile still taps deprecated homebrew/services'
 }
@@ -1395,7 +1405,7 @@ main() {
     test_herdr_plugins_only_missing_and_section_selection
     test_failed_link_command_marks_section_failed
     test_brewfile_mise_lint_backend_prefixed_overlap
-    test_brewfile_declares_gitmux_trust_and_omits_deprecated_services_tap
+    test_brewfile_declares_formula_trust_and_omits_deprecated_services_tap
     test_brew_check_uses_no_upgrade_and_noop
     test_mise_cleanup_uninstalls_requested_actionlint_formula
     test_mise_cleanup_unavailable_actionlint_replacement_does_not_uninstall
