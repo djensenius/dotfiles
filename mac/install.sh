@@ -772,6 +772,11 @@ cleanup_mise_owned_homebrew_formula() {
                 ;;
         esac
     fi
+    if $DRY_RUN; then
+        change "would uninstall Homebrew formula $formula after a successful mise install verifies $tool (mise manages $tool)"
+        return 0
+    fi
+
     if ! mise_tool_verified_for_homebrew_cleanup "$tool" "$formula"; then
         if $CHECK_MODE; then
             change "Homebrew formula drift: $formula is installed by Homebrew, but mise-managed $tool is unavailable; leaving formula untouched"
@@ -781,10 +786,6 @@ cleanup_mise_owned_homebrew_formula() {
 
     if $CHECK_MODE; then
         change "Homebrew formula drift: $formula is installed by Homebrew but $tool is managed by mise"
-        return 0
-    fi
-    if $DRY_RUN; then
-        change "would uninstall Homebrew formula $formula (mise manages $tool)"
         return 0
     fi
 
