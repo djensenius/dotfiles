@@ -50,7 +50,7 @@ Runs, in order:
   herdr-plugins   Install only missing Herdr plugins from herdr/plugins.txt
   tmux            Clone TPM if missing, then run TPM install_plugins
   nvim            nvim --headless '+Lazy! sync' +qa
-  agent-stack     ./install-agent-stack (default; skip with --skip agent-stack)
+  agent-stack     ./ai-tools/install.sh (default; skip with --skip agent-stack)
   shell           Only with --fish-shell, add brew fish to /etc/shells and chsh
 
 Options:
@@ -1077,22 +1077,23 @@ sync_nvim() {
 
 install_agent_stack() {
     section "agent-stack"
-    if [ ! -x "$DOTFILES_DIR/install-agent-stack" ]; then
-        warn "install-agent-stack entry point not executable; skipping"
+    local installer="$DOTFILES_DIR/ai-tools/install.sh"
+    if [ ! -x "$installer" ]; then
+        warn "ai-tools installer not executable; skipping"
         return 0
     fi
     if $DRY_RUN; then
-        change "would run ./install-agent-stack"
+        change "would run ./ai-tools/install.sh"
         return 0
     fi
     if $CHECK_MODE; then
-        ok "install-agent-stack not run under --check"
+        ok "ai-tools installer not run under --check"
         return 0
     fi
-    if "$DOTFILES_DIR/install-agent-stack"; then
-        change "installed agent stack"
+    if "$installer"; then
+        change "installed AI/coding-agent tools"
     else
-        fail "install-agent-stack failed"
+        fail "ai-tools installer failed"
         return 1
     fi
 }

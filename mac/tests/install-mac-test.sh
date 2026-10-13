@@ -80,9 +80,16 @@ setup_repo() {
     cat >"$repo/install-agent-stack" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-printf 'agent-stack\n' >>"$FAKE_LOG"
+printf 'deprecated-agent-stack\n' >>"$FAKE_LOG"
 EOF
     chmod +x "$repo/install-agent-stack"
+    mkdir -p "$repo/ai-tools"
+    cat >"$repo/ai-tools/install.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'ai-tools\n' >>"$FAKE_LOG"
+EOF
+    chmod +x "$repo/ai-tools/install.sh"
     mkdir -p "$repo/mac"
     cp "$ROOT/mac/install.sh" "$repo/mac/install.sh"
     chmod +x "$repo/mac/install.sh"
@@ -1179,7 +1186,8 @@ test_tmux_fish_agent_stack_and_drift() {
     : >"$log"
     FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only agent-stack >/dev/null
-    grep -F -q 'agent-stack' "$log" || fail_test 'agent-stack section did not run installer'
+    grep -Fx -q 'ai-tools' "$log" || fail_test 'agent-stack section did not run ai-tools installer'
+    ! grep -F -q 'deprecated-agent-stack' "$log" || fail_test 'agent-stack section used deprecated wrapper'
 
     : >"$log"
     set +e

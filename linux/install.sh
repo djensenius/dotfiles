@@ -26,6 +26,7 @@ DEBIAN_PACKAGES=(
     gpg
     git
     git-lfs
+    fish
     unzip
     zip
     xz-utils
@@ -50,6 +51,7 @@ ARCH_PACKAGES=(
     gnupg
     git
     git-lfs
+    fish
     unzip
     zip
     xz
@@ -94,22 +96,22 @@ Supports distro families detected from /etc/os-release:
 
 Runs, in order:
   1. baseline OS packages for the detected package manager
-  2. common dotfile symlinks into ~/.config
-  3. mise installation plus this repo's mise/config.toml tool manifest
+  2. common dotfile symlinks into ~/.config, keeping Herdr state dirs real
+  3. mise installation, ~/.config/mise link, and global tool install
   4. optional AI/coding-agent tooling stack (with --ai-tools)
 
 Options:
   --skip-packages    Do not install baseline OS packages
-  --skip-links       Do not create ~/.config symlinks
+  --skip-links       Do not create common ~/.config symlinks (mise link uses --skip-mise)
   --skip-mise        Do not install mise or run mise install
   --skip-mise-tools  Install/link mise, but do not run mise install
-  --ai-tools         Install ./ai-tools/install.sh after Linux setup
-  --force            Replace existing config files instead of leaving them alone
+  --ai-tools         Install ./ai-tools/install.sh after Linux setup (needs Git >= 2.45)
+  --force            Replace existing config paths instead of leaving them alone
   --dry-run          Print what would run without changing anything
   --yes, -y          Do not prompt for confirmation
   --help, -h         Show this help
 
-Unsupported distro families fail before package-manager changes.
+Unsupported distro families and Raspberry Pi OS fail before package-manager changes.
 EOF
 }
 
@@ -117,37 +119,53 @@ os_release_path() {
     printf '%s\n' "${INSTALL_LINUX_OS_RELEASE:-/etc/os-release}"
 }
 
+os_release_value() {
+    local release="$1" key="$2" line value
+    line="$(grep -E "^${key}=" "$release" | tail -n 1 || true)"
+    [ -n "$line" ] || return 0
+    value="${line#*=}"
+    case "$value" in
+        \"*\") value="${value#\"}"; value="${value%\"}" ;;
+        \'*\') value="${value#\'}"; value="${value%\'}" ;;
+    esac
+    printf '%s\n' "$value"
+}
+
 detect_distro_family() {
-    local release id id_like ids
+    local release id id_like ids pretty_lc
+    local os_id os_id_like os_pretty
     release="$(os_release_path)"
     [ -r "$release" ] || die "Cannot read $release; install-linux needs /etc/os-release"
 
-    ID=""
-    ID_LIKE=""
-    PRETTY_NAME=""
-    # shellcheck disable=SC1090
-    . "$release"
-    id="$(printf '%s' "$ID" | tr '[:upper:]' '[:lower:]')"
-    id_like="$(printf '%s' "$ID_LIKE" | tr '[:upper:]' '[:lower:]')"
+    os_id="$(os_release_value "$release" ID)"
+    os_id_like="$(os_release_value "$release" ID_LIKE)"
+    os_pretty="$(os_release_value "$release" PRETTY_NAME)"
+    id="$(printf '%s' "$os_id" | tr '[:upper:]' '[:lower:]')"
+    id_like="$(printf '%s' "$os_id_like" | tr '[:upper:]' '[:lower:]')"
     ids=" $id $id_like "
-    DISTRO_PRETTY="${PRETTY_NAME:-$ID}"
+    DISTRO_PRETTY="${os_pretty:-$os_id}"
+    pretty_lc="$(printf '%s' "$DISTRO_PRETTY" | tr '[:upper:]' '[:lower:]')"
+
+    case "$ids $pretty_lc" in
+        *' raspbian '*|*' raspberry pi os '*)
+            die "Raspberry Pi OS detected (${DISTRO_PRETTY:-unknown}); use ./install-pi for Raspberry Pi provisioning."
+            ;;
+    esac
 
     case "$ids" in
         *' arch '*|*' manjaro '*|*' endeavouros '*) DISTRO_FAMILY="arch" ;;
-        *' debian '*|*' ubuntu '*|*' raspbian '*) DISTRO_FAMILY="debian" ;;
+        *' debian '*|*' ubuntu '*) DISTRO_FAMILY="debian" ;;
         *)
-            die "Unsupported Linux distro family '$ID' (ID_LIKE='${ID_LIKE:-}'). install-linux supports Arch, Ubuntu, and Debian families."
+            die "Unsupported Linux distro family '$os_id' (ID_LIKE='${os_id_like:-}'). install-linux supports Arch, Ubuntu, and Debian families."
             ;;
     esac
 }
 
 setup_sudo() {
     if [ "$(id -u)" -eq 0 ]; then
-        SUDO=""
-        skip "Running as root; sudo not needed"
-        return
+        die "Do not run install-linux as root or with sudo; run it as your normal user so dotfiles are installed in your home directory. The installer uses sudo only for package-manager commands."
     fi
-    have sudo || die "Not root and sudo is not installed. Re-run as root, or install sudo."
+    have sudo || die "sudo is not installed. Install sudo or install baseline packages separately and re-run with --skip-packages."
     SUDO="sudo"
     if sudo -n true 2>/dev/null; then
         ok "sudo available without a password prompt"
@@ -180,6 +198,9 @@ as_user() {
 preflight() {
     step "Preflight"
     [ "$(uname -s)" = "Linux" ] || die "install-linux targets Linux. On macOS use ./install-mac."
+    if [ "$(id -u)" -eq 0 ]; then
+        die "Do not run install-linux as root or with sudo; run it as your normal user so dotfiles are installed in your home directory. The installer uses sudo only for package-manager commands."
+    fi
     [ -d "$DOTFILES_DIR/fish" ] || die "$DOTFILES_DIR does not look like the dotfiles repo (no fish/ directory)."
     detect_distro_family
     ok "OS: $DISTRO_PRETTY ($DISTRO_FAMILY family)"
@@ -212,7 +233,7 @@ install_packages() {
             ;;
         arch)
             have pacman || die "pacman not found for Arch family install"
-            as_root pacman -S --needed --noconfirm "${ARCH_PACKAGES[@]}"
+            as_root pacman -Syu --needed --noconfirm "${ARCH_PACKAGES[@]}"
             ok "Installed Arch baseline packages"
             ;;
     esac
@@ -227,6 +248,49 @@ backup_path_for() {
         suffix=$((suffix + 1))
     done
     printf '%s\n' "$backup"
+}
+
+ensure_real_dir() {
+    local dir="$1" backup
+    if [ -d "$dir" ] && [ ! -L "$dir" ]; then
+        skip "Real directory present: ${dir/#$HOME/\~}"
+        return 0
+    fi
+    if [ -e "$dir" ] || [ -L "$dir" ]; then
+        backup="$(backup_path_for "$dir")"
+        as_user mv "$dir" "$backup"
+        warn "Moved existing ${dir/#$HOME/\~} aside -> ${backup/#$HOME/\~}"
+    fi
+    as_user mkdir -p "$dir"
+    ok "Created real directory: ${dir/#$HOME/\~}"
+}
+
+resolved_path() {
+    local path="$1" dir base
+    [ -e "$path" ] || [ -L "$path" ] || return 1
+    dir="$(dirname "$path")"
+    base="$(basename "$path")"
+    (cd -P "$dir" && printf '%s/%s\n' "$(pwd -P)" "$base")
+}
+
+mise_config_points_to_repo() {
+    local active_config="$HOME/.config/mise/config.toml" repo_config="$DOTFILES_DIR/mise/config.toml"
+    local active_resolved repo_resolved
+    active_resolved="$(resolved_path "$active_config")" || return 1
+    repo_resolved="$(resolved_path "$repo_config")" || return 1
+    [ "$active_resolved" = "$repo_resolved" ]
+}
+
+add_mise_paths_to_path() {
+    local bin_dir="$HOME/.local/bin" shims="$HOME/.local/share/mise/shims"
+    case ":$PATH:" in
+        *":$bin_dir:"*) ;;
+        *) export PATH="$bin_dir:$PATH" ;;
+    esac
+    case ":$PATH:" in
+        *":$shims:"*) ;;
+        *) export PATH="$shims:$PATH" ;;
+    esac
 }
 
 link_config() {
@@ -280,6 +344,12 @@ link_configs() {
     link_config prettierrc.json "$HOME/.config/prettierrc.json"
     link_config gh/config.yml "$HOME/.config/gh/config.yml"
     link_config gh-dash/config.yml "$HOME/.config/gh-dash/config.yml"
+
+    # Herdr writes sockets, logs, session state and plugins under ~/.config/herdr,
+    # so keep that directory real and link only the repo-owned config pieces.
+    ensure_real_dir "$HOME/.config/herdr"
+    link_config herdr/config.toml "$HOME/.config/herdr/config.toml"
+    link_config herdr/scripts "$HOME/.config/herdr/scripts"
 }
 
 install_mise() {
@@ -291,11 +361,19 @@ install_mise() {
     else
         have curl || die "curl is required to install mise; install packages first or provide mise on PATH"
         as_user bash -c 'curl -fsSL https://mise.run | sh'
-        export PATH="$HOME/.local/bin:$PATH"
+        add_mise_paths_to_path
         if ! have mise && ! $DRY_RUN; then
             die "mise install failed"
         fi
         ok "mise installed to ~/.local/bin/mise"
+    fi
+
+    link_config mise "$HOME/.config/mise"
+    if ! $DRY_RUN && ! mise_config_points_to_repo; then
+        if $DO_MISE_TOOLS; then
+            die "\$HOME/.config/mise/config.toml is not this repo's mise/config.toml. Re-run with --force to replace \$HOME/.config/mise, or use --skip-mise-tools to leave your existing mise config active."
+        fi
+        warn "\$HOME/.config/mise/config.toml is not this repo's mise/config.toml; repo tools are not active globally."
     fi
 
     $DO_MISE_TOOLS || { skip "Skipping mise tools (--skip-mise-tools)"; return; }
@@ -303,9 +381,10 @@ install_mise() {
         warn "mise not on PATH; skipping tool install"
         return 0
     fi
-    log "Running mise install from mise/config.toml"
-    as_user mise -C "$DOTFILES_DIR/mise" trust "$DOTFILES_DIR/mise/config.toml"
-    as_user mise -C "$DOTFILES_DIR/mise" install
+    log "Running mise install from ~/.config/mise/config.toml"
+    as_user mise trust "$DOTFILES_DIR/mise/config.toml"
+    as_user mise install -C "$HOME"
+    add_mise_paths_to_path
     ok "mise tools installed"
 }
 
@@ -344,7 +423,8 @@ main() {
 
     step "Done"
     printf '\nNext:\n'
-    printf '  • Open a new shell so mise shims are on PATH.\n'
+    printf '  • Open a new shell and ensure ~/.local/bin plus ~/.local/share/mise/shims are on PATH.\n'
+    printf "  • The linked fish config activates mise automatically; for bash/zsh, add mise activation to your shell rc (for example: eval \"\\\$(~/.local/bin/mise activate bash)\").\n"
     if $DO_AI_TOOLS; then
         printf '  • AI/coding-agent tooling was requested with ./install-linux --ai-tools.\n'
     else

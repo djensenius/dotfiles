@@ -93,12 +93,15 @@ cd ~/.dotfiles
 ./install-linux
 ```
 
-It detects `/etc/os-release`, installs baseline packages with `apt-get` on
-Debian/Ubuntu-family systems or `pacman` on Arch-family systems, links common
-dotfiles, and installs the repo's `mise` tool manifest. Unsupported distro
-families fail before package-manager changes with a clear message. Add
-`--ai-tools` when this Linux machine should also get the AI/coding-agent tooling
-stack from [`ai-tools/`](ai-tools/).
+It parses `/etc/os-release`, installs baseline packages with `apt-get` on
+Debian/Ubuntu-family systems or `pacman -Syu --needed` on Arch-family systems,
+links common dotfiles, keeps `~/.config/herdr` as a real state directory, links
+`~/.config/mise` to this repo's `mise/`, and runs `mise install -C "$HOME"` so
+the tools are active globally. Unsupported distro families and Raspberry Pi OS
+fail before package-manager changes with a clear message (use `./install-pi` on
+Raspberry Pi OS). Add `--ai-tools` when this Linux machine should also get the
+AI/coding-agent tooling stack from [`ai-tools/`](ai-tools/); that optional stack
+requires system Git 2.45.0 or newer.
 
 ### macOS Installation
 
@@ -114,10 +117,9 @@ The thin `install-mac` entry point runs `mac/install.sh`. It checks the machine,
 uses `mac/Brewfile` for curated Homebrew taps/formulae/fonts/terminal casks,
 links the repo-owned dotfiles from `mac/links.txt`, trusts and installs the
 `mise` tools, installs only missing Herdr plugins from `herdr/plugins.txt`, syncs
-TPM and Neovim plugins, and then runs the AI/coding-agent tooling installer via
-the compatibility `./install-agent-stack` entry point (which forwards to
-`./ai-tools/install.sh`). Personal GUI apps live in `mac/Brewfile.apps` and are
-installed only when you pass `--apps`.
+TPM and Neovim plugins, and then runs the AI/coding-agent tooling installer
+at `./ai-tools/install.sh` directly. Personal GUI apps live in
+`mac/Brewfile.apps` and are installed only when you pass `--apps`.
 The Brewfiles are curated from this laptop; `brew bundle dump` is useful for
 read-only drift discovery but raw dumps should not be committed.
 
