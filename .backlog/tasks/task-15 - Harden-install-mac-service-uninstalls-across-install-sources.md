@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 16:02'
+updated_date: '2026-10-13 16:03'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -32,3 +32,9 @@ The macOS installer currently assumes services were installed through the expect
 3. Wire cleanup into the appropriate install-mac section without broad package cleanup.
 4. Add focused tests for alternate-source removal and absent-source idempotence, then run the targeted shell validations.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Starting implementation in task-15 worktree. Scope: narrow install-mac service-source reconciliation for supported managed services; will validate mac/install.sh and mac/tests/install-mac-test.sh.
+<!-- SECTION:NOTES:END -->
