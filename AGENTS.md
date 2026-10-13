@@ -125,18 +125,21 @@ tracking repo.
 - This repository is `djensenius/dotfiles`, a dotfiles/bootstrap repo for fish,
   Neovim, tmux, Herdr, macOS, Raspberry Pi, and GitHub Codespaces setup.
 - Setup entry points: `./install.sh` for Codespaces, `./install-mac` for macOS,
-  `./install-pi` for Raspberry Pi, and `./install-agent-stack` for the Pi/Herdr
-  agent tooling documented in the README coordinator section.
+  `./install-pi` for Raspberry Pi, `./install-linux` for supported
+  Arch/Ubuntu/Debian-family Linux hosts, and `./ai-tools/install.sh` for the
+  generalized AI/coding-agent tooling documented in the README coordinator
+  section. `./install-agent-stack` remains only as a compatibility wrapper.
 - Required validation from `.github/copilot-instructions.md`: run `yamllint .`
   after YAML changes; run `pip install tomllint && for f in **/*.toml; do [ -f
   "$f" ] && tomllint "$f"; done` after TOML changes; run `curl -L
   https://github.com/rhysd/actionlint/releases/latest/download/actionlint_1.7.7_linux_amd64.tar.gz
   | tar xzf - actionlint && ./actionlint` after GitHub Actions changes.
-- Pi agent-stack checks live under `pi/agent-stack/tests/`; the footer/status
-  extension is tested with `node pi/agent-stack/tests/subagent-status.test.ts`.
+- AI/coding-agent tooling checks live under `ai-tools/tests/`; the footer/status
+  extension is tested with `node ai-tools/tests/subagent-status.test.ts`.
   Shell/security checks there include `install-git-version.sh`,
   `install-runtime.sh`, and `reviewer-git-security.sh`; run them with
-  `bash pi/agent-stack/tests/<name>.sh`.
+  `bash ai-tools/tests/<name>.sh`. Generic Linux installer checks live under
+  `linux/tests/`.
 - The template's Xcode/`xbuild` build rules above don't apply here: this repo
   has no Apple project (it only ships the `xbuild` wrapper for other repos).
 - `.backlog/config.yml` starts with `---` for yamllint's document-start rule;

@@ -3,7 +3,7 @@ set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALLER="$DIR/../install.sh"
-REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
+REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 SUBAGENTS_SOURCE="npm:pi-subagents"
 LEGACY_SOURCE="git:github.com/maxedapps/pi-subagents-herdr@3af3865a58ea4c551c3ea7b099fe8a9ea42cba83"
 MCP_ADAPTER_SOURCE="npm:pi-mcp-adapter"
@@ -167,14 +167,14 @@ case "$action" in
               fail "unexpected node -e arguments"
             printf 'exec:node -e\n' >> "$RUNTIME_TEST_LOG"
             ;;
-          "$RUNTIME_TEST_REPO_ROOT/pi/agent-stack/bin/merge-json.mjs")
+          "$RUNTIME_TEST_REPO_ROOT/ai-tools/bin/merge-json.mjs")
             [ -x "${RUNTIME_TEST_REAL_NODE:?}" ] ||
               fail "real node is unavailable for merge-json helper"
             [ "$#" -ge 3 ] || fail "unexpected merge-json arguments: $*"
             printf 'exec:node merge-json:%s\n' "$(basename "$2")" >> "$RUNTIME_TEST_LOG"
             "$RUNTIME_TEST_REAL_NODE" "$@"
             ;;
-          "$RUNTIME_TEST_REPO_ROOT/pi/agent-stack/bin/migrate-mcp-adapter.mjs")
+          "$RUNTIME_TEST_REPO_ROOT/ai-tools/bin/migrate-mcp-adapter.mjs")
             [ -x "${RUNTIME_TEST_REAL_NODE:?}" ] ||
               fail "real node is unavailable for MCP adapter migration helper"
             [ "$#" -eq 3 ] || fail "unexpected MCP adapter migration arguments: $*"
@@ -548,14 +548,14 @@ assert_reviewer_profile() {
   local name="$1" agent_dir="$2"
 
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$REPO_ROOT/ai-tools/profiles/reviewer.md" \
     "$agent_dir/agents/reviewer.md"
   grep -Fxq "extensions: ../extensions/reviewer-git.ts" \
     "$agent_dir/agents/reviewer.md" ||
     fail "$name reviewer profile does not load reviewer-git.ts relatively"
   # pi-subagents resolves ../ entries from the agent file's directory.
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$REPO_ROOT/ai-tools/extensions/reviewer-git.ts" \
     "$agent_dir/agents/../extensions/reviewer-git.ts"
 }
 
@@ -578,11 +578,11 @@ assert_shared_config() {
     'value.mcpServers.other.command === "other" && value.mcpServers.playwright.description.includes("Playwright") && value.mcpServers.playwright.command === "npx" && value.mcpServers.playwright.args.join(" ") === "-y @playwright/mcp@latest --browser firefox" && value.mcpServers.context7.description.includes("Context7") && value.mcpServers.context7.command === "npx" && value.mcpServers.context7.args.join(" ") === "-y @upstash/context7-mcp@latest"' \
     "$name MCP merge did not preserve other servers and configure shared servers"
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+    "$REPO_ROOT/ai-tools/catppuccin-footer.json" \
     "$agent_dir/catppuccin-footer.json"
   for profile in council-gpt.md council-claude.md council-gemini.md; do
     assert_symlink_to \
-      "$REPO_ROOT/pi/agent-stack/profiles/$profile" \
+      "$REPO_ROOT/ai-tools/profiles/$profile" \
       "$agent_dir/agents/$profile"
   done
 }
@@ -641,11 +641,11 @@ JSON
   }
 }
 JSON
-  cp "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+  cp "$REPO_ROOT/ai-tools/catppuccin-footer.json" \
     "$root/pi-agent/catppuccin-footer.json"
-  cp "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+  cp "$REPO_ROOT/ai-tools/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts"
-  cp "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+  cp "$REPO_ROOT/ai-tools/profiles/reviewer.md" \
     "$root/pi-agent/agents/reviewer.md"
 
   if ! run_installer "$root" "$system_name" 0 >"$first_output" 2>&1; then
@@ -694,10 +694,10 @@ JSON
   assert_no_runtime_markers "$name" "$root"
 
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$REPO_ROOT/ai-tools/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts"
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
+    "$REPO_ROOT/ai-tools/extensions/subagent-status.ts" \
     "$root/pi-agent/extensions/subagent-status.ts"
   [ ! -e "$root/pi-agent/extensions/herdr-agent-state.ts" ] ||
     fail "$name did not remove the standalone Herdr Pi lifecycle integration"
@@ -724,19 +724,19 @@ JSON
   assert_contains "On non-Homebrew systems, install the Backlog.md CLI and backlog-sync first" "$first_output"
   assert_contains "npm i -g backlog.md" "$first_output"
   assert_contains "Install backlog-sync from https://github.com/djensenius/backlog-sync" "$first_output"
-  assert_contains "cp \"$REPO_ROOT/pi/agent-stack/templates/AGENTS.md\" ./AGENTS.md" "$first_output"
+  assert_contains "cp \"$REPO_ROOT/ai-tools/templates/AGENTS.md\" ./AGENTS.md" "$first_output"
   assert_contains "backlog init --backlog-dir .backlog" "$first_output"
   assert_contains "backlog config set autoCommit true" "$first_output"
   assert_contains "backlog config set checkActiveBranches true" "$first_output"
   assert_contains "backlog agents --update-instructions" "$first_output"
-  assert_contains "cp \"$REPO_ROOT/pi/agent-stack/templates/backlog.instructions.md\" .github/instructions/" "$first_output"
+  assert_contains "cp \"$REPO_ROOT/ai-tools/templates/backlog.instructions.md\" .github/instructions/" "$first_output"
   assert_contains "Add this two-line Backlog section to the repo's .github/copilot-instructions.md" "$first_output"
   assert_contains "## Backlog.md files" "$first_output"
   assert_contains "Copilot code review must not review or comment on Backlog.md task files; \`.github/instructions/backlog.instructions.md\` owns the path rule." "$first_output"
   assert_contains "ruleset requiring CI before merge" "$first_output"
 
   if [ "$system_name" = "Darwin" ]; then
-    cmp -s "$REPO_ROOT/pi/agent-stack/bin/xbuild" "$root/local-bin/xbuild" ||
+    cmp -s "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild" ||
       fail "$name did not install xbuild"
     assert_contains "installed xbuild" "$first_output"
     assert_contains "xbuild is up to date" "$second_output"
@@ -823,7 +823,7 @@ run_darwin_with_failing_brew_warns_and_continues() {
   assert_contains "Installing backlog-sync" "$output"
   assert_contains "failed to install backlog-md; continuing without the backlog CLI" "$output"
   assert_contains "failed to install backlog-sync; continuing without backlog-sync" "$output"
-  assert_contains "Agent stack installed." "$output"
+  assert_contains "AI/coding-agent tools installed." "$output"
 }
 
 run_darwin_no_lockf() {
@@ -1182,16 +1182,16 @@ JSON
   fi
 
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts" \
+    "$REPO_ROOT/ai-tools/extensions/reviewer-git.ts" \
     "$root/pi-agent/extensions/reviewer-git.ts"
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/extensions/subagent-status.ts" \
+    "$REPO_ROOT/ai-tools/extensions/subagent-status.ts" \
     "$root/pi-agent/extensions/subagent-status.ts"
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/profiles/reviewer.md" \
+    "$REPO_ROOT/ai-tools/profiles/reviewer.md" \
     "$root/pi-agent/agents/reviewer.md"
   assert_symlink_to \
-    "$REPO_ROOT/pi/agent-stack/catppuccin-footer.json" \
+    "$REPO_ROOT/ai-tools/catppuccin-footer.json" \
     "$root/pi-agent/catppuccin-footer.json"
   grep -Fxq 'existing reviewer backup' \
     "$root/pi-agent/extensions/reviewer-git.ts.backup" ||

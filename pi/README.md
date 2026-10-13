@@ -1,7 +1,7 @@
 # Raspberry Pi setup
 
-One command provisions a Raspberry Pi with these dotfiles and the whole
-command-line toolchain:
+One command provisions Raspberry Pi OS on a physical Raspberry Pi with these
+dotfiles and the Raspberry Pi command-line toolchain:
 
 ```bash
 git clone https://github.com/djensenius/dotfiles.git ~/.dotfiles
@@ -28,10 +28,10 @@ is the update path.
   cargo-build, as do the herdr marketplace plugins in step 7 that publish no
   arm64 binary — `herdr-floax`, `herdr-navigator` and `herdr-pluck` at the time
   of writing.
-- **Git 2.45.0 or newer** before running the optional
-  [`../install-agent-stack`](../install-agent-stack). Install or upgrade it
-  through the operating system package manager; the agent-stack installer does
-  not add Git to mise.
+- **Git 2.45.0 or newer** before installing the optional AI/coding-agent
+  tooling with `./install-pi --ai-tools` or [`../ai-tools/install.sh`](../ai-tools/install.sh).
+  Install or upgrade Git through the operating system package manager; the AI
+  tools installer does not add Git to mise.
 
 ## What it does
 
@@ -44,6 +44,7 @@ is the update path.
 | 5 | tmux plugins | Clones tpm and installs the plugin set. `tmux-thumbs` and `tmux-floax` build with cargo, which is why the manifest includes rust. |
 | 6 | Neovim | `nvim --headless "+Lazy! sync" +qa`. |
 | 7 | herdr plugins | The same marketplace plugins `install.sh` installs, including its removal of the legacy `herdr-picker-plus` id. |
+| 8 | optional AI/coding-agent tools | Only with `--ai-tools`: runs [`../ai-tools/install.sh`](../ai-tools/install.sh) after Raspberry Pi setup. |
 
 Progress goes to the terminal; full command output goes to `~/install-pi.log`
 (override with `INSTALL_PI_LOG`). `--dry-run` writes no log at all — every line
@@ -59,6 +60,7 @@ behind, including the real log.
 --skip-tmux     No tmux plugins
 --skip-nvim     No neovim plugin sync
 --skip-herdr    No herdr plugins
+--ai-tools      Install the full AI/coding-agent tooling stack after Pi setup
 --fish-shell    Make the mise-managed fish the login shell (chsh)
 --force         Overwrite existing configs instead of backing them up
 --dry-run       Print every action without doing it
@@ -88,14 +90,18 @@ mise, `sudo apt install fish` gives you an older fish at `/usr/bin/fish`.
 - Open a new shell so mise's shims are on `PATH`.
 - `atuin login -u <user>` once, to sync shell history.
 - `gh auth login`, if you want the GitHub CLI and gh-dash.
+- Run `./install-pi --ai-tools` if you want the full AI/coding-agent tooling
+  stack (Pi, Herdr, subagents, memory, browser) on this Raspberry Pi and did not
+  install it during the first run.
 
 ## Relationship to install.sh
 
 [`install.sh`](../install.sh) provisions GitHub Codespaces: it assumes a
 throwaway container, installs via cargo/npm/gem, and parallelises aggressively.
-`install-pi` targets a long-lived machine you SSH into: it prefers mise
+`install-pi` targets a long-lived Raspberry Pi you SSH into: it prefers mise
 binaries over compiling on a Pi's CPU, backs up rather than deletes what it
-finds, and can be re-run to update.
+finds, and can be re-run to update. For non-Raspberry-Pi Arch, Ubuntu, or
+Debian-family Linux hosts, use [`../install-linux`](../install-linux) instead.
 
 [`mise.toml`](mise.toml) here is the Pi tool manifest and is unrelated to
 [`../mise/config.toml`](../mise/config.toml), which is the workstation set

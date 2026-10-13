@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Raspberry Pi provisioning: apt packages, mise + tools, dotfiles symlinks,
-# tmux/neovim/herdr plugins. Run it with ../install-pi from a clone of this
-# repo.
+# tmux/neovim/herdr plugins, and optionally the generalized AI/coding-agent
+# tooling. Run it with ../install-pi from a clone of this repo.
 #
 # Safe to re-run: every step is idempotent and skips work already done.
 
@@ -22,6 +22,7 @@ DO_LINKS=true
 DO_TMUX=true
 DO_NVIM=true
 DO_HERDR=true
+DO_AI_TOOLS=false
 SET_FISH_SHELL=false
 DRY_RUN=false
 ASSUME_YES=false
@@ -108,6 +109,7 @@ Runs, in order:
   5. tmux plugin manager + plugins
   6. neovim plugin sync (headless)
   7. herdr marketplace plugins
+  8. optional AI/coding-agent tooling stack (with --ai-tools)
 
 Options:
   --skip-apt        Do not touch apt (no package installs, no mise repo)
@@ -116,6 +118,7 @@ Options:
   --skip-tmux       Do not install tmux plugins
   --skip-nvim       Do not sync neovim plugins
   --skip-herdr      Do not install herdr plugins
+  --ai-tools        After Pi setup, install the full AI/coding-agent tooling stack
   --fish-shell      Make the mise-managed fish your login shell (chsh)
   --force           Replace existing config files instead of backing them up
   --dry-run         Print what would run without changing anything
@@ -630,6 +633,21 @@ install_herdr_plugins() {
     fi
 }
 
+install_ai_tools() {
+    $DO_AI_TOOLS || return 0
+    step "Installing AI/coding-agent tools"
+
+    local installer="$DOTFILES_DIR/ai-tools/install.sh"
+    if [ ! -x "$installer" ]; then
+        die "AI tools installer not executable: $installer"
+    fi
+    if $DRY_RUN; then
+        log "${C_DIM}[dry-run] $installer${C_RESET}"
+        return 0
+    fi
+    as_user "$installer"
+}
+
 # ------------------------------------------------------------ login shell ----
 
 set_login_shell() {
@@ -686,6 +704,7 @@ main() {
             --skip-tmux)   DO_TMUX=false ;;
             --skip-nvim)   DO_NVIM=false ;;
             --skip-herdr)  DO_HERDR=false ;;
+            --ai-tools)    DO_AI_TOOLS=true ;;
             --fish-shell)  SET_FISH_SHELL=true ;;
             --force)       FORCE=true ;;
             --dry-run)     DRY_RUN=true ;;
@@ -721,6 +740,7 @@ main() {
     sync_neovim
     install_herdr_plugins
     set_login_shell
+    install_ai_tools
 
     local elapsed=$(( $(date +%s) - start_time ))
     step "Done in $((elapsed / 60))m $((elapsed % 60))s"
@@ -734,6 +754,11 @@ main() {
         printf '  • Verify fish works in a second SSH session before closing this one.\n'
     else
         printf '  • Run ./install-pi --fish-shell to make fish your login shell.\n'
+    fi
+    if $DO_AI_TOOLS; then
+        printf '  • AI/coding-agent tooling was requested with ./install-pi --ai-tools; re-run it after related updates.\n'
+    else
+        printf '  • Run ./install-pi --ai-tools to install the full AI/coding-agent tooling stack (Pi, Herdr, subagents, memory, browser).\n'
     fi
     printf "  • Sync shell history: atuin login -u <user>\n"
 }
