@@ -1,11 +1,11 @@
 ---
 id: TASK-17
 title: Clarify Raspberry Pi and AI agent tooling layout
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 19:24'
-updated_date: '2026-10-13 19:58'
+updated_date: '2026-10-13 20:06'
 labels: []
 dependencies: []
 ordinal: 15000
@@ -49,10 +49,26 @@ Owner scope update: include a Linux installer path for common Arch, Ubuntu, and 
 Implemented on commit e505188: moved pi/agent-stack to ai-tools with installer/test path updates; kept install-agent-stack as a deprecated forwarding wrapper; added install-pi --ai-tools plus final guidance; added install-linux/linux/install.sh for Debian/Ubuntu apt and Arch pacman families with unsupported-distro guard; updated README.md, pi/README.md, AGENTS.md, and task plan references. Validation passed: bash ai-tools/tests/install-runtime.sh; bash ai-tools/tests/install-git-version.sh; node ai-tools/tests/subagent-status.test.ts; MISE_IGNORED_CONFIG_PATHS="$HOME/.config/mise/config.toml" bash ai-tools/tests/reviewer-git-security.sh; bash linux/tests/install-linux-test.sh; bash pi/tests/install-ai-tools-guidance.sh; bash pi/tests/install-herdr-fish-cleanup.sh; shellcheck changed shell scripts; pi/install.sh --help and linux/install.sh --help; git grep found no remaining pi/agent-stack references outside historical .backlog tasks; git diff --check. Note: reviewer-git-security.sh without the MISE_IGNORED_CONFIG_PATHS guard failed because this workstation global ~/.config/mise/config.toml has a duplicate actionlint key; the guarded rerun isolates the repo config and passed.
 
 Fix round after reviewer REQUEST CHANGES: addressing Linux Herdr config setup, global mise activation/install path, Arch package sync, sudo/root guard, Raspberry Pi OS guidance, mac AI tools entry point, docs, and concrete validation evidence.
+
+Fix-round validation evidence:
+- bash linux/tests/install-linux-test.sh -> install-linux tests passed
+- bash pi/tests/install-ai-tools-guidance.sh -> install-pi ai-tools guidance tests passed
+- bash pi/tests/install-herdr-fish-cleanup.sh -> exit 0 with no output
+- bash mac/tests/install-mac-test.sh -> ok install-mac tests passed
+- bash ai-tools/tests/install-runtime.sh -> installer mise runtime tests passed
+- bash ai-tools/tests/install-git-version.sh -> installer Git version tests passed
+- node ai-tools/tests/subagent-status.test.ts -> subagent-status tests passed
+- MISE_IGNORED_CONFIG_PATHS="$HOME/.config/mise/config.toml" bash ai-tools/tests/reviewer-git-security.sh -> reviewer-git security test passed with ok=true, operations diff/log/rev-parse/show, lazyFetchBlocked=true, no helper/lazy-fetch side effects
+- shellcheck install-linux linux/install.sh linux/tests/install-linux-test.sh install-mac mac/install.sh mac/tests/install-mac-test.sh install-pi pi/install.sh pi/tests/install-ai-tools-guidance.sh ai-tools/install.sh ai-tools/tests/install-runtime.sh ai-tools/tests/install-git-version.sh ai-tools/tests/reviewer-git-security.sh -> no output
+- ./install-linux --help -> documents Herdr real dir, ~/.config/mise link/global install, Git >= 2.45 for --ai-tools, Raspberry Pi OS guard, and corrected --force text
+- ./install-pi --help -> existing Raspberry Pi --ai-tools guidance remains present
+- ./install-mac --help -> agent-stack section now runs ./ai-tools/install.sh
+- git grep -n "pi/agent-stack" -- . ':!.backlog' || true -> no output
+- git diff --check -> no output
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Generalized the former pi/agent-stack layout to ai-tools, retained ./install-agent-stack as a deprecated compatibility wrapper, added Raspberry Pi --ai-tools installation/guidance, added a guarded ./install-linux path for Debian/Ubuntu and Arch families, and updated README/AGENTS/tests to the new layout. Verified with the moved ai-tools shell/node/security tests, new Linux and Raspberry Pi guidance tests, help output checks, shellcheck, reference sweep, and git diff --check.
+Fix round addressed reviewer blockers: Linux now keeps Herdr config state in a real ~/.config/herdr with repo-owned config/scripts links before --ai-tools, links repo mise globally and runs mise install -C $HOME with fresh-shell guidance, uses pacman -Syu --needed, refuses root/sudo runs, parses os-release as text, redirects Raspberry Pi OS to ./install-pi, includes fish with Linux package baselines, and macOS runs ./ai-tools/install.sh directly. Verified with linux/pi/mac/ai-tools tests, shellcheck, help checks, reference sweep, and git diff --check.
 <!-- SECTION:FINAL_SUMMARY:END -->
