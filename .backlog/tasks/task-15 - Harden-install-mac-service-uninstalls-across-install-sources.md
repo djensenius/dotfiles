@@ -1,11 +1,11 @@
 ---
 id: TASK-15
 title: Harden install-mac service uninstalls across install sources
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 16:15'
+updated_date: '2026-10-13 16:19'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -31,6 +31,8 @@ The macOS installer currently assumes services were installed through the expect
 2. Add a narrow explicit source-reconciliation list that maps current mise/config.toml tools to matching Homebrew formula names, using Brewfile membership only as a skip guard.
 3. Run the cleanup from the mise section after install/verification: normal mode uninstalls unexpected formulae, --check reports drift, --dry-run reports would-uninstall, absent formulae and unavailable brew are no-ops.
 4. Update focused install-mac tests for unexpected formula uninstall, absent no-op, dry-run, --check no mutation, and Brewfile-owned formula preservation; run shell validation.
+
+Second fix round: add actionlint to mise config; narrow source-reconciliation mapping to actionlint only; require brew list --installed-on-request before check/dry-run/uninstall; update README/tests; rerun requested validation.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -47,6 +49,8 @@ Fix round correction implemented. Removed the MANAGED_HOMEBREW_SERVICE_FORMULAE/
 Reviewer blockers addressed: (1) Brewfile-owned Homebrew services/formulae are not alternate-source drift; Brewfile formulae are skipped and no service inspection remains. (2) install-mac no longer stops user-started PostgreSQL, Redis, minidlna, or any other Homebrew service. (3) --check reports drift only for explicit mise-owned Homebrew formula installs that are not in the Brewfile, not for intended Brewfile services. (4) README now documents only the narrow mise-owned formula uninstall exception and explicitly says Brewfile formulae are kept and install-mac does not stop their Homebrew services.
 
 Validation passed after the code commit: bash -n mac/install.sh mac/tests/install-mac-test.sh -> status 0; git diff --check -> status 0; bash mac/tests/install-mac-test.sh -> ok install-mac tests passed, status 0; shellcheck mac/install.sh mac/tests/install-mac-test.sh -> status 0.
+
+Second fix round started: superseding the broad mise-owned formula cleanup. New scope is actionlint-only migration cleanup, guarded by Brewfile membership and Homebrew installed-on-request so dependency formulae do not count as drift.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
