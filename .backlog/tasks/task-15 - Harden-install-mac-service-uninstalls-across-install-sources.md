@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 16:52'
+updated_date: '2026-10-13 17:11'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -57,6 +57,8 @@ Second fix validation passed with corrected actionlint-only cleanup: bash -n mac
 Copilot PR feedback fix started: distinguish Homebrew installed-on-request probe failures from dependency-only formulae and add regression coverage.
 
 Copilot PR feedback addressed: homebrew_formula_installed_on_request now validates brew list --installed-on-request before grepping, returns a failure for probe errors, and cleanup propagates that as a mise section failure instead of reporting dependency-only. Added regression coverage for probe failure in normal and --check modes while preserving dependency-only and absent formula behavior. Validation passed: bash -n mac/install.sh mac/tests/install-mac-test.sh (status 0, no output); git diff --check (status 0, no output); bash mac/tests/install-mac-test.sh (status 0, ok install-mac tests passed); shellcheck mac/install.sh mac/tests/install-mac-test.sh (status 0, no output).
+
+Latest Copilot PR feedback addressed: homebrew_formula_installed now reads the complete `brew list --formula` output, reports probe failures as section failures, and only greps successful output for actionlint. Added regression coverage for `brew list --formula` failure in normal and --check modes while preserving requested uninstall, dependency-only, and absent formula behavior. Validation passed locally: `bash -n mac/install.sh mac/tests/install-mac-test.sh` (status 0, no output); `git diff --check` (status 0, no output); `bash mac/tests/install-mac-test.sh` (status 0, ok install-mac tests passed); `shellcheck mac/install.sh mac/tests/install-mac-test.sh` (status 0, no output).
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
