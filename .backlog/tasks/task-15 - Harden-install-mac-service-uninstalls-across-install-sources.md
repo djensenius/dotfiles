@@ -27,5 +27,8 @@ The macOS installer currently assumes services were installed through the expect
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Inspect mac/install.sh service/package reconciliation flow and existing mac/tests/install-mac-test.sh harness.\n2. Add a narrow, data-driven cleanup helper for supported services that can detect/remove alternate Homebrew installs while remaining no-op when absent.\n3. Wire cleanup into the appropriate install-mac section without broad package cleanup.\n4. Add focused tests for alternate-source removal and absent-source idempotence, then run the targeted shell validations.
+1. Inspect mac/install.sh service/package reconciliation flow and existing mac/tests/install-mac-test.sh harness.
+2. Add a narrow, data-driven cleanup helper for supported services that can detect/remove alternate Homebrew installs while remaining no-op when absent.
+3. Wire cleanup into the appropriate install-mac section without broad package cleanup.
+4. Add focused tests for alternate-source removal and absent-source idempotence, then run the targeted shell validations.
 <!-- SECTION:PLAN:END -->
