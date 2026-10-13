@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 21:30'
-updated_date: '2026-10-13 21:31'
+updated_date: '2026-10-13 21:32'
 labels: []
 dependencies: []
 ordinal: 17000
@@ -26,5 +26,5 @@ The macOS Homebrew bundle now fails on `dlvhdr/formulae/diffnav` because Homebre
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Compare existing Brewfile trust metadata for arl/arl/gitmux and mirror that pattern for dlvhdr/formulae/diffnav. 2. Update mac install tests only as needed to assert the diffnav trust declaration. 3. Run the mac Brewfile/install checks and finalize TASK-19 with evidence.
+1. Mirror existing Brewfile-native trusted metadata for each third-party formula Homebrew may refuse: arl/arl/gitmux remains trusted, add trusted: true to dlvhdr/formulae/diffnav, influxdata/tap/influxctl, morantron/tmux-fingers/tmux-fingers, timescam/tap/tuios, djensenius/tap/telephone-booth-operator-cli, and djensenius/tap/worldcup26. 2. Keep trust formula-specific rather than broad tap-level commands. 3. Update install tests to assert the trusted Brewfile declarations and run the requested mac checks.
 <!-- SECTION:PLAN:END -->
