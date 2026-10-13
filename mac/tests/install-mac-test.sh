@@ -100,7 +100,7 @@ EOF
     printf 'repo herdr config\n' >"$repo/herdr/config.toml"
     mkdir -p "$repo/herdr/scripts"
     printf 'indicator\n' >"$repo/scripts/tmux-background-install-indicator.sh"
-    printf 'mise\n' >"$repo/mise/config.toml"
+    cp "$ROOT/mise/config.toml" "$repo/mise/config.toml"
     printf '%s\n' "$repo"
 }
 
@@ -502,18 +502,9 @@ if [ "${1:-}" = list ] && [ "${2:-}" = --formula ]; then
         *) exit 1 ;;
     esac
 fi
-if [ "${1:-}" = services ] && [ "${2:-}" = list ]; then
-    printf 'Name Status User File\n'
-    for service in ${FAKE_BREW_SERVICES:-}; do
-        name="${service%%:*}"
-        status="${service#*:}"
-        printf '%s %s david ~/Library/LaunchAgents/homebrew.mxcl.%s.plist\n' "$name" "$status" "$name"
-    done
-    exit 0
-fi
-if [ "${1:-}" = services ] && [ "${2:-}" = stop ]; then
-    case " ${FAKE_BREW_STOP_FAIL:-} " in
-        *" ${3:-} "*) exit 1 ;;
+if [ "${1:-}" = uninstall ]; then
+    case " ${FAKE_BREW_UNINSTALL_FAIL:-} " in
+        *" ${2:-} "*) exit 1 ;;
         *) exit 0 ;;
     esac
 fi
@@ -712,7 +703,7 @@ test_brew_check_uses_no_upgrade_and_noop() {
     rm -rf "$tmp"
 }
 
-test_brew_managed_services_stop_active_homebrew_service() {
+test_mise_cleanup_uninstalls_unexpected_homebrew_formula() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -724,17 +715,19 @@ test_brew_managed_services_stop_active_homebrew_service() {
     : >"$manifest"
     write_fake_bin "$bin"
 
-    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied FAKE_BREW_FORMULAE=redis FAKE_BREW_SERVICES=redis:started \
-        HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only brew)"
-    grep -F -q 'brew list --formula redis' "$log" || fail_test 'managed service source was not checked before cleanup'
-    grep -F -q 'brew services list' "$log" || fail_test 'Homebrew services were not inspected'
-    grep -F -q 'brew services stop redis' "$log" || fail_test 'active alternate Homebrew service was not stopped'
-    ! grep -F -q 'brew uninstall' "$log" || fail_test 'managed service cleanup uninstalled a package'
-    printf '%s\n' "$out" | grep -F -q 'change stopped Homebrew service redis (was started)' || fail_test 'service stop change was not reported'
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise)"
+    grep -F -q 'mise trust' "$log" || fail_test 'mise was not trusted before Homebrew cleanup'
+    grep -F -q 'mise install' "$log" || fail_test 'mise install did not run before Homebrew cleanup'
+    grep -F -q 'brew list --formula node' "$log" || fail_test 'unexpected Homebrew formula was not checked'
+    grep -F -q 'brew uninstall node' "$log" || fail_test 'unexpected mise-owned Homebrew formula was not uninstalled'
+    ! grep -F -q 'brew services' "$log" || fail_test 'mise-owned formula cleanup should not inspect or stop services'
+    printf '%s\n' "$out" | grep -F -q 'change uninstalled unexpected Homebrew formula node (mise manages node)' || \
+        fail_test 'formula uninstall change was not reported'
     rm -rf "$tmp"
 }
 
-test_brew_managed_services_absent_noop() {
+test_mise_cleanup_absent_homebrew_formula_noop() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -746,14 +739,35 @@ test_brew_managed_services_absent_noop() {
     : >"$manifest"
     write_fake_bin "$bin"
 
-    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
-        "$repo/install-mac" --only brew)"
-    ! grep -F -q 'brew services stop' "$log" || fail_test 'absent Homebrew service should not be stopped'
-    ! printf '%s\n' "$out" | grep -q '^change stopped Homebrew service' || fail_test "absent service reported a change: $out"
+    out="$(FAKE_LOG="$log" HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise)"
+    ! grep -F -q 'brew uninstall' "$log" || fail_test 'absent Homebrew formula should not be uninstalled'
+    ! printf '%s\n' "$out" | grep -q '^change uninstalled unexpected Homebrew formula' || \
+        fail_test "absent formula reported an uninstall change: $out"
     rm -rf "$tmp"
 }
 
-test_brew_managed_services_check_reports_drift() {
+test_mise_cleanup_dry_run_reports_without_uninstall() {
+    local tmp repo home manifest bin log out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --dry-run)"
+    printf '%s\n' "$out" | grep -F -q 'change would uninstall Homebrew formula node (mise manages node)' || \
+        fail_test 'dry-run Homebrew formula uninstall plan was not reported'
+    ! grep -F -q 'brew uninstall node' "$log" || fail_test '--dry-run uninstalled a Homebrew formula'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_check_reports_drift_without_uninstall() {
     local tmp repo home manifest bin log out status
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -766,13 +780,36 @@ test_brew_managed_services_check_reports_drift() {
     write_fake_bin "$bin"
 
     set +e
-    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied FAKE_BREW_FORMULAE=redis FAKE_BREW_SERVICES=redis:started \
-        HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only brew --check 2>&1)"
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --check 2>&1)"
     status=$?
     set -e
-    [ "$status" -eq 2 ] || fail_test "active Homebrew service under --check should exit 2, got $status"
-    printf '%s\n' "$out" | grep -F -q 'change Homebrew service drift: redis is started' || fail_test 'check-mode service drift was not reported'
-    ! grep -F -q 'brew services stop redis' "$log" || fail_test '--check stopped a Homebrew service'
+    [ "$status" -eq 2 ] || fail_test "unexpected Homebrew formula under --check should exit 2, got $status"
+    printf '%s\n' "$out" | grep -F -q \
+        'change Homebrew formula drift: node is installed by Homebrew but node is managed by mise' || \
+        fail_test 'check-mode Homebrew formula drift was not reported'
+    ! grep -F -q 'brew uninstall node' "$log" || fail_test '--check uninstalled a Homebrew formula'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_keeps_brewfile_owned_formula() {
+    local tmp repo home manifest bin log out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    printf 'brew "node"\n' >>"$repo/mac/Brewfile"
+    write_fake_bin "$bin"
+
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise)"
+    ! grep -F -q 'brew uninstall node' "$log" || fail_test 'Brewfile-owned formula should never be uninstalled'
+    printf '%s\n' "$out" | grep -F -q 'ok Homebrew formula curated in Brewfile; keeping node' || \
+        fail_test 'Brewfile-owned formula skip was not reported'
     rm -rf "$tmp"
 }
 
@@ -1054,9 +1091,11 @@ main() {
     test_failed_link_command_marks_section_failed
     test_brewfile_mise_lint_backend_prefixed_overlap
     test_brew_check_uses_no_upgrade_and_noop
-    test_brew_managed_services_stop_active_homebrew_service
-    test_brew_managed_services_absent_noop
-    test_brew_managed_services_check_reports_drift
+    test_mise_cleanup_uninstalls_unexpected_homebrew_formula
+    test_mise_cleanup_absent_homebrew_formula_noop
+    test_mise_cleanup_dry_run_reports_without_uninstall
+    test_mise_cleanup_check_reports_drift_without_uninstall
+    test_mise_cleanup_keeps_brewfile_owned_formula
     test_gh_hosts_history_recovery
     test_tmux_fish_agent_stack_and_drift
     test_usage_errors_and_clean_full_check
