@@ -29,3 +29,9 @@ The macOS Brewfile still includes workstation-specific formulae that are not nee
 <!-- SECTION:PLAN:BEGIN -->
 1. Remove only the owner-approved transmission-cli entry from mac/Brewfile. 2. Record optional follow-up Homebrew removal candidates in task notes without changing them. 3. Run Brewfile/install checks and finalize acceptance criteria with evidence.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Removed only the owner-approved transmission-cli Brewfile entry. Optional owner follow-up candidates noted for consideration only (not removed): minidlna; postgis; postgresql@15 if the older server is no longer needed alongside postgresql@18; redis; telnet; azure-cli and influxdata/influx CLIs; embedded/mobile/game utilities cc65, dex2jar, dtc, esphome, jadx, mupen64plus, rgbds, and tuios.
+<!-- SECTION:NOTES:END -->
