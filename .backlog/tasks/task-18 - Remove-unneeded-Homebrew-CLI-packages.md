@@ -1,7 +1,7 @@
 ---
 id: TASK-18
 title: Remove unneeded Homebrew CLI packages
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 20:45'
