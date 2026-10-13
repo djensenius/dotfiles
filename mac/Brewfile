@@ -6,7 +6,6 @@
 tap "arl/arl"
 tap "djensenius/tap"
 tap "dlvhdr/formulae"
-tap "homebrew/services"
 tap "influxdata/tap"
 tap "morantron/tmux-fingers"
 tap "timescam/tap"
@@ -25,7 +24,7 @@ brew "starship"
 brew "wget"
 
 # Terminal workflow: multiplexers, editors, VCS UI and search/navigation.
-brew "arl/arl/gitmux"
+brew "arl/arl/gitmux", trusted: true
 brew "atuin"
 brew "bat"
 brew "bat-extras"

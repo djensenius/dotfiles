@@ -757,6 +757,13 @@ EOF
     rm -rf "$tmp"
 }
 
+test_brewfile_declares_gitmux_trust_and_omits_deprecated_services_tap() {
+    grep -Fx -q 'brew "arl/arl/gitmux", trusted: true' "$ROOT/mac/Brewfile" || \
+        fail_test 'mac/Brewfile does not declare arl/arl/gitmux as trusted'
+    ! grep -Fx -q 'tap "homebrew/services"' "$ROOT/mac/Brewfile" || \
+        fail_test 'mac/Brewfile still taps deprecated homebrew/services'
+}
+
 test_brew_check_uses_no_upgrade_and_noop() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
@@ -773,12 +780,14 @@ test_brew_check_uses_no_upgrade_and_noop() {
         "$repo/install-mac" --only brew >/dev/null
     grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'brew check did not use --no-upgrade before install'
     grep -F -q 'brew bundle install' "$log" || fail_test 'brew install was not run when check reported missing items'
+    ! grep -F -q 'brew trust' "$log" || fail_test 'brew section should rely on Brewfile-native trust declaration, not shell trust commands'
 
     : >"$log"
     out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only brew --apps)"
     grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'satisfied brew check did not use --no-upgrade'
     ! grep -F -q 'brew bundle install' "$log" || fail_test 'satisfied brew bundle should be a no-op without install'
+    ! grep -F -q 'brew trust' "$log" || fail_test 'satisfied brew run should not call shell trust commands'
     ! printf '%s\n' "$out" | grep -q '^change installed missing Homebrew items' || fail_test "satisfied brew run reported install change: $out"
     rm -rf "$tmp"
 }
@@ -1378,6 +1387,7 @@ main() {
     test_herdr_plugins_only_missing_and_section_selection
     test_failed_link_command_marks_section_failed
     test_brewfile_mise_lint_backend_prefixed_overlap
+    test_brewfile_declares_gitmux_trust_and_omits_deprecated_services_tap
     test_brew_check_uses_no_upgrade_and_noop
     test_mise_cleanup_uninstalls_requested_actionlint_formula
     test_mise_cleanup_unavailable_actionlint_replacement_does_not_uninstall
