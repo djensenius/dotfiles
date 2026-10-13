@@ -496,6 +496,27 @@ if [ "${1:-}" = bundle ] && [ "${2:-}" = dump ]; then
     printf 'brew "tmux"\n'
     exit 0
 fi
+if [ "${1:-}" = list ] && [ "${2:-}" = --formula ]; then
+    case " ${FAKE_BREW_FORMULAE:-} " in
+        *" ${3:-} "*) exit 0 ;;
+        *) exit 1 ;;
+    esac
+fi
+if [ "${1:-}" = services ] && [ "${2:-}" = list ]; then
+    printf 'Name Status User File\n'
+    for service in ${FAKE_BREW_SERVICES:-}; do
+        name="${service%%:*}"
+        status="${service#*:}"
+        printf '%s %s david ~/Library/LaunchAgents/homebrew.mxcl.%s.plist\n' "$name" "$status" "$name"
+    done
+    exit 0
+fi
+if [ "${1:-}" = services ] && [ "${2:-}" = stop ]; then
+    case " ${FAKE_BREW_STOP_FAIL:-} " in
+        *" ${3:-} "*) exit 1 ;;
+        *) exit 0 ;;
+    esac
+fi
 if [ "${1:-}" = --prefix ]; then
     if [ -n "${FAKE_FISH_PREFIX:-}" ]; then
         printf '%s\n' "$FAKE_FISH_PREFIX"
@@ -688,6 +709,70 @@ test_brew_check_uses_no_upgrade_and_noop() {
     grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'satisfied brew check did not use --no-upgrade'
     ! grep -F -q 'brew bundle install' "$log" || fail_test 'satisfied brew bundle should be a no-op without install'
     ! printf '%s\n' "$out" | grep -q '^change installed missing Homebrew items' || fail_test "satisfied brew run reported install change: $out"
+    rm -rf "$tmp"
+}
+
+test_brew_managed_services_stop_active_homebrew_service() {
+    local tmp repo home manifest bin log out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied FAKE_BREW_FORMULAE=redis FAKE_BREW_SERVICES=redis:started \
+        HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only brew)"
+    grep -F -q 'brew list --formula redis' "$log" || fail_test 'managed service source was not checked before cleanup'
+    grep -F -q 'brew services list' "$log" || fail_test 'Homebrew services were not inspected'
+    grep -F -q 'brew services stop redis' "$log" || fail_test 'active alternate Homebrew service was not stopped'
+    ! grep -F -q 'brew uninstall' "$log" || fail_test 'managed service cleanup uninstalled a package'
+    printf '%s\n' "$out" | grep -F -q 'change stopped Homebrew service redis (was started)' || fail_test 'service stop change was not reported'
+    rm -rf "$tmp"
+}
+
+test_brew_managed_services_absent_noop() {
+    local tmp repo home manifest bin log out
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only brew)"
+    ! grep -F -q 'brew services stop' "$log" || fail_test 'absent Homebrew service should not be stopped'
+    ! printf '%s\n' "$out" | grep -q '^change stopped Homebrew service' || fail_test "absent service reported a change: $out"
+    rm -rf "$tmp"
+}
+
+test_brew_managed_services_check_reports_drift() {
+    local tmp repo home manifest bin log out status
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied FAKE_BREW_FORMULAE=redis FAKE_BREW_SERVICES=redis:started \
+        HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" "$repo/install-mac" --only brew --check 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 2 ] || fail_test "active Homebrew service under --check should exit 2, got $status"
+    printf '%s\n' "$out" | grep -F -q 'change Homebrew service drift: redis is started' || fail_test 'check-mode service drift was not reported'
+    ! grep -F -q 'brew services stop redis' "$log" || fail_test '--check stopped a Homebrew service'
     rm -rf "$tmp"
 }
 
@@ -969,6 +1054,9 @@ main() {
     test_failed_link_command_marks_section_failed
     test_brewfile_mise_lint_backend_prefixed_overlap
     test_brew_check_uses_no_upgrade_and_noop
+    test_brew_managed_services_stop_active_homebrew_service
+    test_brew_managed_services_absent_noop
+    test_brew_managed_services_check_reports_drift
     test_gh_hosts_history_recovery
     test_tmux_fish_agent_stack_and_drift
     test_usage_errors_and_clean_full_check

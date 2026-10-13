@@ -23,6 +23,7 @@ WARNINGS=0
 BACKUP_DIR=""
 HERDR_REPAIR_DEFERRED=false
 LINKS_FILE="${INSTALL_MAC_LINKS_FILE:-$MAC_DIR/links.txt}"
+MANAGED_HOMEBREW_SERVICE_FORMULAE=(minidlna postgresql@15 postgresql@18 redis)
 
 # common.sh is shellchecked on its own; CI runs shellcheck without -x.
 # shellcheck source=mac/lib/common.sh disable=SC1091
@@ -647,15 +648,75 @@ brew_bundle() {
     fi
 }
 
+homebrew_formula_installed() {
+    local formula="$1"
+    brew_bundle_env list --formula "$formula" >/dev/null 2>&1
+}
+
+homebrew_service_status() {
+    local formula="$1"
+    brew_bundle_env services list 2>/dev/null | awk -v formula="$formula" '
+        $1 == formula { print $2; found = 1; exit }
+        END { if (!found) exit 1 }
+    '
+}
+
+reconcile_homebrew_service() {
+    local formula="$1" status
+    if ! homebrew_formula_installed "$formula"; then
+        ok "Homebrew service source absent: $formula"
+        return 0
+    fi
+
+    if ! status="$(homebrew_service_status "$formula")"; then
+        ok "Homebrew service absent: $formula"
+        return 0
+    fi
+
+    case "$status" in
+        none|stopped)
+            ok "Homebrew service inactive: $formula"
+            return 0
+            ;;
+    esac
+
+    if $CHECK_MODE; then
+        change "Homebrew service drift: $formula is $status"
+        return 0
+    fi
+    if $DRY_RUN; then
+        change "would stop Homebrew service $formula (was $status)"
+        return 0
+    fi
+
+    if brew_bundle_env services stop "$formula"; then
+        change "stopped Homebrew service $formula (was $status)"
+    else
+        fail "failed to stop Homebrew service: $formula"
+        return 1
+    fi
+}
+
+reconcile_managed_homebrew_services() {
+    local formula status=0
+    for formula in "${MANAGED_HOMEBREW_SERVICE_FORMULAE[@]}"; do
+        reconcile_homebrew_service "$formula" || status=1
+    done
+    return "$status"
+}
+
 install_brew() {
+    local status=0
     section "brew"
     have brew || { fail "brew not found on PATH"; return 1; }
-    brew_bundle "$MAC_DIR/Brewfile" "mac/Brewfile"
+    brew_bundle "$MAC_DIR/Brewfile" "mac/Brewfile" || status=1
     if $INSTALL_APPS; then
-        brew_bundle "$MAC_DIR/Brewfile.apps" "mac/Brewfile.apps"
+        brew_bundle "$MAC_DIR/Brewfile.apps" "mac/Brewfile.apps" || status=1
     else
         ok "app casks skipped (pass --apps to include mac/Brewfile.apps)"
     fi
+    reconcile_managed_homebrew_services || status=1
+    return "$status"
 }
 
 brewfile_items() {

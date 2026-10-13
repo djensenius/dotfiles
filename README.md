@@ -112,10 +112,12 @@ Useful flags:
 ./install-mac --fish-shell --yes # opt in to chsh for Homebrew fish
 ```
 
-The macOS bootstrap never installs Homebrew for you, upgrades packages, cleans up
-or uninstalls packages or Herdr plugins, applies macOS defaults, creates secrets
-or SSH/GPG keys, logs in to services such as `gh`, 1Password or the App Store, or
-loads launchd agents. Anything it replaces (links, files, an incomplete TPM
+The macOS bootstrap never installs Homebrew for you, upgrades packages, uninstalls
+packages or Herdr plugins, applies macOS defaults, creates secrets or SSH/GPG
+keys, logs in to services such as `gh`, 1Password or the App Store, or loads
+launchd agents. It does stop supported Homebrew service launchd entries for the
+service-capable formulae curated in `mac/Brewfile`, keeping reruns converged on
+package-only installs. Anything it replaces (links, files, an incomplete TPM
 checkout) is moved to `~/.dotfiles-backup/<timestamp>/`. If the legacy Herdr
 plugin `herdr-picker-plus` is installed, it reports it (drift under `--check`)
 and skips `herdr-navigator` until you run
