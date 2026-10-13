@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 20:45'
-updated_date: '2026-10-13 20:46'
+updated_date: '2026-10-13 20:47'
 labels: []
 dependencies: []
 ordinal: 16000
@@ -19,9 +19,9 @@ The macOS Brewfile still includes workstation-specific formulae that are not nee
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 `mac/Brewfile` no longer installs `transmission-cli`.
-- [ ] #2 Task notes record additional optional Homebrew removal candidates for owner follow-up, without removing packages beyond the owner-approved scope.
-- [ ] #3 Relevant Brewfile/install checks pass or are reported with evidence.
+- [x] #1 `mac/Brewfile` no longer installs `transmission-cli`.
+- [x] #2 Task notes record additional optional Homebrew removal candidates for owner follow-up, without removing packages beyond the owner-approved scope.
+- [x] #3 Relevant Brewfile/install checks pass or are reported with evidence.
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -34,4 +34,12 @@ The macOS Brewfile still includes workstation-specific formulae that are not nee
 
 <!-- SECTION:NOTES:BEGIN -->
 Removed only the owner-approved transmission-cli Brewfile entry. Optional owner follow-up candidates noted for consideration only (not removed): minidlna; postgis; postgresql@15 if the older server is no longer needed alongside postgresql@18; redis; telnet; azure-cli and influxdata/influx CLIs; embedded/mobile/game utilities cc65, dex2jar, dtc, esphome, jadx, mupen64plus, rgbds, and tuios.
+
+Validation passed: grep confirmed transmission-cli absent; bash mac/tests/brewfile-mise-lint.sh printed 'ok Brewfiles do not overlap mise-owned tools'; bash mac/tests/install-mac-test.sh printed 'ok install-mac tests passed'.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Removed only transmission-cli from mac/Brewfile; left all other formulae intact and recorded optional follow-up removal candidates in notes. Verified absence with grep and passed brewfile-mise-lint plus install-mac tests.
+<!-- SECTION:FINAL_SUMMARY:END -->
