@@ -141,11 +141,15 @@ uninstalls packages or Herdr plugins, applies macOS defaults, creates secrets or
 SSH/GPG keys, logs in to services such as `gh`, 1Password or the App Store, or
 loads launchd agents. The narrow uninstall exception is after `mise` succeeds:
 `jactionlint` (the maintained GitHub Actions linter fork) is now owned by
-`mise/config.toml`, so a Homebrew `actionlint` formula is treated as cleanup
-drift only when Homebrew reports it was installed on request and it is not
-curated in `mac/Brewfile` or `mac/Brewfile.apps`. That
-requested-formula drift is reported under `--check`, printed as a would-uninstall
-under `--dry-run`, and uninstalled during a normal run. Brewfile-curated formulae
+`mise/config.toml`, and the mise-managed tool exposes the `jactionlint` command.
+Because that maintained command replaces the old Homebrew-managed `actionlint`
+command, a Homebrew `actionlint` formula is treated as cleanup drift only when
+Homebrew reports it was installed on request, `jactionlint` is available from
+mise, and the formula is not curated in `mac/Brewfile` or `mac/Brewfile.apps`.
+That requested-formula drift is reported under `--check`, printed as a
+would-uninstall under `--dry-run`, and uninstalled during a normal run, which may
+remove the Homebrew `actionlint` formula and its `actionlint` command.
+Brewfile-curated formulae
 and Homebrew dependency formulae are kept. Anything it replaces (links, files, an
 incomplete TPM checkout) is moved to `~/.dotfiles-backup/<timestamp>/`. If the
 legacy Herdr plugin `herdr-picker-plus` is installed, it reports it (drift under
