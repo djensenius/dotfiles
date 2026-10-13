@@ -27,19 +27,7 @@ LINKS_FILE="${INSTALL_MAC_LINKS_FILE:-$MAC_DIR/links.txt}"
 # The list is intentionally explicit so mise/config.toml changes cannot make this
 # installer uninstall newly named Homebrew formulae without a code review.
 MISE_OWNED_HOMEBREW_FORMULAE=(
-    go:go
-    jq:jq
-    kubectl:kubernetes-cli
-    lua:lua
-    node:node
-    pkl:pkl
-    pipx:pipx
-    python:python
-    ruby:ruby
-    rust:rust
-    yq:yq
-    zig:zig
-    cargo-binstall:cargo-binstall
+    actionlint:actionlint
 )
 
 # common.sh is shellchecked on its own; CI runs shellcheck without -x.
@@ -670,6 +658,11 @@ homebrew_formula_installed() {
     brew_bundle_env list --formula "$formula" >/dev/null 2>&1
 }
 
+homebrew_formula_installed_on_request() {
+    local formula="$1"
+    brew_bundle_env list --installed-on-request 2>/dev/null | grep -Fx -- "$formula" >/dev/null
+}
+
 homebrew_cleanup_env() {
     HOMEBREW_NO_AUTO_UPDATE=1 \
     HOMEBREW_NO_INSTALL_CLEANUP=1 \
@@ -722,6 +715,10 @@ cleanup_mise_owned_homebrew_formula() {
     fi
     if ! homebrew_formula_installed "$formula"; then
         ok "unexpected Homebrew formula absent: $formula"
+        return 0
+    fi
+    if ! homebrew_formula_installed_on_request "$formula"; then
+        ok "unexpected Homebrew formula is dependency-only; keeping $formula"
         return 0
     fi
 

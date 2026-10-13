@@ -496,17 +496,51 @@ if [ "${1:-}" = bundle ] && [ "${2:-}" = dump ]; then
     printf 'brew "tmux"\n'
     exit 0
 fi
+formula_list() {
+    if [ -n "${FAKE_BREW_FORMULAE_FILE:-}" ] && [ -f "$FAKE_BREW_FORMULAE_FILE" ]; then
+        cat "$FAKE_BREW_FORMULAE_FILE"
+    else
+        for formula in ${FAKE_BREW_FORMULAE:-}; do
+            printf '%s\n' "$formula"
+        done
+    fi
+}
+requested_formula_list() {
+    if [ -n "${FAKE_BREW_REQUESTED_FILE:-}" ] && [ -f "$FAKE_BREW_REQUESTED_FILE" ]; then
+        cat "$FAKE_BREW_REQUESTED_FILE"
+    else
+        for formula in ${FAKE_BREW_REQUESTED:-}; do
+            printf '%s\n' "$formula"
+        done
+    fi
+}
+formula_in_list() {
+    local wanted="$1"
+    formula_list | grep -Fx -- "$wanted" >/dev/null
+}
 if [ "${1:-}" = list ] && [ "${2:-}" = --formula ]; then
-    case " ${FAKE_BREW_FORMULAE:-} " in
-        *" ${3:-} "*) exit 0 ;;
-        *) exit 1 ;;
-    esac
+    formula_in_list "${3:-}" && exit 0
+    exit 1
+fi
+if [ "${1:-}" = list ] && [ "${2:-}" = --installed-on-request ]; then
+    requested_formula_list
+    exit 0
 fi
 if [ "${1:-}" = uninstall ]; then
     case " ${FAKE_BREW_UNINSTALL_FAIL:-} " in
         *" ${2:-} "*) exit 1 ;;
-        *) exit 0 ;;
     esac
+    if [ -n "${FAKE_BREW_FORMULAE_FILE:-}" ] && [ -f "$FAKE_BREW_FORMULAE_FILE" ]; then
+        tmp_file="$FAKE_BREW_FORMULAE_FILE.tmp"
+        grep -Fx -v -- "${2:-}" "$FAKE_BREW_FORMULAE_FILE" >"$tmp_file" || true
+        mv "$tmp_file" "$FAKE_BREW_FORMULAE_FILE"
+    fi
+    if [ -n "${FAKE_BREW_REQUESTED_FILE:-}" ] && [ -f "$FAKE_BREW_REQUESTED_FILE" ]; then
+        tmp_file="$FAKE_BREW_REQUESTED_FILE.tmp"
+        grep -Fx -v -- "${2:-}" "$FAKE_BREW_REQUESTED_FILE" >"$tmp_file" || true
+        mv "$tmp_file" "$FAKE_BREW_REQUESTED_FILE"
+    fi
+    exit 0
 fi
 if [ "${1:-}" = --prefix ]; then
     if [ -n "${FAKE_FISH_PREFIX:-}" ]; then
@@ -703,8 +737,42 @@ test_brew_check_uses_no_upgrade_and_noop() {
     rm -rf "$tmp"
 }
 
-test_mise_cleanup_uninstalls_unexpected_homebrew_formula() {
-    local tmp repo home manifest bin log out
+test_mise_cleanup_uninstalls_requested_actionlint_formula() {
+    local tmp repo home manifest bin log out formulae_file
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    formulae_file="$tmp/formulae.txt"
+    mkdir -p "$home"
+    : >"$manifest"
+    printf 'actionlint\n' >"$formulae_file"
+    write_fake_bin "$bin"
+
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE_FILE="$formulae_file" FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise)"
+    grep -F -q 'mise trust' "$log" || fail_test 'mise was not trusted before Homebrew cleanup'
+    grep -F -q 'mise install' "$log" || fail_test 'mise install did not run before Homebrew cleanup'
+    grep -F -q 'brew list --formula actionlint' "$log" || fail_test 'unexpected Homebrew formula was not checked'
+    grep -F -q 'brew list --installed-on-request' "$log" || fail_test 'requested Homebrew formula guard was not checked'
+    grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'requested mise-owned Homebrew formula was not uninstalled'
+    ! grep -F -q 'brew services' "$log" || fail_test 'mise-owned formula cleanup should not inspect or stop services'
+    printf '%s\n' "$out" | grep -F -q 'change uninstalled unexpected Homebrew formula actionlint (mise manages actionlint)' || \
+        fail_test 'formula uninstall change was not reported'
+
+    : >"$log"
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE_FILE="$formulae_file" FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise)"
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'second run should not uninstall an already-removed formula'
+    printf '%s\n' "$out" | grep -F -q 'ok unexpected Homebrew formula absent: actionlint' || \
+        fail_test 'second run did not report actionlint cleanup as absent/no-op'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_dependency_only_actionlint_no_drift() {
+    local tmp repo home manifest bin log out status
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
@@ -715,19 +783,34 @@ test_mise_cleanup_uninstalls_unexpected_homebrew_formula() {
     : >"$manifest"
     write_fake_bin "$bin"
 
-    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only mise)"
-    grep -F -q 'mise trust' "$log" || fail_test 'mise was not trusted before Homebrew cleanup'
-    grep -F -q 'mise install' "$log" || fail_test 'mise install did not run before Homebrew cleanup'
-    grep -F -q 'brew list --formula node' "$log" || fail_test 'unexpected Homebrew formula was not checked'
-    grep -F -q 'brew uninstall node' "$log" || fail_test 'unexpected mise-owned Homebrew formula was not uninstalled'
-    ! grep -F -q 'brew services' "$log" || fail_test 'mise-owned formula cleanup should not inspect or stop services'
-    printf '%s\n' "$out" | grep -F -q 'change uninstalled unexpected Homebrew formula node (mise manages node)' || \
-        fail_test 'formula uninstall change was not reported'
+    grep -F -q 'brew list --installed-on-request' "$log" || fail_test 'dependency-only formula did not check installed-on-request'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'dependency-only actionlint should not be uninstalled'
+    printf '%s\n' "$out" | grep -F -q 'ok unexpected Homebrew formula is dependency-only; keeping actionlint' || \
+        fail_test 'dependency-only skip was not reported'
+
+    : >"$log"
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --check 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 0 ] || fail_test "dependency-only actionlint under --check should exit 0, got $status: $out"
+    ! printf '%s\n' "$out" | grep -F -q 'Homebrew formula drift: actionlint' || \
+        fail_test 'dependency-only actionlint was reported as check drift'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--check uninstalled dependency-only actionlint'
+
+    : >"$log"
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --dry-run)"
+    ! printf '%s\n' "$out" | grep -F -q 'would uninstall Homebrew formula actionlint' || \
+        fail_test 'dependency-only actionlint was reported as dry-run uninstall drift'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--dry-run uninstalled dependency-only actionlint'
     rm -rf "$tmp"
 }
 
-test_mise_cleanup_absent_homebrew_formula_noop() {
+test_mise_cleanup_absent_actionlint_formula_noop() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -747,7 +830,7 @@ test_mise_cleanup_absent_homebrew_formula_noop() {
     rm -rf "$tmp"
 }
 
-test_mise_cleanup_dry_run_reports_without_uninstall() {
+test_mise_cleanup_dry_run_reports_requested_actionlint_without_uninstall() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -759,15 +842,15 @@ test_mise_cleanup_dry_run_reports_without_uninstall() {
     : >"$manifest"
     write_fake_bin "$bin"
 
-    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only mise --dry-run)"
-    printf '%s\n' "$out" | grep -F -q 'change would uninstall Homebrew formula node (mise manages node)' || \
+    printf '%s\n' "$out" | grep -F -q 'change would uninstall Homebrew formula actionlint (mise manages actionlint)' || \
         fail_test 'dry-run Homebrew formula uninstall plan was not reported'
-    ! grep -F -q 'brew uninstall node' "$log" || fail_test '--dry-run uninstalled a Homebrew formula'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--dry-run uninstalled a Homebrew formula'
     rm -rf "$tmp"
 }
 
-test_mise_cleanup_check_reports_drift_without_uninstall() {
+test_mise_cleanup_check_reports_requested_actionlint_drift_without_uninstall() {
     local tmp repo home manifest bin log out status
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -780,19 +863,19 @@ test_mise_cleanup_check_reports_drift_without_uninstall() {
     write_fake_bin "$bin"
 
     set +e
-    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only mise --check 2>&1)"
     status=$?
     set -e
     [ "$status" -eq 2 ] || fail_test "unexpected Homebrew formula under --check should exit 2, got $status"
     printf '%s\n' "$out" | grep -F -q \
-        'change Homebrew formula drift: node is installed by Homebrew but node is managed by mise' || \
+        'change Homebrew formula drift: actionlint is installed by Homebrew but actionlint is managed by mise' || \
         fail_test 'check-mode Homebrew formula drift was not reported'
-    ! grep -F -q 'brew uninstall node' "$log" || fail_test '--check uninstalled a Homebrew formula'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--check uninstalled a Homebrew formula'
     rm -rf "$tmp"
 }
 
-test_mise_cleanup_keeps_brewfile_owned_formula() {
+test_mise_cleanup_keeps_brewfile_owned_actionlint_formula() {
     local tmp repo home manifest bin log out
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
@@ -802,13 +885,13 @@ test_mise_cleanup_keeps_brewfile_owned_formula() {
     log="$tmp/fake.log"
     mkdir -p "$home"
     : >"$manifest"
-    printf 'brew "node"\n' >>"$repo/mac/Brewfile"
+    printf 'brew "actionlint"\n' >>"$repo/mac/Brewfile"
     write_fake_bin "$bin"
 
-    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=node HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only mise)"
-    ! grep -F -q 'brew uninstall node' "$log" || fail_test 'Brewfile-owned formula should never be uninstalled'
-    printf '%s\n' "$out" | grep -F -q 'ok Homebrew formula curated in Brewfile; keeping node' || \
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'Brewfile-owned formula should never be uninstalled'
+    printf '%s\n' "$out" | grep -F -q 'ok Homebrew formula curated in Brewfile; keeping actionlint' || \
         fail_test 'Brewfile-owned formula skip was not reported'
     rm -rf "$tmp"
 }
@@ -1091,11 +1174,12 @@ main() {
     test_failed_link_command_marks_section_failed
     test_brewfile_mise_lint_backend_prefixed_overlap
     test_brew_check_uses_no_upgrade_and_noop
-    test_mise_cleanup_uninstalls_unexpected_homebrew_formula
-    test_mise_cleanup_absent_homebrew_formula_noop
-    test_mise_cleanup_dry_run_reports_without_uninstall
-    test_mise_cleanup_check_reports_drift_without_uninstall
-    test_mise_cleanup_keeps_brewfile_owned_formula
+    test_mise_cleanup_uninstalls_requested_actionlint_formula
+    test_mise_cleanup_dependency_only_actionlint_no_drift
+    test_mise_cleanup_absent_actionlint_formula_noop
+    test_mise_cleanup_dry_run_reports_requested_actionlint_without_uninstall
+    test_mise_cleanup_check_reports_requested_actionlint_drift_without_uninstall
+    test_mise_cleanup_keeps_brewfile_owned_actionlint_formula
     test_gh_hosts_history_recovery
     test_tmux_fish_agent_stack_and_drift
     test_usage_errors_and_clean_full_check

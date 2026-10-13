@@ -116,11 +116,12 @@ The macOS bootstrap never installs Homebrew for you, upgrades packages, broadly
 uninstalls packages or Herdr plugins, applies macOS defaults, creates secrets or
 SSH/GPG keys, logs in to services such as `gh`, 1Password or the App Store, or
 loads launchd agents. The narrow uninstall exception is after `mise` succeeds:
-for a small, explicit list of tools owned by `mise/config.toml`, an unexpected
-matching Homebrew formula that is not curated in `mac/Brewfile` is reported under
-`--check`, printed as a would-uninstall under `--dry-run`, and uninstalled during
-a normal run. Formulae curated in `mac/Brewfile` are kept, and `install-mac` does
-not stop their Homebrew services. Anything it replaces (links, files, an
+`actionlint` is now owned by `mise/config.toml`, so a Homebrew `actionlint`
+formula is treated as cleanup drift only when Homebrew reports it was installed
+on request and it is not curated in `mac/Brewfile` or `mac/Brewfile.apps`. That
+requested-formula drift is reported under `--check`, printed as a would-uninstall
+under `--dry-run`, and uninstalled during a normal run. Brewfile-curated formulae
+and Homebrew dependency formulae are kept. Anything it replaces (links, files, an
 incomplete TPM checkout) is moved to `~/.dotfiles-backup/<timestamp>/`. If the
 legacy Herdr plugin `herdr-picker-plus` is installed, it reports it (drift under
 `--check`) and skips `herdr-navigator` until you run
