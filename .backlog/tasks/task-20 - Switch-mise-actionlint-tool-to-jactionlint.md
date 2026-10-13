@@ -1,9 +1,11 @@
 ---
 id: TASK-20
 title: Switch mise actionlint tool to jactionlint
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-13 21:47'
+updated_date: '2026-10-13 21:47'
 labels: []
 dependencies: []
 ordinal: 18000
