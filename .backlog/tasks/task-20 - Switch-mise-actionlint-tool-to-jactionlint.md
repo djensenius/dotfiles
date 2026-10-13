@@ -37,3 +37,9 @@ Implemented jactionlint migration: mise/config.toml now requests jactionlint 2.1
 
 Validation passed: rg 'actionlint|jactionlint' over changed references; MISE_CONFIG_DIR=$PWD/mise mise ls jactionlint --no-header -> jactionlint 2.1.0 (missing) from mise/config.toml; TOML lint over **/*.toml had no output; bash -n mac/install.sh mac/tests/install-mac-test.sh had no output; git diff --check had no output; shellcheck mac/install.sh mac/tests/install-mac-test.sh had no output; bash mac/tests/install-mac-test.sh -> ok install-mac tests passed; bash mac/tests/brewfile-mise-lint.sh -> ok Brewfiles do not overlap mise-owned tools.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Switched the mise-managed GitHub Actions linter tool from deprecated actionlint to jactionlint 2.1.0, updated macOS cleanup/tests so Homebrew actionlint drift is reconciled through jactionlint, and documented jactionlint in README while preserving explicit downloaded actionlint validation guidance. Verified with mise ls, TOML lint, shell syntax, shellcheck, git diff --check, install-mac tests, brewfile/mise lint, rg reference inspection, and isolated jactionlint binary inspection.
+<!-- SECTION:FINAL_SUMMARY:END -->
