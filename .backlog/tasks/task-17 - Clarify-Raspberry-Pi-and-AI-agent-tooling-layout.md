@@ -1,10 +1,11 @@
 ---
 id: TASK-17
 title: Clarify Raspberry Pi and AI agent tooling layout
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-13 19:24'
-updated_date: '2026-10-13 19:34'
+updated_date: '2026-10-13 19:44'
 labels: []
 dependencies: []
 ordinal: 15000
