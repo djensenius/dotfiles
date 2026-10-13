@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 21:30'
-updated_date: '2026-10-13 21:32'
+updated_date: '2026-10-13 21:34'
 labels: []
 dependencies: []
 ordinal: 17000
@@ -19,7 +19,7 @@ The macOS Homebrew bundle now fails on `dlvhdr/formulae/diffnav` because Homebre
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 `mac/Brewfile` declares trust for `dlvhdr/formulae/diffnav`.
+- [ ] #1 mac/Brewfile declares formula-specific trust for dlvhdr/formulae/diffnav, influxdata/tap/influxctl, morantron/tmux-fingers/tmux-fingers, timescam/tap/tuios, djensenius/tap/telephone-booth-operator-cli, and djensenius/tap/worldcup26.
 - [ ] #2 Relevant Brewfile/install tests pass or are reported with evidence.
 <!-- AC:END -->
 
