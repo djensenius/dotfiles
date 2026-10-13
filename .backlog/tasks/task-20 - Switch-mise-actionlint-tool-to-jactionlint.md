@@ -1,7 +1,7 @@
 ---
 id: TASK-20
 title: Switch mise actionlint tool to jactionlint
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 21:47'
