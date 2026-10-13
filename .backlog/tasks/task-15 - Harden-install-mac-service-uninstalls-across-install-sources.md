@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 16:50'
+updated_date: '2026-10-13 16:52'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -55,6 +55,8 @@ Second fix round started: superseding the broad mise-owned formula cleanup. New 
 Second fix validation passed with corrected actionlint-only cleanup: bash -n mac/install.sh mac/tests/install-mac-test.sh (status 0, no output); git diff --check (status 0, no output); bash mac/tests/install-mac-test.sh (status 0, ok install-mac tests passed); shellcheck mac/install.sh mac/tests/install-mac-test.sh (status 0, no output); TOML lint via existing tomllint over **/*.toml (status 0, no output). Supersedes earlier service-stop notes: install-mac does not stop Homebrew services, and it no longer performs broad mise-owned formula cleanup for runtimes/dependencies.
 
 Copilot PR feedback fix started: distinguish Homebrew installed-on-request probe failures from dependency-only formulae and add regression coverage.
+
+Copilot PR feedback addressed: homebrew_formula_installed_on_request now validates brew list --installed-on-request before grepping, returns a failure for probe errors, and cleanup propagates that as a mise section failure instead of reporting dependency-only. Added regression coverage for probe failure in normal and --check modes while preserving dependency-only and absent formula behavior. Validation passed: bash -n mac/install.sh mac/tests/install-mac-test.sh (status 0, no output); git diff --check (status 0, no output); bash mac/tests/install-mac-test.sh (status 0, ok install-mac tests passed); shellcheck mac/install.sh mac/tests/install-mac-test.sh (status 0, no output).
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
