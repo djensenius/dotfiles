@@ -1,7 +1,7 @@
 ---
 id: TASK-15
 title: Harden install-mac service uninstalls across install sources
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
