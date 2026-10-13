@@ -1,11 +1,11 @@
 ---
 id: TASK-17
 title: Clarify Raspberry Pi and AI agent tooling layout
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 19:24'
-updated_date: '2026-10-13 19:53'
+updated_date: '2026-10-13 19:58'
 labels: []
 dependencies: []
 ordinal: 15000
@@ -47,6 +47,8 @@ Owner decision: do not broaden Raspberry Pi setup into a generic Linux/distro/ar
 Owner scope update: include a Linux installer path for common Arch, Ubuntu, and Debian distros as part of the layout cleanup. The earlier “do not broaden Linux support” decision is superseded for TASK-17.
 
 Implemented on commit e505188: moved pi/agent-stack to ai-tools with installer/test path updates; kept install-agent-stack as a deprecated forwarding wrapper; added install-pi --ai-tools plus final guidance; added install-linux/linux/install.sh for Debian/Ubuntu apt and Arch pacman families with unsupported-distro guard; updated README.md, pi/README.md, AGENTS.md, and task plan references. Validation passed: bash ai-tools/tests/install-runtime.sh; bash ai-tools/tests/install-git-version.sh; node ai-tools/tests/subagent-status.test.ts; MISE_IGNORED_CONFIG_PATHS="$HOME/.config/mise/config.toml" bash ai-tools/tests/reviewer-git-security.sh; bash linux/tests/install-linux-test.sh; bash pi/tests/install-ai-tools-guidance.sh; bash pi/tests/install-herdr-fish-cleanup.sh; shellcheck changed shell scripts; pi/install.sh --help and linux/install.sh --help; git grep found no remaining pi/agent-stack references outside historical .backlog tasks; git diff --check. Note: reviewer-git-security.sh without the MISE_IGNORED_CONFIG_PATHS guard failed because this workstation global ~/.config/mise/config.toml has a duplicate actionlint key; the guarded rerun isolates the repo config and passed.
+
+Fix round after reviewer REQUEST CHANGES: addressing Linux Herdr config setup, global mise activation/install path, Arch package sync, sudo/root guard, Raspberry Pi OS guidance, mac AI tools entry point, docs, and concrete validation evidence.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
