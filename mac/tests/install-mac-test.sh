@@ -519,6 +519,14 @@ formula_in_list() {
     formula_list | grep -Fx -- "$wanted" >/dev/null
 }
 if [ "${1:-}" = list ] && [ "${2:-}" = --formula ]; then
+    if [ "${FAKE_BREW_FORMULAE_FAIL:-0}" = 1 ]; then
+        printf 'brew formula list failed\n' >&2
+        exit 3
+    fi
+    if [ "$#" -eq 2 ]; then
+        formula_list
+        exit 0
+    fi
     formula_in_list "${3:-}" && exit 0
     exit 1
 fi
@@ -759,7 +767,8 @@ test_mise_cleanup_uninstalls_requested_actionlint_formula() {
         "$repo/install-mac" --only mise)"
     grep -F -q 'mise trust' "$log" || fail_test 'mise was not trusted before Homebrew cleanup'
     grep -F -q 'mise install' "$log" || fail_test 'mise install did not run before Homebrew cleanup'
-    grep -F -q 'brew list --formula actionlint' "$log" || fail_test 'unexpected Homebrew formula was not checked'
+    grep -Fx -q 'brew list --formula' "$log" || fail_test 'unexpected Homebrew formula list was not checked'
+    ! grep -Fx -q 'brew list --formula actionlint' "$log" || fail_test 'Homebrew formula check should read the complete installed-formula list'
     grep -F -q 'brew list --installed-on-request' "$log" || fail_test 'requested Homebrew formula guard was not checked'
     grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'requested mise-owned Homebrew formula was not uninstalled'
     ! grep -F -q 'brew services' "$log" || fail_test 'mise-owned formula cleanup should not inspect or stop services'
@@ -811,6 +820,50 @@ test_mise_cleanup_dependency_only_actionlint_no_drift() {
     ! printf '%s\n' "$out" | grep -F -q 'would uninstall Homebrew formula actionlint' || \
         fail_test 'dependency-only actionlint was reported as dry-run uninstall drift'
     ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--dry-run uninstalled dependency-only actionlint'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_formula_probe_failure_marks_section_failed() {
+    local tmp repo home manifest bin log out status
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE_FAIL=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "installed-formula probe failure should exit 1, got $status: $out"
+    grep -Fx -q 'brew list --formula' "$log" || fail_test 'installed-formula probe was not attempted'
+    ! grep -F -q 'brew list --installed-on-request' "$log" || fail_test 'installed-formula probe failure should not check installed-on-request'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'installed-formula probe failure should not uninstall actionlint'
+    printf '%s\n' "$out" | grep -F -q 'fail Homebrew installed-formula probe failed for actionlint; leaving formula untouched' || \
+        fail_test 'installed-formula probe failure was not reported as a failure'
+    ! printf '%s\n' "$out" | grep -F -q 'unexpected Homebrew formula absent: actionlint' || \
+        fail_test 'installed-formula probe failure was treated as absent'
+
+    : >"$log"
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE_FAIL=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --check 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "installed-formula probe failure under --check should exit 1, got $status: $out"
+    grep -Fx -q 'brew list --formula' "$log" || fail_test '--check installed-formula probe was not attempted'
+    ! printf '%s\n' "$out" | grep -F -q 'Homebrew formula drift: actionlint' || \
+        fail_test 'installed-formula probe failure under --check was reported as drift instead of failure'
+    ! printf '%s\n' "$out" | grep -F -q 'unexpected Homebrew formula absent: actionlint' || \
+        fail_test '--check installed-formula probe failure was treated as absent'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--check installed-formula probe failure should not uninstall actionlint'
+    printf '%s\n' "$out" | grep -F -q 'fail Homebrew installed-formula probe failed for actionlint; leaving formula untouched' || \
+        fail_test '--check installed-formula probe failure was not reported as a failure'
     rm -rf "$tmp"
 }
 
@@ -1220,6 +1273,7 @@ main() {
     test_brew_check_uses_no_upgrade_and_noop
     test_mise_cleanup_uninstalls_requested_actionlint_formula
     test_mise_cleanup_dependency_only_actionlint_no_drift
+    test_mise_cleanup_formula_probe_failure_marks_section_failed
     test_mise_cleanup_requested_probe_failure_marks_section_failed
     test_mise_cleanup_absent_actionlint_formula_noop
     test_mise_cleanup_dry_run_reports_requested_actionlint_without_uninstall

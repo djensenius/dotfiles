@@ -654,8 +654,12 @@ brew_bundle() {
 }
 
 homebrew_formula_installed() {
-    local formula="$1"
-    brew_bundle_env list --formula "$formula" >/dev/null 2>&1
+    local formula="$1" installed_formulae
+    if ! installed_formulae="$(brew_bundle_env list --formula 2>/dev/null)"; then
+        fail "Homebrew installed-formula probe failed for $formula; leaving formula untouched"
+        return 2
+    fi
+    grep -Fx -- "$formula" <<<"$installed_formulae" >/dev/null
 }
 
 homebrew_formula_installed_on_request() {
@@ -717,9 +721,18 @@ cleanup_mise_owned_homebrew_formula() {
         ok "Homebrew formula curated in Brewfile; keeping $formula"
         return 0
     fi
-    if ! homebrew_formula_installed "$formula"; then
-        ok "unexpected Homebrew formula absent: $formula"
-        return 0
+    if homebrew_formula_installed "$formula"; then
+        :
+    else
+        case "$?" in
+            1)
+                ok "unexpected Homebrew formula absent: $formula"
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
     fi
     if homebrew_formula_installed_on_request "$formula"; then
         :
