@@ -1,9 +1,11 @@
 ---
 id: TASK-16
 title: Fix macOS Brewfile tap trust issue
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-13 19:20'
+updated_date: '2026-10-13 19:21'
 labels: []
 dependencies: []
 ordinal: 14000
