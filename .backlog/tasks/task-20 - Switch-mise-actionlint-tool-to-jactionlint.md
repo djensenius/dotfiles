@@ -1,0 +1,47 @@
+---
+id: TASK-20
+title: Switch mise actionlint tool to jactionlint
+status: Done
+assignee:
+  - '@pi-worker'
+created_date: '2026-10-13 21:47'
+updated_date: '2026-10-13 22:00'
+labels: []
+dependencies: []
+ordinal: 18000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+During macOS bootstrap, mise warns that `actionlint` is deprecated and recommends the maintained `jactionlint` fork. The workstation mise manifest should use the maintained replacement so future installs avoid the deprecation warning.
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [x] #1 `mise/config.toml` uses `jactionlint` instead of deprecated `actionlint`.
+- [x] #2 Documentation or validation references still make clear how GitHub Actions linting is provided.
+- [x] #3 Relevant TOML/mise checks pass or are reported with evidence.
+<!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Inspect mise/tool references for actionlint and jactionlint. 2. Replace the mise-managed deprecated actionlint entry with jactionlint only where that tool is declared. 3. Preserve validation guidance if the jactionlint install exposes the compatible actionlint command, updating docs/tests only if inspection shows stale mise-specific references. 4. Run TOML/mise/reference checks, record evidence, finalize, and commit.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented jactionlint migration: mise/config.toml now requests jactionlint 2.1.0; macOS Homebrew cleanup still targets the deprecated Homebrew actionlint formula but verifies the mise-managed jactionlint shim before uninstalling; README identifies jactionlint as the maintained GitHub Actions linter fork. Verified jactionlint install shape with an isolated mise install: release contains jactionlint, not actionlint, and jactionlint --version reported 2.1.0.
+
+Validation passed: rg 'actionlint|jactionlint' over changed references; MISE_CONFIG_DIR=$PWD/mise mise ls jactionlint --no-header -> jactionlint 2.1.0 (missing) from mise/config.toml; TOML lint over **/*.toml had no output; bash -n mac/install.sh mac/tests/install-mac-test.sh had no output; git diff --check had no output; shellcheck mac/install.sh mac/tests/install-mac-test.sh had no output; bash mac/tests/install-mac-test.sh -> ok install-mac tests passed; bash mac/tests/brewfile-mise-lint.sh -> ok Brewfiles do not overlap mise-owned tools.
+
+Reviewer-note fix: clarified README macOS bootstrap text to state that the mise-managed maintained replacement exposes the `jactionlint` command, and that a normal `./install-mac` run may remove the Homebrew `actionlint` formula and its `actionlint` command after mise verifies `jactionlint` is available. Re-ran checks for the fix: `bash mac/tests/install-mac-test.sh` -> ok install-mac tests passed; `bash mac/tests/brewfile-mise-lint.sh` -> ok Brewfiles do not overlap mise-owned tools; `bash -O globstar -O nullglob -c 'for f in **/*.toml; do tomllint "$f"; done'` -> no output.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Switched the mise-managed GitHub Actions linter tool from deprecated actionlint to jactionlint 2.1.0, updated macOS cleanup/tests so Homebrew actionlint drift is reconciled through jactionlint, and documented jactionlint in README while preserving explicit downloaded actionlint validation guidance. Verified with mise ls, TOML lint, shell syntax, shellcheck, git diff --check, install-mac tests, brewfile/mise lint, rg reference inspection, and isolated jactionlint binary inspection.
+<!-- SECTION:FINAL_SUMMARY:END -->

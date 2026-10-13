@@ -1,7 +1,7 @@
 [tools]
 # global tool versions go here
 # you can set these with `mise use -g`
-actionlint = "1.7.12"
+jactionlint = "2.1.0"
 go = 'latest'
 herdr = 'latest'
 jq = 'latest'
