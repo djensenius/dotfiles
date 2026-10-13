@@ -29,6 +29,12 @@ The repository currently stores both Raspberry Pi device provisioning and the Pi
 - [ ] #8 The Raspberry Pi setup remains clearly identified as Raspberry Pi-specific even if it shares Linux helper code with the broader Linux installer.
 <!-- AC:END -->
 
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Move the current Pi/Herdr agent-stack files to a generalized root ai-tools/ path, update installer path calculations, tests, wrappers, and documentation references while preserving ./install-agent-stack as a forwarding compatibility entry point. 2. Keep pi/ as Raspberry Pi device setup: add ./install-pi/ pi/install.sh --ai-tools flow that runs ai-tools/install.sh after Pi provisioning and always prints the post-run guidance for the full AI/coding-agent stack. 3. Add a guarded ./install-linux entry point with linux/install.sh distro-family detection for Arch and Debian/Ubuntu package baselines plus safe dotfile/mise/ai-tools integration controls, with tests for detection, package manager use, and unsupported distro messaging. 4. Update README.md, pi/README.md, AGENTS/project references, and targeted tests to the new ai-tools paths, then run the requested shell/node/docs checks and commit the implementation.
+<!-- SECTION:PLAN:END -->
+
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
