@@ -96,7 +96,6 @@ brew "postgresql@18", link: true # provides psql etc.; keep linked as on the sou
 brew "rclone"
 brew "redis"
 brew "telnet"
-brew "transmission-cli"
 
 # Embedded, mobile and game-development utilities.
 brew "binutils"
