@@ -19,9 +19,9 @@ During macOS bootstrap, mise warns that `actionlint` is deprecated and recommend
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 `mise/config.toml` uses `jactionlint` instead of deprecated `actionlint`.
-- [ ] #2 Documentation or validation references still make clear how GitHub Actions linting is provided.
-- [ ] #3 Relevant TOML/mise checks pass or are reported with evidence.
+- [x] #1 `mise/config.toml` uses `jactionlint` instead of deprecated `actionlint`.
+- [x] #2 Documentation or validation references still make clear how GitHub Actions linting is provided.
+- [x] #3 Relevant TOML/mise checks pass or are reported with evidence.
 <!-- AC:END -->
 
 ## Implementation Plan
