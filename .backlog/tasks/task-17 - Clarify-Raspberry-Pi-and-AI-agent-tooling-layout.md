@@ -4,7 +4,7 @@ title: Clarify Raspberry Pi and AI agent tooling layout
 status: To Do
 assignee: []
 created_date: '2026-10-13 19:24'
-updated_date: '2026-10-13 19:30'
+updated_date: '2026-10-13 19:34'
 labels: []
 dependencies: []
 ordinal: 15000
@@ -24,6 +24,8 @@ The repository currently stores both Raspberry Pi device provisioning and the Pi
 - [ ] #4 README and installer references are updated consistently.
 - [ ] #5 Relevant installer/link/test checks pass or any limitations are reported with evidence.
 - [ ] #6 After Raspberry Pi setup completes, the user sees guidance that `./install-pi --ai-tools` installs the full AI/coding-agent tooling stack.
+- [ ] #7 A Linux setup entry point supports at least Arch, Ubuntu, and Debian families, with distro-specific package-manager handling or clear guarded messaging for unsupported distros.
+- [ ] #8 The Raspberry Pi setup remains clearly identified as Raspberry Pi-specific even if it shares Linux helper code with the broader Linux installer.
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -34,4 +36,6 @@ Owner decision: use `ai-tools/` as the generalized root for AI/coding-agent tool
 Owner request: after Raspberry Pi setup completes, the installer/docs should tell the user that running the Raspberry Pi installer with `--ai-tools` is how to install the full AI/coding-agent tooling stack on that machine.
 
 Owner decision: do not broaden Raspberry Pi setup into a generic Linux/distro/architecture installer for now. Keep the cleanup focused on human clarity: Raspberry Pi OS/device setup remains Raspberry Pi-specific, while AI/coding-agent tooling moves under the generalized `ai-tools/` naming.
+
+Owner scope update: include a Linux installer path for common Arch, Ubuntu, and Debian distros as part of the layout cleanup. The earlier “do not broaden Linux support” decision is superseded for TASK-17.
 <!-- SECTION:NOTES:END -->
