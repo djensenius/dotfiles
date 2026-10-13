@@ -4,7 +4,7 @@ title: Clarify Raspberry Pi and AI agent tooling layout
 status: To Do
 assignee: []
 created_date: '2026-10-13 19:24'
-updated_date: '2026-10-13 19:25'
+updated_date: '2026-10-13 19:27'
 labels: []
 dependencies: []
 ordinal: 15000
@@ -23,10 +23,13 @@ The repository currently stores both Raspberry Pi device provisioning and the Pi
 - [ ] #3 Existing documented entry points continue to work, either directly or through compatibility wrappers with deprecation guidance.
 - [ ] #4 README and installer references are updated consistently.
 - [ ] #5 Relevant installer/link/test checks pass or any limitations are reported with evidence.
+- [ ] #6 After Raspberry Pi setup completes, the user sees guidance that `./install-pi --ai-tools` installs the full AI/coding-agent tooling stack.
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner decision: use `ai-tools/` as the generalized root for AI/coding-agent tooling when cleaning up the current Pi/Herdr agent-stack layout.
+
+Owner request: after Raspberry Pi setup completes, the installer/docs should tell the user that running the Raspberry Pi installer with `--ai-tools` is how to install the full AI/coding-agent tooling stack on that machine.
 <!-- SECTION:NOTES:END -->
