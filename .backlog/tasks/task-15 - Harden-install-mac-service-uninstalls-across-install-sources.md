@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 16:09'
+updated_date: '2026-10-13 16:15'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -27,7 +27,10 @@ The macOS installer currently assumes services were installed through the expect
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Remove the prior Brewfile service-stop cleanup and related README/test claims.\n2. Add a narrow explicit mapping from mise-managed tools to unexpected Homebrew formula names, excluding any formula curated in mac/Brewfile.\n3. Wire cleanup after mise tool install/verification with check/dry-run/no-op/failure behavior.\n4. Update focused install-mac tests for uninstall, absent no-op, check no mutation, and Brewfile-owned never removed; run relevant validation.
+1. Revert the prior Brewfile Homebrew service-stop cleanup and README/test claims.
+2. Add a narrow explicit source-reconciliation list that maps current mise/config.toml tools to matching Homebrew formula names, using Brewfile membership only as a skip guard.
+3. Run the cleanup from the mise section after install/verification: normal mode uninstalls unexpected formulae, --check reports drift, --dry-run reports would-uninstall, absent formulae and unavailable brew are no-ops.
+4. Update focused install-mac tests for unexpected formula uninstall, absent no-op, dry-run, --check no mutation, and Brewfile-owned formula preservation; run shell validation.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -38,10 +41,16 @@ Starting implementation in task-15 worktree. Scope: narrow install-mac service-s
 Implemented narrow Homebrew service reconciliation for the service-capable formulae already curated in mac/Brewfile: minidlna, postgresql@15, postgresql@18, and redis. Rationale for the service set: these are the only existing Brewfile entries that the repository currently identifies as service-capable; the change stops Homebrew launchd service state for them but does not uninstall packages or perform broad cleanup. The helper checks the Homebrew formula source before inspecting/stopping the service, no-ops when the formula/service is absent, and reports drift without mutation under --check. Validation passed: `bash -n mac/install.sh mac/tests/install-mac-test.sh` -> no output; `git diff --check` -> no output; `bash mac/tests/install-mac-test.sh` -> `ok install-mac tests passed`; `shellcheck mac/install.sh mac/tests/install-mac-test.sh` -> no output.
 
 Fix round started after reviewer block: previous Homebrew service-stop approach treated Brewfile-owned formulae as drift. New scope is conservative mise-owned Homebrew formula cleanup only when formulae are not curated in mac/Brewfile.
+
+Fix round correction implemented. Removed the MANAGED_HOMEBREW_SERVICE_FORMULAE/Homebrew services stop behavior entirely; install_brew now only reconciles the curated Brewfiles. Added a manual MISE_OWNED_HOMEBREW_FORMULAE mapping (mise tool -> Homebrew formula) and cleanup in the mise section. The cleanup first confirms the mise tool is configured, then skips any formula curated in mac/Brewfile/mac/Brewfile.apps, no-ops when brew is unavailable or the formula is absent, reports drift under --check, prints would-uninstall under --dry-run, uninstalls in normal mode, and fails explicitly if brew uninstall fails.
+
+Reviewer blockers addressed: (1) Brewfile-owned Homebrew services/formulae are not alternate-source drift; Brewfile formulae are skipped and no service inspection remains. (2) install-mac no longer stops user-started PostgreSQL, Redis, minidlna, or any other Homebrew service. (3) --check reports drift only for explicit mise-owned Homebrew formula installs that are not in the Brewfile, not for intended Brewfile services. (4) README now documents only the narrow mise-owned formula uninstall exception and explicitly says Brewfile formulae are kept and install-mac does not stop their Homebrew services.
+
+Validation passed after the code commit: bash -n mac/install.sh mac/tests/install-mac-test.sh -> status 0; git diff --check -> status 0; bash mac/tests/install-mac-test.sh -> ok install-mac tests passed, status 0; shellcheck mac/install.sh mac/tests/install-mac-test.sh -> status 0.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Added data-driven Homebrew service reconciliation to install-mac for the narrow service-capable Brewfile formula list (minidlna, postgresql@15, postgresql@18, redis). The brew section now detects installed Homebrew formula sources, stops active Homebrew service launchd entries, stays no-op when formulae/services are absent, and reports service drift under --check. Updated README to reflect the supported service cleanup exception and added install-mac tests for active-service cleanup, absent-source idempotence, and check-mode drift. Verified with bash -n, git diff --check, the install-mac test suite, and shellcheck.
+Replaced the blocked Homebrew service-stop implementation with conservative mise-owned Homebrew formula cleanup. The corrected install-mac flow does not inspect or stop Brewfile services; after the mise section verifies or installs tools, it uninstalls only explicit mapped formulae for tools still present in mise/config.toml and only when those formulae are not curated in the Brewfiles. Check mode reports that formula drift without mutation, dry-run prints would-uninstall, absent formulae/brew are no-ops, and uninstall failures are explicit failures. README and install-mac tests were updated to cover the corrected policy. Verified with bash -n, git diff --check, bash mac/tests/install-mac-test.sh, and shellcheck.
 <!-- SECTION:FINAL_SUMMARY:END -->
