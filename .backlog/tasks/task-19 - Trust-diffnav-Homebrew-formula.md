@@ -22,3 +22,9 @@ The macOS Homebrew bundle now fails on `dlvhdr/formulae/diffnav` because Homebre
 - [ ] #1 `mac/Brewfile` declares trust for `dlvhdr/formulae/diffnav`.
 - [ ] #2 Relevant Brewfile/install tests pass or are reported with evidence.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Compare existing Brewfile trust metadata for arl/arl/gitmux and mirror that pattern for dlvhdr/formulae/diffnav. 2. Update mac install tests only as needed to assert the diffnav trust declaration. 3. Run the mac Brewfile/install checks and finalize TASK-19 with evidence.
+<!-- SECTION:PLAN:END -->
