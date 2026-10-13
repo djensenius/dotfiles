@@ -659,8 +659,12 @@ homebrew_formula_installed() {
 }
 
 homebrew_formula_installed_on_request() {
-    local formula="$1"
-    brew_bundle_env list --installed-on-request 2>/dev/null | grep -Fx -- "$formula" >/dev/null
+    local formula="$1" requested_formulae
+    if ! requested_formulae="$(brew_bundle_env list --installed-on-request 2>/dev/null)"; then
+        fail "Homebrew installed-on-request probe failed for $formula; leaving formula untouched"
+        return 2
+    fi
+    grep -Fx -- "$formula" <<<"$requested_formulae" >/dev/null
 }
 
 homebrew_cleanup_env() {
@@ -717,9 +721,18 @@ cleanup_mise_owned_homebrew_formula() {
         ok "unexpected Homebrew formula absent: $formula"
         return 0
     fi
-    if ! homebrew_formula_installed_on_request "$formula"; then
-        ok "unexpected Homebrew formula is dependency-only; keeping $formula"
-        return 0
+    if homebrew_formula_installed_on_request "$formula"; then
+        :
+    else
+        case "$?" in
+            1)
+                ok "unexpected Homebrew formula is dependency-only; keeping $formula"
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
     fi
 
     if $CHECK_MODE; then

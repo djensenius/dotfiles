@@ -523,6 +523,10 @@ if [ "${1:-}" = list ] && [ "${2:-}" = --formula ]; then
     exit 1
 fi
 if [ "${1:-}" = list ] && [ "${2:-}" = --installed-on-request ]; then
+    if [ "${FAKE_BREW_REQUESTED_FAIL:-0}" = 1 ]; then
+        printf 'unsupported option: --installed-on-request\n' >&2
+        exit 3
+    fi
     requested_formula_list
     exit 0
 fi
@@ -807,6 +811,46 @@ test_mise_cleanup_dependency_only_actionlint_no_drift() {
     ! printf '%s\n' "$out" | grep -F -q 'would uninstall Homebrew formula actionlint' || \
         fail_test 'dependency-only actionlint was reported as dry-run uninstall drift'
     ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--dry-run uninstalled dependency-only actionlint'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_requested_probe_failure_marks_section_failed() {
+    local tmp repo home manifest bin log out status
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED_FAIL=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "installed-on-request probe failure should exit 1, got $status: $out"
+    grep -F -q 'brew list --installed-on-request' "$log" || fail_test 'installed-on-request probe was not attempted'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'probe failure should not uninstall actionlint'
+    printf '%s\n' "$out" | grep -F -q 'fail Homebrew installed-on-request probe failed for actionlint; leaving formula untouched' || \
+        fail_test 'installed-on-request probe failure was not reported as a failure'
+    ! printf '%s\n' "$out" | grep -F -q 'dependency-only; keeping actionlint' || \
+        fail_test 'installed-on-request probe failure was treated as dependency-only'
+
+    : >"$log"
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED_FAIL=1 HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --check 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "installed-on-request probe failure under --check should exit 1, got $status: $out"
+    ! printf '%s\n' "$out" | grep -F -q 'Homebrew formula drift: actionlint' || \
+        fail_test 'probe failure under --check was reported as drift instead of failure'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--check probe failure should not uninstall actionlint'
+    printf '%s\n' "$out" | grep -F -q 'fail Homebrew installed-on-request probe failed for actionlint; leaving formula untouched' || \
+        fail_test '--check installed-on-request probe failure was not reported as a failure'
     rm -rf "$tmp"
 }
 
@@ -1176,6 +1220,7 @@ main() {
     test_brew_check_uses_no_upgrade_and_noop
     test_mise_cleanup_uninstalls_requested_actionlint_formula
     test_mise_cleanup_dependency_only_actionlint_no_drift
+    test_mise_cleanup_requested_probe_failure_marks_section_failed
     test_mise_cleanup_absent_actionlint_formula_noop
     test_mise_cleanup_dry_run_reports_requested_actionlint_without_uninstall
     test_mise_cleanup_check_reports_requested_actionlint_drift_without_uninstall
