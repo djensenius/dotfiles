@@ -1,9 +1,11 @@
 ---
 id: TASK-19
 title: Trust diffnav Homebrew formula
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-13 21:30'
+updated_date: '2026-10-13 21:31'
 labels: []
 dependencies: []
 ordinal: 17000
