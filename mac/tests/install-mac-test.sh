@@ -411,6 +411,27 @@ test_gitconfig_real_file_without_adopt_reports_drift() {
     rm -rf "$tmp"
 }
 
+activate_fake_mise_config() {
+    local home="$1" repo="$2"
+    mkdir -p "$home/.config/mise"
+    ln -sf "$repo/mise/config.toml" "$home/.config/mise/config.toml"
+}
+
+write_fake_actionlint_shim() {
+    local home="$1" shim_dir
+    shim_dir="$home/.local/share/mise/shims"
+    mkdir -p "$shim_dir"
+    cat >"$shim_dir/actionlint" <<'SHIM'
+#!/usr/bin/env bash
+if [ "${1:-}" = --version ]; then
+    printf 'actionlint 1.7.7\n'
+    exit 0
+fi
+printf 'fake actionlint\n'
+SHIM
+    chmod +x "$shim_dir/actionlint"
+}
+
 write_fake_bin() {
     local bin="$1"
     mkdir -p "$bin"
@@ -458,6 +479,19 @@ EOF
     cat >"$bin/mise" <<'EOF'
 #!/usr/bin/env bash
 printf 'mise %s\n' "$*" >>"$FAKE_LOG"
+if [ "${1:-}" = install ] && [ "${FAKE_MISE_ACTIONLINT_SHIM:-0}" = 1 ]; then
+    shim_dir="$HOME/.local/share/mise/shims"
+    mkdir -p "$shim_dir"
+    cat >"$shim_dir/actionlint" <<'SHIM'
+#!/usr/bin/env bash
+if [ "${1:-}" = --version ]; then
+    printf 'actionlint 1.7.7\n'
+    exit 0
+fi
+printf 'fake actionlint\n'
+SHIM
+    chmod +x "$shim_dir/actionlint"
+fi
 if [ "${1:-}" = ls ] && [ "${2:-}" = --missing ]; then
     case "${FAKE_MISE_LS:-clean}" in
         fail) exit 1 ;;
@@ -761,9 +795,10 @@ test_mise_cleanup_uninstalls_requested_actionlint_formula() {
     mkdir -p "$home"
     : >"$manifest"
     printf 'actionlint\n' >"$formulae_file"
+    activate_fake_mise_config "$home" "$repo"
     write_fake_bin "$bin"
 
-    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE_FILE="$formulae_file" FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    out="$(FAKE_LOG="$log" FAKE_MISE_ACTIONLINT_SHIM=1 FAKE_BREW_FORMULAE_FILE="$formulae_file" FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only mise)"
     grep -F -q 'mise trust' "$log" || fail_test 'mise was not trusted before Homebrew cleanup'
     grep -F -q 'mise install' "$log" || fail_test 'mise install did not run before Homebrew cleanup'
@@ -781,6 +816,37 @@ test_mise_cleanup_uninstalls_requested_actionlint_formula() {
     ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'second run should not uninstall an already-removed formula'
     printf '%s\n' "$out" | grep -F -q 'ok unexpected Homebrew formula absent: actionlint' || \
         fail_test 'second run did not report actionlint cleanup as absent/no-op'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_unavailable_actionlint_replacement_does_not_uninstall() {
+    local tmp repo home manifest bin log out status formulae_file
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    formulae_file="$tmp/formulae.txt"
+    mkdir -p "$home"
+    : >"$manifest"
+    printf 'actionlint\n' >"$formulae_file"
+    write_fake_bin "$bin"
+
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_MISE_ACTIONLINT_SHIM=1 FAKE_BREW_FORMULAE_FILE="$formulae_file" FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "unavailable mise actionlint replacement should fail safely, got $status: $out"
+    grep -F -q 'mise install' "$log" || fail_test 'mise install should run before the replacement availability gate'
+    grep -F -q 'brew list --installed-on-request' "$log" || fail_test 'requested Homebrew formula guard was not checked before availability gate'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test 'Homebrew actionlint was uninstalled without a verified mise replacement'
+    grep -Fx -q 'actionlint' "$formulae_file" || fail_test 'Homebrew actionlint was removed from fake installed formula list'
+    printf '%s\n' "$out" | grep -F -q 'fail mise repo config inactive for actionlint:' || \
+        fail_test 'inactive repo mise config was not reported as a failure'
+    ! printf '%s\n' "$out" | grep -F -q 'change uninstalled unexpected Homebrew formula actionlint' || \
+        fail_test 'unavailable mise replacement was reported as an uninstall change'
     rm -rf "$tmp"
 }
 
@@ -937,7 +1003,9 @@ test_mise_cleanup_dry_run_reports_requested_actionlint_without_uninstall() {
     log="$tmp/fake.log"
     mkdir -p "$home"
     : >"$manifest"
+    activate_fake_mise_config "$home" "$repo"
     write_fake_bin "$bin"
+    write_fake_actionlint_shim "$home"
 
     out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only mise --dry-run)"
@@ -957,7 +1025,9 @@ test_mise_cleanup_check_reports_requested_actionlint_drift_without_uninstall() {
     log="$tmp/fake.log"
     mkdir -p "$home"
     : >"$manifest"
+    activate_fake_mise_config "$home" "$repo"
     write_fake_bin "$bin"
+    write_fake_actionlint_shim "$home"
 
     set +e
     out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
@@ -969,6 +1039,36 @@ test_mise_cleanup_check_reports_requested_actionlint_drift_without_uninstall() {
         'change Homebrew formula drift: actionlint is installed by Homebrew but actionlint is managed by mise' || \
         fail_test 'check-mode Homebrew formula drift was not reported'
     ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--check uninstalled a Homebrew formula'
+    rm -rf "$tmp"
+}
+
+test_mise_cleanup_check_reports_unavailable_replacement_without_cleanup_claim() {
+    local tmp repo home manifest bin log out status
+    tmp="$(mktemp -d)"
+    repo="$(setup_repo "$tmp")"
+    home="$tmp/home"
+    manifest="$tmp/empty-links.txt"
+    bin="$tmp/bin"
+    log="$tmp/fake.log"
+    mkdir -p "$home"
+    : >"$manifest"
+    write_fake_bin "$bin"
+
+    set +e
+    out="$(FAKE_LOG="$log" FAKE_BREW_FORMULAE=actionlint FAKE_BREW_REQUESTED=actionlint HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+        "$repo/install-mac" --only mise --check 2>&1)"
+    status=$?
+    set -e
+    [ "$status" -eq 1 ] || fail_test "unavailable mise replacement under --check should fail safely, got $status: $out"
+    printf '%s\n' "$out" | grep -F -q \
+        'change Homebrew formula drift: actionlint is installed by Homebrew, but mise-managed actionlint is unavailable; leaving formula untouched' || \
+        fail_test 'check-mode unavailable mise replacement drift was not reported safely'
+    ! printf '%s\n' "$out" | grep -F -q \
+        'Homebrew formula drift: actionlint is installed by Homebrew but actionlint is managed by mise' || \
+        fail_test 'check-mode unavailable mise replacement claimed cleanup-ready drift'
+    ! grep -F -q 'brew uninstall actionlint' "$log" || fail_test '--check unavailable replacement should not uninstall actionlint'
+    printf '%s\n' "$out" | grep -F -q 'fail mise repo config inactive for actionlint:' || \
+        fail_test '--check inactive repo mise config was not reported as a failure'
     rm -rf "$tmp"
 }
 
@@ -1272,12 +1372,14 @@ main() {
     test_brewfile_mise_lint_backend_prefixed_overlap
     test_brew_check_uses_no_upgrade_and_noop
     test_mise_cleanup_uninstalls_requested_actionlint_formula
+    test_mise_cleanup_unavailable_actionlint_replacement_does_not_uninstall
     test_mise_cleanup_dependency_only_actionlint_no_drift
     test_mise_cleanup_formula_probe_failure_marks_section_failed
     test_mise_cleanup_requested_probe_failure_marks_section_failed
     test_mise_cleanup_absent_actionlint_formula_noop
     test_mise_cleanup_dry_run_reports_requested_actionlint_without_uninstall
     test_mise_cleanup_check_reports_requested_actionlint_drift_without_uninstall
+    test_mise_cleanup_check_reports_unavailable_replacement_without_cleanup_claim
     test_mise_cleanup_keeps_brewfile_owned_actionlint_formula
     test_gh_hosts_history_recovery
     test_tmux_fish_agent_stack_and_drift

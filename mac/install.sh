@@ -710,6 +710,31 @@ mise_config_has_tool() {
     ' "$DOTFILES_DIR/mise/config.toml"
 }
 
+mise_tool_verified_for_homebrew_cleanup() {
+    local tool="$1" formula="$2" active_config repo_config active_resolved repo_resolved expected_shim resolved
+    active_config="$HOME/.config/mise/config.toml"
+    repo_config="$DOTFILES_DIR/mise/config.toml"
+    expected_shim="$HOME/.local/share/mise/shims/$tool"
+
+    if ! active_resolved="$(resolved_path "$active_config")" || ! repo_resolved="$(resolved_path "$repo_config")" || [ "$active_resolved" != "$repo_resolved" ]; then
+        fail "mise repo config inactive for $formula: $active_config is not linked to $repo_config; leaving formula untouched"
+        return 1
+    fi
+    add_mise_shims_to_path
+    if ! resolved="$(command -v "$tool" 2>/dev/null)"; then
+        fail "mise-managed replacement unavailable for $formula: $tool is not on PATH via mise shims; leaving formula untouched"
+        return 1
+    fi
+    if [ "$resolved" != "$expected_shim" ]; then
+        fail "mise-managed replacement unavailable for $formula: $tool resolves to $resolved instead of $expected_shim; leaving formula untouched"
+        return 1
+    fi
+    if ! "$expected_shim" --version >/dev/null 2>&1; then
+        fail "mise-managed replacement unusable for $formula: $expected_shim --version failed; leaving formula untouched"
+        return 1
+    fi
+}
+
 cleanup_mise_owned_homebrew_formula() {
     local tool="$1" formula="$2"
 
@@ -746,6 +771,12 @@ cleanup_mise_owned_homebrew_formula() {
                 return 1
                 ;;
         esac
+    fi
+    if ! mise_tool_verified_for_homebrew_cleanup "$tool" "$formula"; then
+        if $CHECK_MODE; then
+            change "Homebrew formula drift: $formula is installed by Homebrew, but mise-managed $tool is unavailable; leaving formula untouched"
+        fi
+        return 1
     fi
 
     if $CHECK_MODE; then
