@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Installs the Pi + Herdr multi-agent coordination stack.
+# Installs the generalized AI/coding-agent tooling stack.
 #
-# Re-run after pulling dotfiles changes to refresh profiles and wrappers.
+# Re-run after pulling dotfiles changes to refresh profiles, extensions, and wrappers.
 #
 # Env:
 #   SKIP_HERDR_SKILL=1          Skip Herdr skill installation and migration.
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$DIR/.." && pwd)"
 PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 AGENTS_DIR="$PI_AGENT_DIR/agents"
 LEGACY_PROFILE_DIR="$PI_AGENT_DIR/herdr-subagents/agents"
@@ -581,7 +581,7 @@ main() {
 
   cat <<EOF
 
-Agent stack installed.
+AI/coding-agent tools installed.
 
 Subagents extension (latest):
   $SUBAGENTS_SOURCE

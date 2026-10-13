@@ -76,9 +76,29 @@ cd ~/.dotfiles
 It detects whether it needs `sudo`, escalates only for apt, `/etc/shells` and
 `chsh`, backs up any config it replaces, and is safe to re-run after a
 `git pull`.
-Add `--fish-shell` to make fish your login shell, or `--dry-run` to preview.
+Add `--fish-shell` to make fish your login shell, `--ai-tools` to install the
+full AI/coding-agent tooling stack after Raspberry Pi setup, or `--dry-run` to
+preview.
 
 See [pi/README.md](pi/README.md) for the full step list and options.
+
+### Linux Installation
+
+For a non-Raspberry-Pi Linux machine, use the generalized Linux bootstrapper for
+Arch, Ubuntu, and Debian families:
+
+```bash
+git clone https://github.com/djensenius/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+./install-linux
+```
+
+It detects `/etc/os-release`, installs baseline packages with `apt-get` on
+Debian/Ubuntu-family systems or `pacman` on Arch-family systems, links common
+dotfiles, and installs the repo's `mise` tool manifest. Unsupported distro
+families fail before package-manager changes with a clear message. Add
+`--ai-tools` when this Linux machine should also get the AI/coding-agent tooling
+stack from [`ai-tools/`](ai-tools/).
 
 ### macOS Installation
 
@@ -94,8 +114,10 @@ The thin `install-mac` entry point runs `mac/install.sh`. It checks the machine,
 uses `mac/Brewfile` for curated Homebrew taps/formulae/fonts/terminal casks,
 links the repo-owned dotfiles from `mac/links.txt`, trusts and installs the
 `mise` tools, installs only missing Herdr plugins from `herdr/plugins.txt`, syncs
-TPM and Neovim plugins, and then runs `./install-agent-stack`. Personal GUI
-apps live in `mac/Brewfile.apps` and are installed only when you pass `--apps`.
+TPM and Neovim plugins, and then runs the AI/coding-agent tooling installer via
+the compatibility `./install-agent-stack` entry point (which forwards to
+`./ai-tools/install.sh`). Personal GUI apps live in `mac/Brewfile.apps` and are
+installed only when you pass `--apps`.
 The Brewfiles are curated from this laptop; `brew bundle dump` is useful for
 read-only drift discovery but raw dumps should not be committed.
 
@@ -166,26 +188,29 @@ plugin manifests:
 git pull
 ./install-pi                     # or ./install-pi --dry-run to preview
 
-# Pi/Herdr agent stack: rerun whenever pi/agent-stack changes
-./install-agent-stack
+# AI/coding-agent tools: rerun whenever ai-tools/ changes
+./ai-tools/install.sh              # ./install-agent-stack still forwards here
 ```
 
 On macOS, `./install-mac --check` is the safe post-pull drift detector. It
 validates expected links and install targets without writing; run the full
 installer when it reports drift or when a pulled change updates Homebrew, mise,
-TPM, Neovim, Herdr plugins, or the Pi/Herdr agent stack. On Raspberry Pi,
+TPM, Neovim, Herdr plugins, or the AI/coding-agent tooling. On Raspberry Pi,
 `./install-pi` is the supported post-pull refresh path and remains idempotent;
 it links repo configs, copies the Pi-specific mise manifest, and re-runs the
-package/plugin sync steps that plain symlinks cannot cover.
+package/plugin sync steps that plain symlinks cannot cover. Run
+`./install-pi --ai-tools` when that Raspberry Pi should also receive the full
+AI/coding-agent tooling stack.
 
-`./install-agent-stack` merges shared Pi config into `~/.pi/agent` instead of
-replacing the directory. Non-overlapping user state, such as extra local MCP
-servers or unrelated Pi settings, is preserved, while repository-owned defaults
-such as shared model/theme values, managed package sources, and the shared
-`playwright`/`context7` MCP server definitions are intentionally reapplied on
-each run. Re-run it after pulling changes under `pi/agent-stack/`; package
+`./ai-tools/install.sh` merges shared Pi coding-agent config into `~/.pi/agent`
+instead of replacing the directory. Non-overlapping user state, such as extra
+local MCP servers or unrelated Pi settings, is preserved, while repository-owned
+defaults such as shared model/theme values, managed package sources, and the
+shared `playwright`/`context7` MCP server definitions are intentionally reapplied
+on each run. Re-run it after pulling changes under `ai-tools/`; package
 refreshes such as Playwright browser downloads may still need the command called
-out by Pi or the MCP server. GitHub Codespaces remains a bootstrap environment:
+out by Pi or the MCP server. `./install-agent-stack` remains as a deprecated
+compatibility wrapper. GitHub Codespaces remains a bootstrap environment:
 `./install.sh` is the setup entry point, not a continuous post-pull repair
 service.
 
@@ -434,7 +459,8 @@ when the client attaches.
 Remote Herdr sessions need the setting on **both** machines. The remote server's
 config controls whether pane PTY graphics are parsed, while the local client's
 config controls whether Herdr emits graphics to the outer terminal. Run the
-normal installer on the remote host (`./install-pi` on Raspberry Pi/Linux or
+normal installer on the remote host (`./install-pi` on Raspberry Pi,
+`./install-linux` on supported Linux, or
 `./install-mac --only links,mise,herdr-plugins,agent-stack` on macOS) so
 `~/.config/herdr/config.toml` points at this repo's config there too. If images
 still do not render, run `~/.config/herdr/scripts/herdr-image-doctor.sh` locally
@@ -466,15 +492,16 @@ herdr integration status
 
 It writes `~/.copilot/hooks/herdr-agent-state.sh` (or `$COPILOT_HOME`) and adds
 a `SessionStart` entry to `~/.copilot/settings.json`. This is a one-time step;
-`./install-agent-stack` creates the config directory and installs the
-integration automatically when Copilot CLI is available. Undo with
+`./ai-tools/install.sh` creates the config directory and installs the integration
+automatically when Copilot CLI is available. Undo with
 `herdr integration uninstall copilot`.
 
 The hook is not a state authority — Copilot's `idle`/`working`/`blocked` state always comes from screen detection, whether or not it is installed.
 
-#### Pi + Herdr subagents
+#### AI/coding-agent tools
 
-The optional Pi agent stack uses
+The optional AI/coding-agent tooling in [`ai-tools/`](ai-tools/) uses Pi,
+Herdr, and
 [`pi-subagents`](https://github.com/nicobailon/pi-subagents) for delegation. A
 coordinator can delegate read-only investigation to `scout`, implementation to
 a `worker` (launched with `cwd` set to a persistent Git worktree the
@@ -485,6 +512,8 @@ runner and show up in the FleetView and `/subagents-fleet`. Inside Herdr, the
 parent pane reports active background work through Herdr's pane status:
 
 ```bash
+./ai-tools/install.sh
+# Compatibility wrapper, still supported but deprecated:
 ./install-agent-stack
 ```
 
@@ -492,7 +521,7 @@ The installer requires system Git 2.45.0 or newer for `--no-lazy-fetch`
 enforcement and checks it before making integration or extension changes.
 Upgrade Git with Homebrew (`brew install git`) on macOS or the operating
 system's package manager; Git is intentionally not managed by mise. The
-installer uses the mise-managed Node, Pi, and Herdr binaries, installs the
+AI tools installer uses the mise-managed Node, Pi, and Herdr binaries, installs the
 Copilot Herdr integration when Copilot is available, links the repository-owned
 `review_git` and status extensions into Pi's agent directory, links the shared
 Catppuccin footer config, links the
@@ -503,7 +532,7 @@ installer converts older copied extension/profile/footer files into symlinks;
 if a non-repo file already exists at one of those paths, it is moved aside to a
 `.backup` file before the repo link is installed.
 
-The stack also keeps a small shared Pi config under `pi/agent-stack/` and
+The stack also keeps a small shared Pi coding-agent config under `ai-tools/` and
 merges it into the user files instead of replacing them or symlinking them, so
 machine-local settings such as `lastChangelogVersion`, existing `packages`,
 local MCP servers, and other keys are preserved. Shared settings set the Pi
@@ -573,7 +602,7 @@ configuration remains in the `.migrated` backup for manual review.
 
 Built-in MCP exposes configured servers to Pi directly; run `/mcp` in Pi or
 `pi mcp list` from the shell to check server availability. The shared footer
-config (`pi/agent-stack/catppuccin-footer.json`) hides the `browser` status
+config (`ai-tools/catppuccin-footer.json`) hides the `browser` status
 item and drops the `git`, `gitDiff`, `lastTokens`, `cost` and `time` sections;
 Herdr's sidebar already shows each workspace's branch.
 Herdr's agent sidebar includes `state_text`, so while background subagents run
@@ -583,8 +612,8 @@ In Pi itself, the repository-owned `subagent-status.ts` extension adds a
 footer status item such as `⚙ 3 subagents` (or `⚠ 3 subagents` when one needs
 you) while background subagents run, so a coordinator shown as `idle` is
 visibly waiting on subagent work. It uses only pi-subagents' public events and
-event-bus RPC, and is tested by `pi/agent-stack/tests/subagent-status.test.ts`
-(`node pi/agent-stack/tests/subagent-status.test.ts`).
+event-bus RPC, and is tested by `ai-tools/tests/subagent-status.test.ts`
+(`node ai-tools/tests/subagent-status.test.ts`).
 
 Playwright needs its own Firefox build. Because the server runs as
 `@latest`, a Playwright update can require a newer build, so re-run
@@ -593,7 +622,7 @@ outdated browser. To use Edge instead, change the Playwright
 server args from `--browser firefox` to `--browser msedge`. GitHub MCP is not
 configured here because `gh` already covers that workflow.
 
-The agent-stack installer does not create the Herdr config links; set up Herdr
+The AI tools installer does not create the Herdr config links; set up Herdr
 first (for example with `./install-mac --only links`, or see *Special setup for
 Herdr*) so pane helpers and plugin configuration are in place.
 
@@ -620,7 +649,7 @@ an existing pane). The installer removes that package and its old profiles from
 To enable the coordinator workflow in a repository, copy or merge the template:
 
 ```bash
-cp ~/.dotfiles/pi/agent-stack/templates/AGENTS.md ./AGENTS.md
+cp ~/.dotfiles/ai-tools/templates/AGENTS.md ./AGENTS.md
 ```
 
 The template is deliberately opt-in because it requires a scout before
@@ -635,7 +664,7 @@ backlog config set autoCommit true
 backlog config set checkActiveBranches true
 backlog agents --update-instructions
 mkdir -p .github/instructions
-cp ~/.dotfiles/pi/agent-stack/templates/backlog.instructions.md .github/instructions/
+cp ~/.dotfiles/ai-tools/templates/backlog.instructions.md .github/instructions/
 ```
 
 Also include this two-line section in the repository's

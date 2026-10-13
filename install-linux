@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Entry point: ./install-linux
+# Provisions a supported Linux workstation with baseline packages, dotfile links,
+# mise, and optionally the AI/coding-agent tooling stack. See README.md.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/linux/install.sh" "$@"

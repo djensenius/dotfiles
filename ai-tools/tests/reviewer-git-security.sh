@@ -2,9 +2,9 @@
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$DIR/../../.." && pwd)"
+REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 INSTALLER="$DIR/../install.sh"
-EXTENSION="$REPO_ROOT/pi/agent-stack/extensions/reviewer-git.ts"
+EXTENSION="$REPO_ROOT/ai-tools/extensions/reviewer-git.ts"
 TEST_EXTENSION="$DIR/reviewer-git-security.ts"
 GIT_BIN="$(command -v git)"
 PI_BIN="${PI_BIN:-$(mise -C "$REPO_ROOT" which pi)}"

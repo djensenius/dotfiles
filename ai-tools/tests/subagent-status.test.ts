@@ -1,5 +1,5 @@
 // Unit test for extensions/subagent-status.ts using a fake Pi event bus.
-// Run: node pi/agent-stack/tests/subagent-status.test.ts
+// Run: node ai-tools/tests/subagent-status.test.ts
 import subagentStatus, { activeSubagentCount, fleetActivity, formatSubagentStatus, STATUS_KEY } from "../extensions/subagent-status.ts";
 
 type Handler = (data: unknown) => void;

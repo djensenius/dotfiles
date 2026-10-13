@@ -1,6 +1,6 @@
 # Agent stack plan
 
-- [x] Preserve and complete the existing pinned Pi + Herdr agent-stack feature.
+- [x] Preserve and complete the existing pinned AI/coding-agent tooling feature.
 - [x] Apply the reviewed installer, reviewer, xbuild, and documentation fixes.
 - [x] Complete the required syntax, lint, formatting, and mocked behavior checks.
 - [x] Open pull request #348.
@@ -13,6 +13,6 @@
 - [x] Address Copilot review comment 4118771209 by routing installer runtimes through the project mise environment with mocked idempotency coverage.
 - [x] Address the Copilot fail-fast review for macOS `lockf` and Pi package inspection failures.
 - [x] Preserve trailing whitespace in discovered repository paths.
-- [x] Reject invalid Pi package state before mutating agent-stack integrations or files.
+- [x] Reject invalid Pi package state before mutating AI/coding-agent integrations or files.
 - [x] Push the follow-up commits and complete Copilot review.
 - [x] Confirm CI passes for the follow-up commits.

@@ -1,4 +1,4 @@
-# Repository-managed Pi packages installed by ./install-agent-stack.
+# Repository-managed Pi coding-agent packages installed by ./ai-tools/install.sh.
 # Keep unpinned so Pi can resolve the latest compatible package.
 npm:pi-catppuccin-footer
 npm:@plannotator/pi-extension
