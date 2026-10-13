@@ -514,6 +514,19 @@ if [ "${1:-}" = bundle ]; then
     [ "${HOMEBREW_NO_INSTALL_CLEANUP:-}" = 1 ] || { echo 'missing HOMEBREW_NO_INSTALL_CLEANUP' >&2; exit 9; }
     [ "${HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK:-}" = 1 ] || { echo 'missing HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK' >&2; exit 9; }
 fi
+if [ "${1:-}" = trust ] && [ "${2:-}" = --formula ] && [ "${3:-}" = --json ]; then
+    [ "${4:-}" = v1 ] || { echo 'brew trust json missing v1' >&2; exit 9; }
+    if [ "${FAKE_BREW_TRUSTED:-trusted}" = trusted ]; then
+        printf '[\n  "arl/arl/gitmux"\n]\n'
+    else
+        printf '[]\n'
+    fi
+    exit 0
+fi
+if [ "${1:-}" = trust ] && [ "${2:-}" = --formula ]; then
+    [ "${3:-}" = arl/arl/gitmux ] || { echo "unexpected trusted formula: ${3:-}" >&2; exit 9; }
+    exit 0
+fi
 if [ "${1:-}" = bundle ] && [ "${2:-}" = check ]; then
     saw_no_upgrade=0
     for arg in "$@"; do
@@ -758,7 +771,7 @@ EOF
 }
 
 test_brew_check_uses_no_upgrade_and_noop() {
-    local tmp repo home manifest bin log out
+    local tmp repo home manifest bin log out trust_line bundle_line
     tmp="$(mktemp -d)"
     repo="$(setup_repo "$tmp")"
     home="$tmp/home"
@@ -769,14 +782,20 @@ test_brew_check_uses_no_upgrade_and_noop() {
     : >"$manifest"
     write_fake_bin "$bin"
 
-    FAKE_LOG="$log" FAKE_BREW_CHECK=missing HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    FAKE_LOG="$log" FAKE_BREW_CHECK=missing FAKE_BREW_TRUSTED=missing HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only brew >/dev/null
+    grep -F -q 'brew trust --formula arl/arl/gitmux' "$log" || fail_test 'brew section did not trust gitmux before bundle'
     grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'brew check did not use --no-upgrade before install'
     grep -F -q 'brew bundle install' "$log" || fail_test 'brew install was not run when check reported missing items'
+    trust_line="$(grep -nF 'brew trust --formula arl/arl/gitmux' "$log" | head -n1 | cut -d: -f1)"
+    bundle_line="$(grep -nF 'brew bundle check --no-upgrade' "$log" | head -n1 | cut -d: -f1)"
+    [ "$trust_line" -lt "$bundle_line" ] || fail_test 'brew trust did not run before brew bundle check'
 
     : >"$log"
-    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
+    out="$(FAKE_LOG="$log" FAKE_BREW_CHECK=satisfied FAKE_BREW_TRUSTED=trusted HOME="$home" PATH="$bin:$PATH" INSTALL_MAC_LINKS_FILE="$manifest" \
         "$repo/install-mac" --only brew --apps)"
+    grep -F -q 'brew trust --formula --json v1' "$log" || fail_test 'satisfied brew run did not check gitmux trust state'
+    ! grep -F -q 'brew trust --formula arl/arl/gitmux' "$log" || fail_test 'already-trusted gitmux formula was trusted again'
     grep -F -q 'brew bundle check --no-upgrade' "$log" || fail_test 'satisfied brew check did not use --no-upgrade'
     ! grep -F -q 'brew bundle install' "$log" || fail_test 'satisfied brew bundle should be a no-op without install'
     ! printf '%s\n' "$out" | grep -q '^change installed missing Homebrew items' || fail_test "satisfied brew run reported install change: $out"

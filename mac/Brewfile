@@ -6,7 +6,6 @@
 tap "arl/arl"
 tap "djensenius/tap"
 tap "dlvhdr/formulae"
-tap "homebrew/services"
 tap "influxdata/tap"
 tap "morantron/tmux-fingers"
 tap "timescam/tap"
