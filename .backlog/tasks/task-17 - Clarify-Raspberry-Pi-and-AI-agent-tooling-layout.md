@@ -4,6 +4,7 @@ title: Clarify Raspberry Pi and AI agent tooling layout
 status: To Do
 assignee: []
 created_date: '2026-10-13 19:24'
+updated_date: '2026-10-13 19:25'
 labels: []
 dependencies: []
 ordinal: 15000
@@ -23,3 +24,9 @@ The repository currently stores both Raspberry Pi device provisioning and the Pi
 - [ ] #4 README and installer references are updated consistently.
 - [ ] #5 Relevant installer/link/test checks pass or any limitations are reported with evidence.
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Owner decision: use `ai-tools/` as the generalized root for AI/coding-agent tooling when cleaning up the current Pi/Herdr agent-stack layout.
+<!-- SECTION:NOTES:END -->
