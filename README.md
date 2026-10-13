@@ -140,9 +140,10 @@ The macOS bootstrap never installs Homebrew for you, upgrades packages, broadly
 uninstalls packages or Herdr plugins, applies macOS defaults, creates secrets or
 SSH/GPG keys, logs in to services such as `gh`, 1Password or the App Store, or
 loads launchd agents. The narrow uninstall exception is after `mise` succeeds:
-`actionlint` is now owned by `mise/config.toml`, so a Homebrew `actionlint`
-formula is treated as cleanup drift only when Homebrew reports it was installed
-on request and it is not curated in `mac/Brewfile` or `mac/Brewfile.apps`. That
+`jactionlint` (the maintained GitHub Actions linter fork) is now owned by
+`mise/config.toml`, so a Homebrew `actionlint` formula is treated as cleanup
+drift only when Homebrew reports it was installed on request and it is not
+curated in `mac/Brewfile` or `mac/Brewfile.apps`. That
 requested-formula drift is reported under `--check`, printed as a would-uninstall
 under `--dry-run`, and uninstalled during a normal run. Brewfile-curated formulae
 and Homebrew dependency formulae are kept. Anything it replaces (links, files, an

@@ -27,7 +27,7 @@ LINKS_FILE="${INSTALL_MAC_LINKS_FILE:-$MAC_DIR/links.txt}"
 # The list is intentionally explicit so mise/config.toml changes cannot make this
 # installer uninstall newly named Homebrew formulae without a code review.
 MISE_OWNED_HOMEBREW_FORMULAE=(
-    actionlint:actionlint
+    jactionlint:actionlint
 )
 
 # common.sh is shellchecked on its own; CI runs shellcheck without -x.
