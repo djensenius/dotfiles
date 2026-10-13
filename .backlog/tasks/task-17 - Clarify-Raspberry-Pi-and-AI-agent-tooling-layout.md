@@ -1,7 +1,7 @@
 ---
 id: TASK-17
 title: Clarify Raspberry Pi and AI agent tooling layout
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 19:24'
