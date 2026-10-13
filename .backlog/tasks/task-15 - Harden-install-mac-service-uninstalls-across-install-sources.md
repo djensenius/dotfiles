@@ -1,11 +1,11 @@
 ---
 id: TASK-15
 title: Harden install-mac service uninstalls across install sources
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 16:00'
-updated_date: '2026-10-13 16:19'
+updated_date: '2026-10-13 16:22'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -51,10 +51,12 @@ Reviewer blockers addressed: (1) Brewfile-owned Homebrew services/formulae are n
 Validation passed after the code commit: bash -n mac/install.sh mac/tests/install-mac-test.sh -> status 0; git diff --check -> status 0; bash mac/tests/install-mac-test.sh -> ok install-mac tests passed, status 0; shellcheck mac/install.sh mac/tests/install-mac-test.sh -> status 0.
 
 Second fix round started: superseding the broad mise-owned formula cleanup. New scope is actionlint-only migration cleanup, guarded by Brewfile membership and Homebrew installed-on-request so dependency formulae do not count as drift.
+
+Second fix validation passed with corrected actionlint-only cleanup: bash -n mac/install.sh mac/tests/install-mac-test.sh (status 0, no output); git diff --check (status 0, no output); bash mac/tests/install-mac-test.sh (status 0, ok install-mac tests passed); shellcheck mac/install.sh mac/tests/install-mac-test.sh (status 0, no output); TOML lint via existing tomllint over **/*.toml (status 0, no output). Supersedes earlier service-stop notes: install-mac does not stop Homebrew services, and it no longer performs broad mise-owned formula cleanup for runtimes/dependencies.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Replaced the blocked Homebrew service-stop implementation with conservative mise-owned Homebrew formula cleanup. The corrected install-mac flow does not inspect or stop Brewfile services; after the mise section verifies or installs tools, it uninstalls only explicit mapped formulae for tools still present in mise/config.toml and only when those formulae are not curated in the Brewfiles. Check mode reports that formula drift without mutation, dry-run prints would-uninstall, absent formulae/brew are no-ops, and uninstall failures are explicit failures. README and install-mac tests were updated to cover the corrected policy. Verified with bash -n, git diff --check, bash mac/tests/install-mac-test.sh, and shellcheck.
+Second fix round narrowed alternate-source cleanup to actionlint only, added the Homebrew installed-on-request guard before check/dry-run/uninstall, preserved Brewfile and dependency-only formulae, added actionlint to mise/config.toml, and updated README/tests for the corrected policy. Verified with bash -n, git diff --check, install-mac tests, shellcheck, and TOML lint.
 <!-- SECTION:FINAL_SUMMARY:END -->
