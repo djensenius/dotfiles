@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 19:20'
-updated_date: '2026-10-13 19:24'
+updated_date: '2026-10-13 19:31'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -27,7 +27,7 @@ The macOS bootstrap currently fails during Homebrew bundle because `homebrew/ser
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Remove the deprecated homebrew/services tap from mac/Brewfile. 2. Add a small Homebrew formula trust helper and call it for arl/arl/gitmux before any brew bundle check/install in the brew section, keeping --check/--dry-run read-only. 3. Extend install-mac tests with fake brew trust coverage and run the requested checks.
+1. Remove the deprecated homebrew/services tap from mac/Brewfile. 2. Declare arl/arl/gitmux trust directly in mac/Brewfile with Homebrew Brewfile metadata instead of a shell trust helper. 3. Keep brew bundle behavior unchanged and cover the Brewfile trust declaration/no deprecated services tap in install-mac tests.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -37,10 +37,12 @@ Implemented Brewfile trust fix and verified with:
 - bash mac/tests/install-mac-test.sh -> ok install-mac tests passed
 - bash mac/tests/brewfile-mise-lint.sh -> ok Brewfiles do not overlap mise-owned tools
 - shellcheck mac/install.sh mac/tests/install-mac-test.sh mac/tests/brewfile-mise-lint.sh -> no diagnostics (ShellCheck 0.11.0)
+
+Reviewer fix round: rebuilt task-16-brewfile-trust on current origin/main without the unrelated TASK-17 backlog commits; changed mac/Brewfile to declare brew "arl/arl/gitmux", trusted: true; removed the branch-specific shell trust helper from mac/install.sh; and updated mac/tests/install-mac-test.sh to assert the Brewfile-native trust declaration, absence of tap "homebrew/services", and no shell brew trust calls during brew section tests. Validation passed: bash mac/tests/install-mac-test.sh; bash mac/tests/brewfile-mise-lint.sh; shellcheck mac/install.sh mac/tests/install-mac-test.sh mac/tests/brewfile-mise-lint.sh.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Removed the deprecated homebrew/services tap, added an idempotent arl/arl/gitmux Homebrew formula trust check before brew bundle in mac/install.sh, and covered the trust ordering/no-op behavior in mac/tests/install-mac-test.sh. Verified with install-mac tests, Brewfile/mise lint, and shellcheck.
+Removed the deprecated homebrew/services tap and now declares arl/arl/gitmux trust in mac/Brewfile with Homebrew Brewfile metadata. The macOS installer no longer carries a shell brew trust helper, and install-mac tests cover the Brewfile-native trust declaration plus no deprecated services tap. Verified with bash mac/tests/install-mac-test.sh, bash mac/tests/brewfile-mise-lint.sh, and shellcheck mac/install.sh mac/tests/install-mac-test.sh mac/tests/brewfile-mise-lint.sh.
 <!-- SECTION:FINAL_SUMMARY:END -->
