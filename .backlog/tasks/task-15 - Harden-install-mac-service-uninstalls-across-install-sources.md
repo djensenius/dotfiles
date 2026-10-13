@@ -1,9 +1,11 @@
 ---
 id: TASK-15
 title: Harden install-mac service uninstalls across install sources
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-13 16:00'
+updated_date: '2026-10-13 16:02'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -21,3 +23,9 @@ The macOS installer currently assumes services were installed through the expect
 - [ ] #2 The cleanup remains idempotent when a service/source is absent
 - [ ] #3 Relevant validation is run for the changed script and documented in the task notes
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Inspect mac/install.sh service/package reconciliation flow and existing mac/tests/install-mac-test.sh harness.\n2. Add a narrow, data-driven cleanup helper for supported services that can detect/remove alternate Homebrew installs while remaining no-op when absent.\n3. Wire cleanup into the appropriate install-mac section without broad package cleanup.\n4. Add focused tests for alternate-source removal and absent-source idempotence, then run the targeted shell validations.
+<!-- SECTION:PLAN:END -->
