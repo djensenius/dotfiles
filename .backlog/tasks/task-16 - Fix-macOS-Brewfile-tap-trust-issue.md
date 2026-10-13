@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-13 19:20'
-updated_date: '2026-10-13 19:31'
+updated_date: '2026-10-13 19:33'
 labels: []
 dependencies: []
 ordinal: 14000
@@ -33,12 +33,12 @@ The macOS bootstrap currently fails during Homebrew bundle because `homebrew/ser
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Implemented Brewfile trust fix and verified with:
+Reviewer fix round rebuilt task-16-brewfile-trust on current origin/main without the unrelated TASK-17 backlog commits. The final branch removes the deprecated tap "homebrew/services" from mac/Brewfile, declares brew "arl/arl/gitmux", trusted: true with Homebrew Brewfile metadata, and leaves mac/install.sh without a shell brew trust helper. mac/tests/install-mac-test.sh now covers the Brewfile-native gitmux trust declaration, absence of the deprecated services tap, and that the brew section does not shell out to brew trust.
+
+Validation passed after the fix-round commit:
 - bash mac/tests/install-mac-test.sh -> ok install-mac tests passed
 - bash mac/tests/brewfile-mise-lint.sh -> ok Brewfiles do not overlap mise-owned tools
-- shellcheck mac/install.sh mac/tests/install-mac-test.sh mac/tests/brewfile-mise-lint.sh -> no diagnostics (ShellCheck 0.11.0)
-
-Reviewer fix round: rebuilt task-16-brewfile-trust on current origin/main without the unrelated TASK-17 backlog commits; changed mac/Brewfile to declare brew "arl/arl/gitmux", trusted: true; removed the branch-specific shell trust helper from mac/install.sh; and updated mac/tests/install-mac-test.sh to assert the Brewfile-native trust declaration, absence of tap "homebrew/services", and no shell brew trust calls during brew section tests. Validation passed: bash mac/tests/install-mac-test.sh; bash mac/tests/brewfile-mise-lint.sh; shellcheck mac/install.sh mac/tests/install-mac-test.sh mac/tests/brewfile-mise-lint.sh.
+- shellcheck mac/install.sh mac/tests/install-mac-test.sh mac/tests/brewfile-mise-lint.sh -> no diagnostics
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
