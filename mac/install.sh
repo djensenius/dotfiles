@@ -23,6 +23,12 @@ WARNINGS=0
 BACKUP_DIR=""
 HERDR_REPAIR_DEFERRED=false
 LINKS_FILE="${INSTALL_MAC_LINKS_FILE:-$MAC_DIR/links.txt}"
+# Manual source reconciliation: each entry is "mise-tool:homebrew-formula".
+# The list is intentionally explicit so mise/config.toml changes cannot make this
+# installer uninstall newly named Homebrew formulae without a code review.
+MISE_OWNED_HOMEBREW_FORMULAE=(
+    actionlint:actionlint
+)
 
 # common.sh is shellchecked on its own; CI runs shellcheck without -x.
 # shellcheck source=mac/lib/common.sh disable=SC1091
@@ -647,15 +653,176 @@ brew_bundle() {
     fi
 }
 
+homebrew_formula_installed() {
+    local formula="$1" installed_formulae
+    if ! installed_formulae="$(brew_bundle_env list --formula 2>/dev/null)"; then
+        fail "Homebrew installed-formula probe failed for $formula; leaving formula untouched"
+        return 2
+    fi
+    grep -Fx -- "$formula" <<<"$installed_formulae" >/dev/null
+}
+
+homebrew_formula_installed_on_request() {
+    local formula="$1" requested_formulae
+    if ! requested_formulae="$(brew_bundle_env list --installed-on-request 2>/dev/null)"; then
+        fail "Homebrew installed-on-request probe failed for $formula; leaving formula untouched"
+        return 2
+    fi
+    grep -Fx -- "$formula" <<<"$requested_formulae" >/dev/null
+}
+
+homebrew_cleanup_env() {
+    HOMEBREW_NO_AUTO_UPDATE=1 \
+    HOMEBREW_NO_INSTALL_CLEANUP=1 \
+        brew "$@"
+}
+
+brewfile_brew_formulae() {
+    awk '
+        /^[[:space:]]*brew[[:space:]]+"/ {
+            line=$0
+            sub(/^[[:space:]]*brew[[:space:]]+"/, "", line)
+            sub(/".*/, "", line)
+            print line
+            n=split(line, parts, "/")
+            print parts[n]
+        }
+    ' "$MAC_DIR/Brewfile" "$MAC_DIR/Brewfile.apps" 2>/dev/null | sort -u
+}
+
+homebrew_formula_curated() {
+    local formula="$1"
+    brewfile_brew_formulae | grep -Fx -- "$formula" >/dev/null
+}
+
+mise_config_has_tool() {
+    local tool="$1"
+    awk -v wanted="$tool" '
+        /^\[tools\]/ { in_tools=1; next }
+        /^\[/ { in_tools=0 }
+        in_tools && /^[[:space:]]*[^#[:space:]][^=]*=/ {
+            key=$0
+            sub(/=.*/, "", key)
+            gsub(/^[[:space:]\"]+|[[:space:]\"]+$/, "", key)
+            if (key == wanted) found=1
+        }
+        END { exit found ? 0 : 1 }
+    ' "$DOTFILES_DIR/mise/config.toml"
+}
+
+mise_tool_verified_for_homebrew_cleanup() {
+    local tool="$1" formula="$2" active_config repo_config active_resolved repo_resolved expected_shim resolved
+    active_config="$HOME/.config/mise/config.toml"
+    repo_config="$DOTFILES_DIR/mise/config.toml"
+    expected_shim="$HOME/.local/share/mise/shims/$tool"
+
+    if ! active_resolved="$(resolved_path "$active_config")" || ! repo_resolved="$(resolved_path "$repo_config")" || [ "$active_resolved" != "$repo_resolved" ]; then
+        fail "mise repo config inactive for $formula: $active_config is not linked to $repo_config; leaving formula untouched"
+        return 1
+    fi
+    add_mise_shims_to_path
+    if ! resolved="$(command -v "$tool" 2>/dev/null)"; then
+        fail "mise-managed replacement unavailable for $formula: $tool is not on PATH via mise shims; leaving formula untouched"
+        return 1
+    fi
+    if [ "$resolved" != "$expected_shim" ]; then
+        fail "mise-managed replacement unavailable for $formula: $tool resolves to $resolved instead of $expected_shim; leaving formula untouched"
+        return 1
+    fi
+    if ! "$expected_shim" --version >/dev/null 2>&1; then
+        fail "mise-managed replacement unusable for $formula: $expected_shim --version failed; leaving formula untouched"
+        return 1
+    fi
+}
+
+cleanup_mise_owned_homebrew_formula() {
+    local tool="$1" formula="$2"
+
+    if ! mise_config_has_tool "$tool"; then
+        ok "mise-owned Homebrew cleanup candidate inactive: $formula (mise tool $tool not configured)"
+        return 0
+    fi
+    if homebrew_formula_curated "$formula"; then
+        ok "Homebrew formula curated in Brewfile; keeping $formula"
+        return 0
+    fi
+    if homebrew_formula_installed "$formula"; then
+        :
+    else
+        case "$?" in
+            1)
+                ok "unexpected Homebrew formula absent: $formula"
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    fi
+    if homebrew_formula_installed_on_request "$formula"; then
+        :
+    else
+        case "$?" in
+            1)
+                ok "unexpected Homebrew formula is dependency-only; keeping $formula"
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
+    fi
+    if $DRY_RUN; then
+        change "would uninstall Homebrew formula $formula after a successful mise install verifies $tool (mise manages $tool)"
+        return 0
+    fi
+
+    if ! mise_tool_verified_for_homebrew_cleanup "$tool" "$formula"; then
+        if $CHECK_MODE; then
+            change "Homebrew formula drift: $formula is installed by Homebrew, but mise-managed $tool is unavailable; leaving formula untouched"
+        fi
+        return 1
+    fi
+
+    if $CHECK_MODE; then
+        change "Homebrew formula drift: $formula is installed by Homebrew but $tool is managed by mise"
+        return 0
+    fi
+
+    if homebrew_cleanup_env uninstall "$formula"; then
+        change "uninstalled unexpected Homebrew formula $formula (mise manages $tool)"
+    else
+        fail "failed to uninstall unexpected Homebrew formula $formula (mise manages $tool)"
+        return 1
+    fi
+}
+
+cleanup_mise_owned_homebrew_formulae() {
+    local entry tool formula status=0
+    if ! have brew; then
+        ok "Homebrew unavailable; skipping mise-owned Homebrew formula cleanup"
+        return 0
+    fi
+
+    for entry in "${MISE_OWNED_HOMEBREW_FORMULAE[@]}"; do
+        tool="${entry%%:*}"
+        formula="${entry#*:}"
+        cleanup_mise_owned_homebrew_formula "$tool" "$formula" || status=1
+    done
+    return "$status"
+}
+
 install_brew() {
+    local status=0
     section "brew"
     have brew || { fail "brew not found on PATH"; return 1; }
-    brew_bundle "$MAC_DIR/Brewfile" "mac/Brewfile"
+    brew_bundle "$MAC_DIR/Brewfile" "mac/Brewfile" || status=1
     if $INSTALL_APPS; then
-        brew_bundle "$MAC_DIR/Brewfile.apps" "mac/Brewfile.apps"
+        brew_bundle "$MAC_DIR/Brewfile.apps" "mac/Brewfile.apps" || status=1
     else
         ok "app casks skipped (pass --apps to include mac/Brewfile.apps)"
     fi
+    return "$status"
 }
 
 brewfile_items() {
@@ -719,12 +886,14 @@ add_mise_shims_to_path() {
 }
 
 install_mise_tools() {
+    local status=0
     section "mise"
     have mise || { fail "mise not found on PATH after Homebrew section"; return 1; }
     if $DRY_RUN; then
         change "would run mise trust $DOTFILES_DIR/mise/config.toml"
         change "would run mise install -C $HOME"
-        return 0
+        cleanup_mise_owned_homebrew_formulae || status=1
+        return "$status"
     fi
     if $CHECK_MODE; then
         local missing
@@ -739,7 +908,8 @@ install_mise_tools() {
             fail "mise missing-tool probe failed (is mise/config.toml trusted?)"
             return 1
         fi
-        return 0
+        cleanup_mise_owned_homebrew_formulae || status=1
+        return "$status"
     fi
     if mise trust "$DOTFILES_DIR/mise/config.toml" && mise install -C "$HOME"; then
         add_mise_shims_to_path
@@ -748,6 +918,8 @@ install_mise_tools() {
         fail "mise install failed"
         return 1
     fi
+    cleanup_mise_owned_homebrew_formulae || status=1
+    return "$status"
 }
 
 herdr_plugin_id() {
