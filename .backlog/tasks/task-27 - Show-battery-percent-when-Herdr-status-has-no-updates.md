@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 14:47'
-updated_date: '2026-10-15 15:04'
+updated_date: '2026-10-15 15:05'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -48,5 +48,5 @@ Copilot PR #408 resolution: changed count-present Herdr tab-bar rendering to cal
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Implemented Herdr tab-bar battery selection in 31b304449cc766bd98ab014fee8f26cde100ecce: cached update counts are gathered first, count-present status uses battery_hearts --threshold 0 for compact hearts, and no-count status uses --threshold 1 to include the percentage. Updated the Herdr CLI cache/render test to cover both render paths and to fail if render_tab_bar invokes package checker commands. Verified with battery_hearts threshold flag checks, bash -n, shellcheck, git diff --check, and bash herdr/tests/herdr-cli-update-test.sh ("Herdr CLI cache snapshot tests passed").
+Implemented Herdr tab-bar battery selection in 31b304449cc766bd98ab014fee8f26cde100ecce and fixed the Copilot PR #408 inclusive-threshold issue in 6c07a2826cf58e5de3db88046a48fe74322a6461: cached update counts are gathered first, count-present status uses battery_hearts --threshold -1 for compact hearts-only output even at 0% charge, and no-count status uses --threshold 1 to include the percentage. Updated the Herdr CLI cache/render test to cover no-count percent output, count-present hearts-only output, zero-charge threshold 0 boundary behavior, and package-checker non-invocation. Verified with bash -n, shellcheck, git diff --check, and bash herdr/tests/herdr-cli-update-test.sh ("Herdr CLI cache snapshot tests passed").
 <!-- SECTION:FINAL_SUMMARY:END -->
