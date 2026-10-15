@@ -131,8 +131,11 @@ case "$4" in
     1)
         printf '80%% ♥♥♡♡♡   \n'
         ;;
+    -1)
+        printf '♡♡♡♡♡   \n'
+        ;;
     0)
-        printf '♥♥♡♡♡   \n'
+        printf '0%% ♡♡♡♡♡   \n'
         ;;
     *)
         printf 'unexpected threshold: %s\n' "$4" >&2
@@ -162,7 +165,7 @@ no_update_output=$(render_tab_bar)
 printf '1\n' >"$OUTDATED_CACHE/pi.count"
 printf '2\n' >"$OUTDATED_CACHE/herdr.count"
 status_output=$(render_tab_bar)
-[ "$status_output" = '♥♥♡♡♡  π 1  H 2' ]
+[ "$status_output" = '♡♡♡♡♡  π 1  H 2' ]
 [ ! -e "$checker_invoked_marker" ]
 rm -f "$OUTDATED_CACHE/pi.count" "$OUTDATED_CACHE/herdr.count"
 PATH=$old_path

@@ -147,7 +147,7 @@ render_tab_bar() {
     done
 
     if [ -n "$updates" ]; then
-        battery=$(battery_status 0)
+        battery=$(battery_status -1)
     else
         battery=$(battery_status 1)
     fi
