@@ -1,10 +1,11 @@
 ---
 id: TASK-22
 title: Review recent Pi and Herdr update changes
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-15 13:50'
-updated_date: '2026-10-15 13:51'
+updated_date: '2026-10-15 13:53'
 labels: []
 dependencies: []
 ordinal: 20000
