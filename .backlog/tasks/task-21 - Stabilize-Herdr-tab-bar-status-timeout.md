@@ -1,9 +1,11 @@
 ---
 id: TASK-21
 title: Stabilize Herdr tab bar status timeout
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@pi-worker'
 created_date: '2026-10-15 13:46'
+updated_date: '2026-10-15 13:46'
 labels: []
 dependencies: []
 ordinal: 19000
