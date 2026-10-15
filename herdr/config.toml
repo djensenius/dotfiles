@@ -50,7 +50,7 @@ hide_tab_bar_when_single_tab = false
 # dedicated status workspace.
 tab_bar_right = [
   { type = "zoom" },
-  { type = "command", command = "~/.config/herdr/scripts/herdr-status-report.sh --tab-bar", interval_seconds = 5, timeout_seconds = 2 },
+  { type = "command", command = "~/.config/herdr/scripts/herdr-status-report.sh --tab-bar", interval_seconds = 5, timeout_seconds = 5 },
 ]
 tab_bar_right_separator = " · "
 
