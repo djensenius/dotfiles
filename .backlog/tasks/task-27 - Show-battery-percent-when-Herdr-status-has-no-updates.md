@@ -1,7 +1,7 @@
 ---
 id: TASK-27
 title: Show battery percent when Herdr status has no updates
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 14:47'
