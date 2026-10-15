@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 13:50'
-updated_date: '2026-10-15 13:55'
+updated_date: '2026-10-15 13:58'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -39,6 +39,8 @@ Local status evidence: `pi --version` returned `1.2.0`; `herdr --version` return
 Scout artifact evidence: Herdr plugin refresh in `herdr/scripts/herdr-cli-update.sh` still uses `herdr plugin install <plugin> --yes`; README already mentions `herdr update --handoff`; Pi 1.2.0 follow-up candidates are missing `$schema` annotations in `ai-tools/settings.json`, `ai-tools/mcp.json`, and `ai-tools/catppuccin-footer.json`, plus lifecycle listener compatibility for `pi.on("agent_start", ...)` in `ai-tools/extensions/subagent-status.ts`.
 
 Created follow-up tasks: TASK-23 `Use Herdr plugin update in the plugin refresh flow`; TASK-24 `Add Pi 1.2 schema annotations to AI tool JSON configs`; TASK-25 `Audit Pi 1.2 extension lifecycle listener compatibility`; TASK-26 `Clarify stale Herdr server and client update guidance`.
+
+Reviewer-note resolution for follow-up task quality: TASK-23 now says the current refresh flow reinstalls each outdated plugin from the cache, includes `herdr/tests/herdr-cli-update-test.sh`, requires confirming `herdr plugin update --help`, preserves validation and `</dev/null` safety, and names `bash herdr/tests/herdr-cli-update-test.sh` validation. TASK-26 now points to existing guidance in `README.md` and `herdr/scripts/herdr-image-doctor.sh` and narrows scope to keeping that guidance consistent without duplicating it. Additional CLI evidence: `herdr plugin update --help` prints `Usage: herdr plugin update [OPTIONS] [PLUGIN]...`, confirming the command exists and accepts plugin arguments.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
