@@ -120,8 +120,9 @@ manager_count() {
 }
 
 battery_status() {
+    local threshold="${1:-0}"
     command -v battery_hearts >/dev/null 2>&1 || return 0
-    battery_hearts --max-hearts "$HEARTS" 2>/dev/null |
+    battery_hearts --max-hearts "$HEARTS" --threshold "$threshold" 2>/dev/null |
         tr -d '\n' |
         sed 's/[[:space:]]*$//'
 }
@@ -136,16 +137,21 @@ append_status() {
 }
 
 render_tab_bar() {
-    local output battery manager count
-    output=''
-    battery=$(battery_status)
-    output=$(append_status "$output" "$battery")
+    local output battery manager count updates
+    updates=''
 
     for manager in "${MANAGERS[@]}"; do
         count=$(manager_count "$manager")
         [ -n "$count" ] || continue
-        output=$(append_status "$output" "$(manager_icon "$manager") $count")
+        updates=$(append_status "$updates" "$(manager_icon "$manager") $count")
     done
+
+    if [ -n "$updates" ]; then
+        battery=$(battery_status -1)
+    else
+        battery=$(battery_status 1)
+    fi
+    output=$(append_status "$battery" "$updates")
 
     printf '%s\n' "$output"
 }
