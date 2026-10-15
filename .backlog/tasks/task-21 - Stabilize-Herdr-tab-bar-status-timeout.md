@@ -27,5 +27,6 @@ Herdr's tab bar status command is configured with a 2 second timeout, but the st
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Update herdr/config.toml so the tab_bar_right status command keeps interval_seconds at 5 and raises timeout_seconds from 2 to 5.\n2. Verify the resulting TOML line and run a lightweight config/TOML parse check before finalizing the task.
+1. Update herdr/config.toml so the tab_bar_right status command keeps interval_seconds at 5 and raises timeout_seconds from 2 to 5.
+2. Verify the resulting TOML line and run a lightweight config/TOML parse check before finalizing the task.
 <!-- SECTION:PLAN:END -->
