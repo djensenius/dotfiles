@@ -40,3 +40,9 @@ Changed herdr/config.toml tab_bar_right command timeout_seconds from 2 to 5 whil
 - herdr config check output: config: ok
 - tomllint herdr/config.toml skipped because tomllint was not found on PATH.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Raised Herdr tab_bar_right status command timeout_seconds from 2 to 5 while leaving interval_seconds at 5; verified the changed line, parsed herdr/config.toml with python3 tomllib assertions, and ran herdr config check (config: ok).
+<!-- SECTION:FINAL_SUMMARY:END -->
