@@ -40,3 +40,9 @@ The Herdr tab-bar status currently keeps battery hearts compact to avoid Kitty/r
 Implementation completed in commit 31b3044: render_tab_bar now reads cached manager counts before choosing battery flags, calls battery_hearts --threshold 0 when any update count is shown, and calls battery_hearts --threshold 1 when no counts are shown. The tab-bar path still only uses manager_count() cache reads; the test PATH includes failing brew/npm/pi/pip/cargo/go/mise/herdr command stubs to prove render_tab_bar does not invoke package checkers.
 Validation: battery_hearts --max-hearts 5 --threshold 1 --cmd "printf '80%%; discharging\\n'" produced a percent-prefixed output; --threshold 0 omitted a percent prefix. bash -n herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh passed with no output. shellcheck herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh passed with no output. git diff --check passed with no output. bash herdr/tests/herdr-cli-update-test.sh ended with "Herdr CLI cache snapshot tests passed" after exercising no-count percent output and count-present compact output.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Implemented Herdr tab-bar battery selection in 31b304449cc766bd98ab014fee8f26cde100ecce: cached update counts are gathered first, count-present status uses battery_hearts --threshold 0 for compact hearts, and no-count status uses --threshold 1 to include the percentage. Updated the Herdr CLI cache/render test to cover both render paths and to fail if render_tab_bar invokes package checker commands. Verified with battery_hearts threshold flag checks, bash -n, shellcheck, git diff --check, and bash herdr/tests/herdr-cli-update-test.sh ("Herdr CLI cache snapshot tests passed").
+<!-- SECTION:FINAL_SUMMARY:END -->
