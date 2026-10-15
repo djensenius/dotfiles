@@ -4,6 +4,7 @@ title: Review recent Pi and Herdr update changes
 status: To Do
 assignee: []
 created_date: '2026-10-15 13:50'
+updated_date: '2026-10-15 13:51'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -12,7 +13,7 @@ ordinal: 20000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Recent Pi and Herdr releases changed update flows and integration behavior. Herdr now exposes commands such as  and , while Pi 1.2.0 adds schema and extension-event changes. Review the current local versions, release notes, and dotfiles scripts/docs to identify small follow-up changes worth implementing without mixing them into TASK-21.
+Recent Pi and Herdr releases changed update flows and integration behavior. Herdr now exposes commands such as `herdr update` and `herdr plugin update`, while Pi 1.2.0 adds schema and extension-event changes. Review the current local versions, release notes, and dotfiles scripts/docs to identify small follow-up changes worth implementing without mixing them into TASK-21.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
