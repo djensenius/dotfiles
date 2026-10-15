@@ -160,7 +160,7 @@ old_path=$PATH
 PATH="$status_render_bin:$PATH"
 rm -f "$checker_invoked_marker" "$OUTDATED_CACHE"/*.count "$OUTDATED_CACHE"/*.list
 no_update_output=$(render_tab_bar)
-[ "$no_update_output" = '80% ♥♥♡♡♡' ]
+[ "$no_update_output" = '♥♥♡♡♡ 80%' ]
 [ ! -e "$checker_invoked_marker" ]
 printf '1\n' >"$OUTDATED_CACHE/pi.count"
 printf '2\n' >"$OUTDATED_CACHE/herdr.count"

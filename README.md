@@ -419,7 +419,7 @@ right-aligned status entries.
 `battery_hearts` and non-zero brew/npm/pi/pip/cargo/go/mise/herdr update counts from the
 shared `tmux-outdated-packages` cache every five seconds. Battery hearts stay compact when
 update counts are present; when no update counts are shown, the helper includes the battery
-percentage beside the hearts. This replaces the old dedicated `status` workspace and its
+percentage after the hearts. This replaces the old dedicated `status` workspace and its
 custom sidebar metadata.
 
 The package checks themselves remain asynchronous. Before showing update
