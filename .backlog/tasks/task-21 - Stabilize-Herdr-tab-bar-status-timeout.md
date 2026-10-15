@@ -19,9 +19,9 @@ Herdr's tab bar status command is configured with a 2 second timeout, but the st
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Herdr tab bar status command timeout is increased enough to avoid observed 2 second flicker
-- [ ] #2 The status command interval remains documented/unchanged unless there is evidence the expensive package poller interval is affected
-- [ ] #3 The resulting change is committed on a task branch and ready for PR review
+- [x] #1 Herdr tab bar status command timeout is increased enough to avoid observed 2 second flicker
+- [x] #2 The status command interval remains documented/unchanged unless there is evidence the expensive package poller interval is affected
+- [x] #3 The resulting change is committed on a task branch and ready for PR review
 <!-- AC:END -->
 
 ## Implementation Plan
