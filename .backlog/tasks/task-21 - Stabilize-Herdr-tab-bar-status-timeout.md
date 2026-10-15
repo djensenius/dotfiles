@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 13:46'
-updated_date: '2026-10-15 13:46'
+updated_date: '2026-10-15 13:47'
 labels: []
 dependencies: []
 ordinal: 19000
@@ -23,3 +23,9 @@ Herdr's tab bar status command is configured with a 2 second timeout, but the st
 - [ ] #2 The status command interval remains documented/unchanged unless there is evidence the expensive package poller interval is affected
 - [ ] #3 The resulting change is committed on a task branch and ready for PR review
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Update herdr/config.toml so the tab_bar_right status command keeps interval_seconds at 5 and raises timeout_seconds from 2 to 5.\n2. Verify the resulting TOML line and run a lightweight config/TOML parse check before finalizing the task.
+<!-- SECTION:PLAN:END -->
