@@ -126,14 +126,34 @@ cat >"$status_render_bin/battery_hearts" <<'EOF'
 #!/usr/bin/env bash
 [ "$1" = --max-hearts ]
 [ "$2" = 5 ]
-printf '♥♥♡♡♡   \n'
+[ "$3" = --threshold ]
+case "$4" in
+    1)
+        printf '80%% ♥♥♡♡♡   \n'
+        ;;
+    0)
+        printf '♥♥♡♡♡   \n'
+        ;;
+    *)
+        printf 'unexpected threshold: %s\n' "$4" >&2
+        exit 1
+        ;;
+esac
 EOF
 chmod +x "$status_render_bin/battery_hearts"
+for manager_command in brew npm pi pip cargo go mise herdr; do
+    cat >"$status_render_bin/$manager_command" <<'EOF'
+#!/usr/bin/env bash
+printf 'render_tab_bar invoked package checker: %s\n' "$0" >&2
+exit 99
+EOF
+    chmod +x "$status_render_bin/$manager_command"
+done
 old_path=$PATH
 PATH="$status_render_bin:$PATH"
 rm -f "$OUTDATED_CACHE"/*.count "$OUTDATED_CACHE"/*.list
 no_update_output=$(render_tab_bar)
-[ "$no_update_output" = '♥♥♡♡♡' ]
+[ "$no_update_output" = '80% ♥♥♡♡♡' ]
 printf '1\n' >"$OUTDATED_CACHE/pi.count"
 printf '2\n' >"$OUTDATED_CACHE/herdr.count"
 status_output=$(render_tab_bar)

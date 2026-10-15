@@ -417,8 +417,10 @@ right-aligned status entries.
 `ui.tab_bar_right` shows Herdr's built-in `ZOOM` indicator plus
 `herdr/scripts/herdr-status-report.sh --tab-bar`. The helper renders
 `battery_hearts` and non-zero brew/npm/pi/pip/cargo/go/mise/herdr update counts from the
-shared `tmux-outdated-packages` cache every five seconds. This replaces the old
-dedicated `status` workspace and its custom sidebar metadata.
+shared `tmux-outdated-packages` cache every five seconds. Battery hearts stay compact when
+update counts are present; when no update counts are shown, the helper includes the battery
+percentage beside the hearts. This replaces the old dedicated `status` workspace and its
+custom sidebar metadata.
 
 The package checks themselves remain asynchronous. Before showing update
 actions, `cli-update` waits for a fresh result from every installed checker,
