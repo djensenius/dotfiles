@@ -1,7 +1,7 @@
 ---
 id: TASK-22
 title: Review recent Pi and Herdr update changes
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 13:50'
