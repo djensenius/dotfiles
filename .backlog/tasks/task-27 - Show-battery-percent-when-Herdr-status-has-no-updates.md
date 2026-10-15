@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 14:47'
-updated_date: '2026-10-15 14:55'
+updated_date: '2026-10-15 15:04'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -41,6 +41,8 @@ Implementation completed in commit 31b3044: render_tab_bar now reads cached mana
 Validation: battery_hearts --max-hearts 5 --threshold 1 --cmd "printf '80%%; discharging\\n'" produced a percent-prefixed output; --threshold 0 omitted a percent prefix. bash -n herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh passed with no output. shellcheck herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh passed with no output. git diff --check passed with no output. bash herdr/tests/herdr-cli-update-test.sh ended with "Herdr CLI cache snapshot tests passed" after exercising no-count percent output and count-present compact output.
 
 Reviewer-note resolution: strengthened herdr/tests/herdr-cli-update-test.sh so fake package checker commands append to $TEST_ROOT/checker-invoked before exiting, and the test asserts that marker is absent after both render_tab_bar calls. This makes the cached tab-bar path guard fail if render_tab_bar invokes package checkers from command substitutions. Clarification: hiding the percentage whenever any update count is rendered is intentional per owner request for the compact count-present tab bar, including low-battery cases; no-count tab bars keep the percentage via battery_hearts --threshold 1.
+
+Copilot PR #408 resolution: changed count-present Herdr tab-bar rendering to call battery_hearts through battery_status -1 so the inclusive threshold cannot render 0% in compact mode. Updated herdr/tests/herdr-cli-update-test.sh to expect --threshold -1 for count-present rendering and to make --threshold 0 return a zero-charge percent string, so the previous threshold 0 behavior fails the compact-output assertion. Evidence: bash -n herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh; shellcheck herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh; git diff --check; bash herdr/tests/herdr-cli-update-test.sh (Herdr CLI cache snapshot tests passed). Task status intentionally left Done.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
