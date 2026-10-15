@@ -1,11 +1,11 @@
 ---
 id: TASK-28
 title: Move Herdr idle battery percentage after hearts
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 15:18'
-updated_date: '2026-10-15 15:20'
+updated_date: '2026-10-15 15:21'
 labels: []
 dependencies: []
 ordinal: 26000
