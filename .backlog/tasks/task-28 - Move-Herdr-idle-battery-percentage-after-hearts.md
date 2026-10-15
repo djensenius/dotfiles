@@ -24,3 +24,11 @@ TASK-27 made the Herdr tab-bar show battery percentage when no update counts are
 - [ ] #3 The tab-bar path remains cache-read-only and does not trigger package checks
 - [ ] #4 Tests cover no-count hearts-then-percent output and count-present hearts-only output
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Normalize the idle battery string in herdr-status-report.sh so percent-leading battery_hearts output renders as hearts followed by percent while compact/count-present output stays unchanged.
+2. Update the Herdr CLI status test fixture and assertions for idle hearts-then-percent and count-present hearts-only behavior.
+3. Run bash syntax, shellcheck, git diff whitespace, and the Herdr CLI update test before finalizing TASK-28.
+<!-- SECTION:PLAN:END -->
