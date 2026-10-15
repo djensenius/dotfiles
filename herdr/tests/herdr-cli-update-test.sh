@@ -141,9 +141,13 @@ case "$4" in
 esac
 EOF
 chmod +x "$status_render_bin/battery_hearts"
+checker_invoked_marker="$TEST_ROOT/checker-invoked"
+export CHECKER_INVOKED_MARKER="$checker_invoked_marker"
 for manager_command in brew npm pi pip cargo go mise herdr; do
     cat >"$status_render_bin/$manager_command" <<'EOF'
 #!/usr/bin/env bash
+: "${CHECKER_INVOKED_MARKER:?}"
+printf '%s\n' "$0" >>"$CHECKER_INVOKED_MARKER"
 printf 'render_tab_bar invoked package checker: %s\n' "$0" >&2
 exit 99
 EOF
@@ -151,13 +155,15 @@ EOF
 done
 old_path=$PATH
 PATH="$status_render_bin:$PATH"
-rm -f "$OUTDATED_CACHE"/*.count "$OUTDATED_CACHE"/*.list
+rm -f "$checker_invoked_marker" "$OUTDATED_CACHE"/*.count "$OUTDATED_CACHE"/*.list
 no_update_output=$(render_tab_bar)
 [ "$no_update_output" = '80% ♥♥♡♡♡' ]
+[ ! -e "$checker_invoked_marker" ]
 printf '1\n' >"$OUTDATED_CACHE/pi.count"
 printf '2\n' >"$OUTDATED_CACHE/herdr.count"
 status_output=$(render_tab_bar)
 [ "$status_output" = '♥♥♡♡♡  π 1  H 2' ]
+[ ! -e "$checker_invoked_marker" ]
 rm -f "$OUTDATED_CACHE/pi.count" "$OUTDATED_CACHE/herdr.count"
 PATH=$old_path
 
