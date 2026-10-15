@@ -24,3 +24,12 @@ The Herdr tab-bar status currently keeps battery hearts compact to avoid Kitty/r
 - [ ] #3 The status helper remains fast and uses cached package counts rather than triggering package checks from the tab-bar path
 - [ ] #4 Tests or scripted checks cover both update-count-present and no-update-count rendering cases
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Inspect the Herdr tab-bar renderer and tests to keep the change limited to battery argument selection based on cached update-count output.
+2. Update the status helper so render_tab_bar reads cached manager counts first, uses compact battery hearts when any count will be shown, and uses battery_hearts --threshold 1 when no counts will be shown.
+3. Update the Herdr CLI/tab-bar test stub to assert both no-update percent output and update-count compact output without invoking package checks.
+4. Run the targeted Herdr test and shell syntax checks, then record evidence, check acceptance criteria, and finish the task.
+<!-- SECTION:PLAN:END -->
