@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 13:50'
-updated_date: '2026-10-15 13:53'
+updated_date: '2026-10-15 13:54'
 labels: []
 dependencies: []
 ordinal: 20000
@@ -24,3 +24,9 @@ Recent Pi and Herdr releases changed update flows and integration behavior. Herd
 - [ ] #3 Identify relevant recent Herdr changes that affect this repo's config, plugin updater, docs, or installer
 - [ ] #4 Create follow-up Backlog tasks for implementation candidates or explicitly record that no repo changes are needed
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Use the scout artifact and local CLI output to summarize Pi/Herdr update status, including the stale Herdr server/client mismatch. 2. Create bounded follow-up Backlog tasks for each concrete implementation candidate instead of editing source/config files. 3. Record created task IDs, check TASK-22 acceptance criteria with evidence, add a final summary, and set Done as the last task change.
+<!-- SECTION:PLAN:END -->
