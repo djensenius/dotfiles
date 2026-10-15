@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-15 14:47'
-updated_date: '2026-10-15 14:49'
+updated_date: '2026-10-15 14:50'
 labels: []
 dependencies: []
 ordinal: 25000
@@ -33,3 +33,10 @@ The Herdr tab-bar status currently keeps battery hearts compact to avoid Kitty/r
 3. Update the Herdr CLI/tab-bar test stub to assert both no-update percent output and update-count compact output without invoking package checks.
 4. Run the targeted Herdr test and shell syntax checks, then record evidence, check acceptance criteria, and finish the task.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implementation completed in commit 31b3044: render_tab_bar now reads cached manager counts before choosing battery flags, calls battery_hearts --threshold 0 when any update count is shown, and calls battery_hearts --threshold 1 when no counts are shown. The tab-bar path still only uses manager_count() cache reads; the test PATH includes failing brew/npm/pi/pip/cargo/go/mise/herdr command stubs to prove render_tab_bar does not invoke package checkers.
+Validation: battery_hearts --max-hearts 5 --threshold 1 --cmd "printf '80%%; discharging\\n'" produced a percent-prefixed output; --threshold 0 omitted a percent prefix. bash -n herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh passed with no output. shellcheck herdr/scripts/herdr-status-report.sh herdr/tests/herdr-cli-update-test.sh passed with no output. git diff --check passed with no output. bash herdr/tests/herdr-cli-update-test.sh ended with "Herdr CLI cache snapshot tests passed" after exercising no-count percent output and count-present compact output.
+<!-- SECTION:NOTES:END -->
