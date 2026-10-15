@@ -119,12 +119,33 @@ manager_count() {
     printf '%s' "$count"
 }
 
+battery_percent_after_hearts() {
+    local status="$1" percent remainder
+    percent=${status%%[[:space:]]*}
+    if [ "$percent" = "$status" ] || [[ ! $percent =~ ^[0-9]+([.][0-9]+)?%$ ]]; then
+        printf '%s' "$status"
+        return
+    fi
+
+    remainder=${status#"$percent"}
+    remainder=$(printf '%s' "$remainder" | sed 's/^[[:space:]]*//')
+    if [ -n "$remainder" ]; then
+        printf '%s %s' "$remainder" "$percent"
+    else
+        printf '%s' "$status"
+    fi
+}
+
 battery_status() {
-    local threshold="${1:-0}"
+    local threshold="${1:-0}" order="${2:-native}" battery
     command -v battery_hearts >/dev/null 2>&1 || return 0
-    battery_hearts --max-hearts "$HEARTS" --threshold "$threshold" 2>/dev/null |
+    battery=$(battery_hearts --max-hearts "$HEARTS" --threshold "$threshold" 2>/dev/null |
         tr -d '\n' |
-        sed 's/[[:space:]]*$//'
+        sed 's/[[:space:]]*$//')
+    if [ "$order" = percent-after-hearts ]; then
+        battery=$(battery_percent_after_hearts "$battery")
+    fi
+    printf '%s' "$battery"
 }
 
 append_status() {
@@ -149,7 +170,7 @@ render_tab_bar() {
     if [ -n "$updates" ]; then
         battery=$(battery_status -1)
     else
-        battery=$(battery_status 1)
+        battery=$(battery_status 1 percent-after-hearts)
     fi
     output=$(append_status "$battery" "$updates")
 
