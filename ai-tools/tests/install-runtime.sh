@@ -566,7 +566,7 @@ assert_shared_config() {
     'value.localOnly === true && value.lastChangelogVersion === "0.1.0" && value.packages[0] === "keep"' \
     "$name settings merge dropped local keys"
   assert_json "$agent_dir/settings.json" \
-    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-5.5" && value.defaultThinkingLevel === "medium" && value.theme === "system" && value.tuiMode === "fullscreen" && value.quietStartup === "header"' \
+    'value.defaultProvider === "github-copilot" && value.defaultModel === "gpt-6.1-sol" && value.defaultThinkingLevel === "medium" && value.theme === "system" && value.tuiMode === "fullscreen" && value.quietStartup === "header"' \
     "$name settings merge did not apply shared top-level values"
   assert_json "$agent_dir/settings.json" \
     'value.subagents.localSetting === "preserved" && value.subagents.agentOverrides.worker.model === "github-copilot/gpt-5.5" && value.subagents.agentOverrides.scout.model === "github-copilot/gpt-5.4-mini" && value.subagents.agentOverrides.researcher.model === "github-copilot/gemini-3.8-flash" && value.subagents.agentOverrides.reviewer.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.oracle.model === "github-copilot/claude-opus-5.5" && value.subagents.agentOverrides.localOnly.description === "preserved"' \
