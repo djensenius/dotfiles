@@ -543,17 +543,35 @@ if a non-repo file already exists at one of those paths, it is moved aside to a
 
 Copilot CLI custom agents live in `ai-tools/*.agent.md` and are
 symlinked into `${COPILOT_HOME:-~/.copilot}/agents/` (user-level, available in
-every repo). The agent `scout` is read-only (`tools: ["read", "search"]`) and
-sets no model, so it uses your current one. Invoke it with `/agent scout`,
-`copilot --agent scout`, or by asking Copilot to "use the scout agent to …".
+every repo). None of them pins a model, so they use your current one, and all set
+`include-custom-instructions: true` so they follow the repository's instructions
+when Copilot runs them as subagents:
+
+| Agent | Tools | Purpose |
+| --- | --- | --- |
+| `scout` | read, search | Read-only reconnaissance handoff before implementation |
+| `planner` | read, search | Turns a scout report or task into ordered, testable steps |
+| `worker` | read, search, edit, execute | Minimal scoped change plus focused checks and a report |
+| `reviewer` | read, search, execute | Repo-aware review of a branch/commit/working tree with a verdict |
+| `docs-sync` | read, search, execute | Reports README/docs drift from a code change |
+| `shell-linter` | read, search, execute | Reviews shell scripts with `bash -n`/`shellcheck` |
+
+`reviewer`, `docs-sync`, and `shell-linter` need the shell for `git diff`,
+`bash -n`, and `shellcheck`. Their prompts forbid changes, but the `execute`
+tool alias grants the full shell, so that restriction is instruction-only. Invoke an agent with
+`/agent <name>`, `copilot --agent <name>`, or by asking Copilot to "use the
+planner agent to …". A sequence such as scout → planner → worker → reviewer is
+driven by asking for each step; this setup adds no chained agent workflow
+because Copilot CLI does not document one.
 Copilot already ships built-in subagents that need no configuration: `explore`
 (fast read-only codebase questions), `task` (runs tests/builds, terse output),
 `research`, `code-review` (review of staged/branch changes), `rubber-duck`
 (plan critique), and `general-purpose`. Copilot delegates to them automatically;
 ask for one by name to force it. `/fleet <goal>` runs independent subtasks in
 parallel through those subagents and needs no setup. Add more profiles by
-dropping `<name>.agent.md` (frontmatter: `name`, `description`, `tools`, optional
-`model`) into that directory and re-running the installer.
+dropping `<name>.agent.md` (frontmatter: `name`, required `description`, `tools`,
+optional `model` and `include-custom-instructions`) into `ai-tools/` and
+re-running the installer.
 
 The stack also keeps a small shared Pi coding-agent config under `ai-tools/` and
 merges it into the user files instead of replacing them or symlinking them, so
