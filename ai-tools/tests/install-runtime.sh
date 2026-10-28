@@ -563,7 +563,7 @@ assert_shared_config() {
   local name="$1" agent_dir="$2" profile
 
   assert_json "$agent_dir/settings.json" \
-    'value.$schema === "https://pi.dev/schemas/settings.schema.json"' \
+    "value.\$schema === \"https://pi.dev/schemas/settings.schema.json\"" \
     "$name settings merge did not apply the shared schema annotation"
   assert_json "$agent_dir/settings.json" \
     'value.localOnly === true && value.lastChangelogVersion === "0.1.0" && value.packages[0] === "keep"' \
