@@ -327,12 +327,13 @@ manager_lists=()
 # shellcheck disable=SC2034 # Consumed by draw_screen from the sourced updater.
 cache_initialized=1
 add_manager pi "Pi" pi.count "pi update --extensions" pi.list
-add_manager herdr "Herdr" herdr.count "herdr plugin install <plugin> --yes" herdr.list
+add_manager herdr "Herdr" herdr.count "herdr plugin update <plugin> --yes (legacy: install)" herdr.list
 draw_output=$(draw_screen)
 grep -q 'π Pi' <<<"$draw_output"
 grep -q 'pi-web-access 0.32.0 -> 0.33.0' <<<"$draw_output"
 grep -q 'H Herdr' <<<"$draw_output"
 grep -q 'owner/new-plugin' <<<"$draw_output"
+grep -q 'herdr plugin update <plugin> --yes (legacy: install)' <<<"$draw_output"
 
 cleanup_snapshot
 export TEST_EXPECTED_MANAGERS=''
@@ -359,6 +360,16 @@ cat >"$upgrade_bin/herdr" <<'EOF'
 #!/usr/bin/env bash
 printf 'herdr %s\n' "$*" >>"$UPGRADE_LOG"
 cat >/dev/null
+if [ "$*" = 'plugin update --help' ]; then
+    [ "$HERDR_NATIVE_UPDATE" = 1 ]
+    exit $?
+fi
+[ "$#" -eq 4 ] && [ "$1" = plugin ] && [ "$4" = --yes ] || exit 2
+case "$2" in
+    update) [ "$HERDR_NATIVE_UPDATE" = 1 ] || exit 2 ;;
+    install) ;;
+    *) exit 2 ;;
+esac
 case "${3:-}" in
     owner/fail-plugin) exit 1 ;;
 esac
@@ -366,11 +377,31 @@ EOF
 chmod +x "$upgrade_bin"/*
 PATH="$upgrade_bin:/usr/bin:/bin"
 export UPGRADE_LOG="$upgrade_log"
+export HERDR_NATIVE_UPDATE=1
 rm -f "$CACHE_DIR/herdr.list"
 if herdr_update_outdated_plugins 2>/dev/null; then
     printf '%s\n' 'missing Herdr plugin list was accepted' >&2
     exit 1
 fi
+printf '%s\n' \
+    'owner/old-plugin aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -> cccccccccccccccccccccccccccccccccccccccc' \
+    'owner/new-plugin dddddddddddddddddddddddddddddddddddddddd -> eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' \
+    >"$CACHE_DIR/herdr.list"
+for HERDR_NATIVE_UPDATE in 1 0; do
+    if [ "$HERDR_NATIVE_UPDATE" = 1 ]; then
+        expected_action=update
+    else
+        expected_action=install
+    fi
+    : >"$upgrade_log"
+    run_upgrade herdr
+    [ "$(cat "$upgrade_log")" = "$(printf '%s\n' \
+        'herdr plugin update --help' \
+        "herdr plugin $expected_action owner/old-plugin --yes" \
+        "herdr plugin $expected_action owner/new-plugin --yes")" ]
+    printf 'Herdr plugin %s success tests passed\n' "$expected_action"
+done
+
 : >"$CACHE_DIR/herdr.list"
 if herdr_update_outdated_plugins 2>/dev/null; then
     printf '%s\n' 'empty Herdr plugin list was accepted' >&2
@@ -386,18 +417,25 @@ printf '%s\n' \
     'owner/new-plugin ffffffffffffffffffffffffffffffffffffffff -> 1111111111111111111111111111111111111111' \
     >"$CACHE_DIR/herdr.list"
 run_upgrade pi
-if run_upgrade herdr; then
-    printf '%s\n' 'failing Herdr plugin reinstall was accepted' >&2
-    exit 1
-fi
 grep -q '^pi update --extensions$' "$upgrade_log"
-grep -q '^herdr plugin install owner/old-plugin --yes$' "$upgrade_log"
-grep -q '^herdr plugin install owner/fail-plugin --yes$' "$upgrade_log"
-grep -q '^herdr plugin install owner/new-plugin --yes$' "$upgrade_log"
-if grep -q -e 'bad;name' -e 'install \.\./escape' -e 'install owner/\.\. ' -e 'install -flag' "$upgrade_log"; then
-    printf '%s\n' 'invalid Herdr plugin name was installed' >&2
-    exit 1
-fi
+for HERDR_NATIVE_UPDATE in 1 0; do
+    if [ "$HERDR_NATIVE_UPDATE" = 1 ]; then
+        expected_action=update
+    else
+        expected_action=install
+    fi
+    : >"$upgrade_log"
+    if run_upgrade herdr; then
+        printf 'failing Herdr plugin %s was accepted\n' "$expected_action" >&2
+        exit 1
+    fi
+    [ "$(cat "$upgrade_log")" = "$(printf '%s\n' \
+        'herdr plugin update --help' \
+        "herdr plugin $expected_action owner/old-plugin --yes" \
+        "herdr plugin $expected_action owner/fail-plugin --yes" \
+        "herdr plugin $expected_action owner/new-plugin --yes")" ]
+    printf 'Herdr plugin %s failure, validation and stdin safety tests passed\n' "$expected_action"
+done
 
 # The launchd poller must see the same Pi agent directory as this helper.
 (
