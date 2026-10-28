@@ -286,12 +286,17 @@ pip_upgrade_all() {
 
 herdr_update_outdated_plugins() {
     local list_file="$CACHE_DIR/herdr.list" plugin found=0 failed=0
+    local action=install progress=Reinstalling
     if [ ! -f "$list_file" ]; then
         printf 'cli-update: no Herdr plugin list found\n' >&2
         return 1
     fi
 
     require_command herdr || return
+    if herdr plugin update --help </dev/null >/dev/null 2>&1; then
+        action=update
+        progress=Updating
+    fi
     while IFS= read -r plugin; do
         [ -n "$plugin" ] || continue
         found=1
@@ -303,8 +308,8 @@ herdr_update_outdated_plugins() {
             failed=1
             continue
         fi
-        printf '%sReinstalling %s...%s\n' "$BOLD" "$plugin" "$RESET"
-        herdr plugin install "$plugin" --yes </dev/null || failed=1
+        printf '%s%s %s...%s\n' "$BOLD" "$progress" "$plugin" "$RESET"
+        herdr plugin "$action" "$plugin" --yes </dev/null || failed=1
     done < <(awk '{ print $1 }' "$list_file")
     if [ "$found" -eq 0 ]; then
         printf 'cli-update: Herdr plugin list is empty\n' >&2
@@ -451,7 +456,7 @@ add_manager go "Go" go.count "go-global-update" go.list
 add_manager apt "Apt" apt.count "sudo apt upgrade" apt.list
 add_manager dnf "DNF" dnf.count "sudo dnf upgrade" dnf.list
 add_manager mise "Mise" mise.count "mise upgrade" mise.list
-add_manager herdr "Herdr" herdr.count "herdr plugin install <plugin> --yes" herdr.list
+add_manager herdr "Herdr" herdr.count "herdr plugin update <plugin> --yes (legacy: install)" herdr.list
 add_manager pip "pip" pip.count "pip3 install --upgrade <packages>" pip.list
 
 if [ "$list_only" -eq 1 ]; then

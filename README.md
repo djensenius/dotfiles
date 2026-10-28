@@ -449,8 +449,11 @@ poller. Pi packages come from the Pi agent npm prefix
 `${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/npm`, which is separate from
 `npm outdated -g`; their update action runs `pi update --extensions`. Herdr
 plugin counts come from `herdr plugin list` SHA comparisons, and the updater
-reinstalls outdated plugins with `herdr plugin install owner/repo --yes`. The
-Herdr helpers treat missing `pi`/`herdr` cache files as zero so they remain
+updates outdated plugins with `herdr plugin update owner/repo --yes` when its
+help command confirms support. Older Herdr versions fall back to reinstalling
+with `herdr plugin install owner/repo --yes`; native update failures do not
+trigger reinstalls. The Herdr helpers treat missing `pi`/`herdr` cache files as
+zero so they remain
 compatible with older `tmux-outdated-packages` plugin checkouts.
 
 tmux-speedtest stays tmux-only: it is on-demand rather than ambient, so it is
