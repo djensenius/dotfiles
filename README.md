@@ -479,9 +479,15 @@ still do not render, run `~/.config/herdr/scripts/herdr-image-doctor.sh` locally
 and on the remote host and compare:
 
 - `terminal.kitty_graphics` should be `true` on both ends.
-- `herdr status --json` should not report a stale server binary; use
-  `herdr update --handoff` or restart Herdr if the client and server are out of
-  sync.
+- In `herdr status --json`, compare `client.version` with `server.version` and
+  check `server.server_binary_stale`. For example, client `0.9.4`, server
+  `0.9.1`, and `server_binary_stale: true` mean the running server is stale.
+  Mise manages the installed Herdr binary: `mise install` installs the
+  configured version, but does not refresh an already-running server or client.
+  Restart the Herdr server to use the installed binary, then detach/reattach
+  stale clients. Alternatively, `herdr update --handoff` downloads and installs
+  the latest Herdr and **tries** a live server handoff; it is not just a runtime
+  restart. Recheck status afterwards.
 - Plain SSH image output should be tested separately from Herdr remote output;
   that distinguishes terminal/SSH capability problems from Herdr transport or
   config problems.
