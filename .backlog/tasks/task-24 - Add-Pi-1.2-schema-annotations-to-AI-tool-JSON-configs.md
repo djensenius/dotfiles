@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@copilot-worker'
 created_date: 2026-10-15 13:54
-updated_date: '2026-10-28T18:33:00Z'
+updated_date: '2026-10-28T18:39:00Z'
 labels: []
 dependencies: []
 modified_files:
@@ -65,6 +65,8 @@ Implementation and validation (all commands run from /Users/david/Developer/dotf
 - git diff --check exited 0 (no output); wrapper printed: PASS git diff --check
 - No YAML, TOML, GitHub Actions, Markdown instructions, or tool code changed; unrelated validators/full environment setup were not run. MCP/footer JSON files are unchanged and explicitly unsupported for annotation as documented above.
 - All three ACs have direct evidence: AC1 authoritative pre-edit confirmation, AC2 supported annotation plus per-file unsupported determination, AC3 syntax/schema validation and isolated installer regression. Remaining limitation: official URL is a live upstream schema and does not validate extension-owned subagent settings (additionalProperties: true); no invented schemas or local validation exclusions introduced.
+
+PR499 narrow CI fix round: ShellCheck 0.11.0 reports SC2016 for the literal $schema in the merge-preservation assertion. Plan: change only that shell argument to double quotes with escaped dollar and inner quotes, preserving the exact JavaScript assertion; run default-severity ShellCheck, bash syntax, the isolated installer runtime suite, and git diff --check. Retain Done after finalization.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
