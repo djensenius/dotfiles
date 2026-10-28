@@ -541,9 +541,13 @@ installer converts older copied extension/profile/footer files into symlinks;
 if a non-repo file already exists at one of those paths, it is moved aside to a
 `.backup` file before the repo link is installed.
 
-Copilot CLI custom agents live in `ai-tools/*.agent.md` and are
-symlinked into `${COPILOT_HOME:-~/.copilot}/agents/` (user-level, available in
-every repo). None of them pins a model, so they use your current one, and all set
+Copilot CLI custom agents live in `ai-tools/copilot/agents/*.agent.md`. The
+installer symlinks that whole directory to `${COPILOT_HOME:-~/.copilot}/agents`
+(user-level, available in every repo), so profiles added there later are picked
+up without re-running it. If a real `agents` directory already exists, the
+installer removes per-file links left by earlier installs and moves anything
+else aside to `agents.backup` (copy profiles you want to keep into the repo
+directory). None of the agents pins a model, so they use your current one, and all set
 `include-custom-instructions: true` so they follow the repository's instructions
 when Copilot runs them as subagents:
 
@@ -570,8 +574,7 @@ Copilot already ships built-in subagents that need no configuration: `explore`
 ask for one by name to force it. `/fleet <goal>` runs independent subtasks in
 parallel through those subagents and needs no setup. Add more profiles by
 dropping `<name>.agent.md` (frontmatter: `name`, required `description`, `tools`,
-optional `model` and `include-custom-instructions`) into `ai-tools/` and
-re-running the installer.
+optional `model` and `include-custom-instructions`) into `ai-tools/copilot/agents/`.
 
 The stack also keeps a small shared Pi coding-agent config under `ai-tools/` and
 merges it into the user files instead of replacing them or symlinking them, so

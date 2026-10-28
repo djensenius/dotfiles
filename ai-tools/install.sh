@@ -215,6 +215,54 @@ link_file() {
   ok "linked $(basename "$dst") -> $dst"
 }
 
+# Links the whole repository agents directory so new profiles are picked up
+# automatically. Per-file links from earlier installs are removed; any other
+# existing content is moved aside to a backup, never deleted.
+install_copilot_agents() {
+  local src="$DIR/copilot/agents"
+  local dst="${COPILOT_HOME:-$HOME/.copilot}/agents"
+  local entry target backup_path keep=0
+
+  if [ -L "$dst" ] && [ "$dst" -ef "$src" ]; then
+    ok "Copilot agents directory is linked"
+    return
+  fi
+
+  if [ -d "$dst" ] && [ ! -L "$dst" ]; then
+    for entry in "$dst"/* "$dst"/.[!.]*; do
+      [ -e "$entry" ] || [ -L "$entry" ] || continue
+      if [ -L "$entry" ]; then
+        target="$(readlink "$entry")"
+        case "$target" in
+          "$DIR"/*.agent.md | "$src"/*.agent.md)
+            rm -f "$entry"
+            ok "removed legacy Copilot agent link $(basename "$entry")"
+            continue
+            ;;
+        esac
+      fi
+      keep=1
+    done
+    if [ "$keep" -eq 0 ]; then
+      rmdir "$dst" || die "failed to remove empty $dst"
+    fi
+  fi
+
+  if [ -e "$dst" ] || [ -L "$dst" ]; then
+    backup_path="$(backup_path_for "$dst")"
+    if ! mv "$dst" "$backup_path"; then
+      die "failed to back up existing $dst"
+    fi
+    warn "moved existing Copilot agents aside -> $backup_path; copy profiles to keep into $src"
+  fi
+
+  mkdir -p "$(dirname "$dst")"
+  if ! ln -s "$src" "$dst"; then
+    die "failed to link $dst"
+  fi
+  ok "linked Copilot agents directory -> $dst"
+}
+
 merge_json_file() {
   local src="$1" dst="$2" label="$3" result
 
@@ -527,11 +575,7 @@ main() {
   fi
 
   log "Installing Copilot CLI custom agents"
-  copilot_agents_dir="${COPILOT_HOME:-$HOME/.copilot}/agents"
-  mkdir -p "$copilot_agents_dir"
-  for agent in "$DIR"/*.agent.md; do
-    link_file "$agent" "$copilot_agents_dir/$(basename "$agent")"
-  done
+  install_copilot_agents
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"

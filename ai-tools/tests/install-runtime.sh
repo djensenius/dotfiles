@@ -90,7 +90,7 @@ assert_json() {
 link_installer_utilities() {
   local destination="$1" utility source
   mkdir -p "$destination"
-  for utility in awk basename cat chmod cmp cp dirname grep head install ln mkdir mktemp mv rm rmdir sed; do
+  for utility in awk basename cat chmod cmp cp dirname grep head install ln mkdir mktemp mv readlink rm rmdir sed; do
     source="$(command -v "$utility")"
     ln -s "$source" "$destination/$utility"
   done
@@ -1253,6 +1253,49 @@ run_special_agent_dir() {
   assert_reviewer_profile "$name" "$agent_dir"
 }
 
+run_copilot_agents_directory_migration() {
+  local name="copilot-agents-directory-migration"
+  local root="$tmp/$name"
+  local output="$root/install.out"
+  local agents_src="$REPO_ROOT/ai-tools/copilot/agents"
+  local agents_dst="$root/copilot-home/agents"
+
+  setup_fixture "$root" "no" "no"
+  mkdir -p "$agents_dst"
+  ln -s "$REPO_ROOT/ai-tools/scout.agent.md" "$agents_dst/scout.agent.md"
+  ln -s "$agents_src/planner.agent.md" "$agents_dst/planner.agent.md"
+  printf 'local agent\n' > "$agents_dst/mine.agent.md"
+
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name installer run failed"
+  fi
+  assert_symlink_to "$agents_src" "$agents_dst"
+  grep -Fxq 'local agent' "$agents_dst.backup/mine.agent.md" ||
+    fail "$name did not preserve the user's agent in the backup"
+  assert_not_exists "$agents_dst.backup/scout.agent.md"
+  assert_not_exists "$agents_dst.backup/planner.agent.md"
+  assert_contains "moved existing Copilot agents aside -> $agents_dst.backup" "$output"
+
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name second installer run failed"
+  fi
+  assert_symlink_to "$agents_src" "$agents_dst"
+  assert_contains "Copilot agents directory is linked" "$output"
+  assert_not_exists "$agents_dst.backup.1"
+
+  rm -f "$agents_dst"
+  mkdir -p "$agents_dst"
+  ln -s "$agents_src/scout.agent.md" "$agents_dst/scout.agent.md"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name legacy-only installer run failed"
+  fi
+  assert_symlink_to "$agents_src" "$agents_dst"
+  assert_not_exists "$agents_dst.backup.1"
+}
+
 run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
@@ -1260,5 +1303,6 @@ run_migration "pinned-version-migration" "npm:pi-subagents@0.73.1"
 run_memctx_upgrade_migration
 run_mcp_adapter_upgrade_migration
 run_symlink_preserves_local_files
+run_copilot_agents_directory_migration
 
 printf 'installer mise runtime tests passed\n'
