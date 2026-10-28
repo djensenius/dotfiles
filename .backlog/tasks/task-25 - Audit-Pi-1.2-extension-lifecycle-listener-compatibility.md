@@ -1,7 +1,7 @@
 ---
 id: TASK-25
 title: Audit Pi 1.2 extension lifecycle listener compatibility
-status: In Progress
+status: Done
 assignee:
   - '@copilot-worker'
 created_date: 2026-10-15 13:54
