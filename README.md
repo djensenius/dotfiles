@@ -580,7 +580,7 @@ The stack also keeps a small shared Pi coding-agent config under `ai-tools/` and
 merges it into the user files instead of replacing them or symlinking them, so
 machine-local settings such as `lastChangelogVersion`, existing `packages`,
 local MCP servers, and other keys are preserved. Shared settings set the Pi
-defaults to GitHub Copilot `gpt-5.5`, medium thinking, the Pi `system` theme,
+defaults to GitHub Copilot `gpt-6.1-sol`, medium thinking, the Pi `system` theme,
 fullscreen TUI mode, and Pi 1.0's `quietStartup: "header"` mode so launches keep the
 version/key-hint header without the longer loaded-resource listing. Other Pi 1.0
 features such as Radius sign-in, image generation from codemode, and custom MCP

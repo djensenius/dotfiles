@@ -1,6 +1,6 @@
 {
   "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
   "theme": "system",
   "tuiMode": "fullscreen",
