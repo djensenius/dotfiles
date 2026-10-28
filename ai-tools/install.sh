@@ -526,6 +526,13 @@ main() {
     warn "copilot CLI is not installed; skipping its Herdr integration"
   fi
 
+  log "Installing Copilot CLI custom agents"
+  copilot_agents_dir="${COPILOT_HOME:-$HOME/.copilot}/agents"
+  mkdir -p "$copilot_agents_dir"
+  for agent in "$DIR"/*.agent.md; do
+    link_file "$agent" "$copilot_agents_dir/$(basename "$agent")"
+  done
+
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
   for extension in "$DIR"/extensions/*.ts; do
