@@ -710,6 +710,13 @@ JSON
   assert_shared_config "$name" "$root/pi-agent"
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/agents" "$root/copilot-home/agents"
+  for agent in docs-sync planner reviewer scout shell-linter worker; do
+    [ -f "$root/copilot-home/agents/$agent.agent.md" ] ||
+      fail "$name did not expose the $agent Copilot agent under COPILOT_HOME"
+  done
+  assert_contains "linked Copilot agents directory" "$first_output"
+  assert_contains "Copilot agents directory is linked" "$second_output"
   assert_contains "linked reviewer-git.ts" "$first_output"
   assert_contains "reviewer-git.ts is linked" "$second_output"
   assert_contains "linked subagent-status.ts" "$first_output"
@@ -1265,6 +1272,11 @@ run_copilot_agents_directory_migration() {
   ln -s "$REPO_ROOT/ai-tools/scout.agent.md" "$agents_dst/scout.agent.md"
   ln -s "$agents_src/planner.agent.md" "$agents_dst/planner.agent.md"
   printf 'local agent\n' > "$agents_dst/mine.agent.md"
+  printf 'dotdot agent\n' > "$agents_dst/..dotdot.agent.md"
+  mkdir -p "$root/local-profiles"
+  printf 'linked agent\n' > "$root/local-profiles/custom.agent.md"
+  ln -s "$REPO_ROOT/ai-tools/local-profiles/custom.agent.md" "$agents_dst/custom.agent.md"
+  ln -s "$root/local-profiles/custom.agent.md" "$agents_dst/user-link.agent.md"
 
   if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
     cat "$output" >&2
@@ -1273,6 +1285,12 @@ run_copilot_agents_directory_migration() {
   assert_symlink_to "$agents_src" "$agents_dst"
   grep -Fxq 'local agent' "$agents_dst.backup/mine.agent.md" ||
     fail "$name did not preserve the user's agent in the backup"
+  grep -Fxq 'dotdot agent' "$agents_dst.backup/..dotdot.agent.md" ||
+    fail "$name did not preserve the double-dot agent in the backup"
+  [ -L "$agents_dst.backup/custom.agent.md" ] ||
+    fail "$name deleted a link to a nested repository path instead of backing it up"
+  [ -L "$agents_dst.backup/user-link.agent.md" ] ||
+    fail "$name deleted a user link outside the repository agents directory"
   assert_not_exists "$agents_dst.backup/scout.agent.md"
   assert_not_exists "$agents_dst.backup/planner.agent.md"
   assert_contains "moved existing Copilot agents aside -> $agents_dst.backup" "$output"

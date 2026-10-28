@@ -229,15 +229,19 @@ install_copilot_agents() {
   fi
 
   if [ -d "$dst" ] && [ ! -L "$dst" ]; then
-    for entry in "$dst"/* "$dst"/.[!.]*; do
+    for entry in "$dst"/* "$dst"/.[!.]* "$dst"/..?*; do
       [ -e "$entry" ] || [ -L "$entry" ] || continue
       if [ -L "$entry" ]; then
         target="$(readlink "$entry")"
         case "$target" in
-          "$DIR"/*.agent.md | "$src"/*.agent.md)
-            rm -f "$entry"
-            ok "removed legacy Copilot agent link $(basename "$entry")"
-            continue
+          "$DIR/${entry##*/}" | "$src/${entry##*/}")
+            case "${entry##*/}" in
+              *.agent.md)
+                rm -f "$entry"
+                ok "removed legacy Copilot agent link ${entry##*/}"
+                continue
+                ;;
+            esac
             ;;
         esac
       fi
