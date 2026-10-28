@@ -28,3 +28,15 @@ TASK-22 local status evidence showed `herdr` client 0.9.4 from mise with a runni
 - [ ] #3 The guidance covers the stale server/client mismatch shown by `herdr status --json`.
 - [ ] #4 Relevant markdown or shell validation is run, or the task records why manual documentation review is sufficient.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Review the existing README and image-doctor guidance against installed Herdr help/status and mise configuration. 2. Clarify only the existing README stale-runtime bullet: distinguish mise-managed binary installation from server handoff/restart and client reattachment, using actual JSON field paths. Preserve TASK-23 plugin guidance and leave the doctor unchanged. 3. Validate the focused Markdown diff, relevant local links, and authoritative help/status evidence; record acceptance evidence and finalize TASK-26.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Reviewed README.md Kitty graphics guidance and herdr/scripts/herdr-image-doctor.sh diagnosis item 4. Installed `herdr update --help` says "Download and install the latest version" and `--handoff` says "Try live handoff after installing". Read-only `herdr status --json` confirms nested client.version=0.9.5, server.version=0.9.4, server.server_binary_stale=true, and client.binary under mise/installs/herdr/latest. mise/config.toml configures herdr = latest. README alone can supply the missing distinction without a third guidance location or shell changes.
+<!-- SECTION:NOTES:END -->
