@@ -31,3 +31,15 @@ TASK-22 found that the repo Herdr plugin refresher currently reinstalls each out
 - [ ] #5 Any README/help text touched by the flow no longer describes native plugin updates as reinstall-only.
 - [ ] #6 Validation runs `bash herdr/tests/herdr-cli-update-test.sh` and records the exact command output in the task.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Use a single herdr plugin update --help capability probe before processing cached entries; use native update when supported and legacy install only when unsupported, preserving validation, stdin isolation, and accumulated failures. 2. Extend existing mocked CLI tests for native success, native failure without fallback, and legacy behavior, and revise popup/README wording. 3. Run focused Bash syntax, existing ShellCheck, and Herdr tests; record exact evidence, check verified criteria, commit source changes with required trailers, and finalize TASK-23.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Before code changes, verified installed herdr plugin update --help (exit 0): Update GitHub-installed plugins; Usage: herdr plugin update [OPTIONS] [PLUGIN]...; Options: -y, --yes. Only help was invoked; no live plugin install/update or runtime mutation.
+<!-- SECTION:NOTES:END -->
