@@ -1,7 +1,7 @@
 ---
 id: TASK-26
 title: Clarify stale Herdr server and client update guidance
-status: In Progress
+status: Done
 assignee:
   - '@copilot-worker'
 created_date: 2026-10-15 13:54
