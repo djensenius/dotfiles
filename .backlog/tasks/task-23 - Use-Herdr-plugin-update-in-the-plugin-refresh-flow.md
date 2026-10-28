@@ -1,7 +1,7 @@
 ---
 id: TASK-23
 title: Use Herdr plugin update in the plugin refresh flow
-status: In Progress
+status: Done
 assignee:
   - '@copilot-worker'
 created_date: 2026-10-15 13:54
