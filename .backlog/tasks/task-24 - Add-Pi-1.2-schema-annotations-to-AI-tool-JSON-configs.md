@@ -1,7 +1,7 @@
 ---
 id: TASK-24
 title: Add Pi 1.2 schema annotations to AI tool JSON configs
-status: In Progress
+status: Done
 assignee:
   - '@copilot-worker'
 created_date: 2026-10-15 13:54
