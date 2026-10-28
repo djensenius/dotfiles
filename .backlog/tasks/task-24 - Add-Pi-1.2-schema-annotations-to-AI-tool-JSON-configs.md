@@ -1,9 +1,11 @@
 ---
 id: TASK-24
 title: Add Pi 1.2 schema annotations to AI tool JSON configs
-status: To Do
-assignee: []
-created_date: '2026-10-15 13:54'
+status: In Progress
+assignee:
+  - '@copilot-worker'
+created_date: 2026-10-15 13:54
+updated_date: '2026-10-28T18:30:00Z'
 labels: []
 dependencies: []
 modified_files:
