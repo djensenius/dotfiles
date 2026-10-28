@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@copilot-worker'
 created_date: 2026-10-15 13:54
-updated_date: '2026-10-28T18:39:00Z'
+updated_date: '2026-10-28T18:40:00Z'
 labels: []
 dependencies: []
 modified_files:
@@ -67,10 +67,14 @@ Implementation and validation (all commands run from /Users/david/Developer/dotf
 - All three ACs have direct evidence: AC1 authoritative pre-edit confirmation, AC2 supported annotation plus per-file unsupported determination, AC3 syntax/schema validation and isolated installer regression. Remaining limitation: official URL is a live upstream schema and does not validate extension-owned subagent settings (additionalProperties: true); no invented schemas or local validation exclusions introduced.
 
 PR499 narrow CI fix round: ShellCheck 0.11.0 reports SC2016 for the literal $schema in the merge-preservation assertion. Plan: change only that shell argument to double quotes with escaped dollar and inner quotes, preserving the exact JavaScript assertion; run default-severity ShellCheck, bash syntax, the isolated installer runtime suite, and git diff --check. Retain Done after finalization.
+
+PR499 narrow fix verified: changed only ai-tools/tests/install-runtime.sh:566 to a double-quoted shell argument with escaped dollar and inner quotes. The exact JavaScript assertion is preserved, with no suppressions, exclusions, or weakened checks. ShellCheck version 0.11.0, default all severities: no diagnostics; wrapper output: shellcheck exit: 0. bash -n: no diagnostics; wrapper output: bash -n exit: 0. Runtime suite exact output: installer mise runtime tests passed; wrapper output: installer runtime exit: 0. git diff --check: no diagnostics; wrapper output: git diff --check exit: 0. All commands explicitly ran in /Users/david/Developer/dotfiles-task-24 with absolute file paths. Existing AC evidence remains valid; no JSON or other source changed in this fix. No push, PR update, merge, or unrelated work performed.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Completed TASK-24: confirmed the stable official Pi settings schema from installed Pi 1.4.0 docs, Pi 1.2.0 release/docs, and the published schema before editing JSON. Added the settings annotation and a merge-preservation regression assertion. MCP and footer lack an applicable published schema and remain unchanged with source evidence recorded. All three JSON files parse, settings validates locally against the official Draft 2020-12 schema, isolated installer runtime tests pass, and shell syntax/patch whitespace checks pass. No real installer, user settings mutation, unrelated source changes, or invented schema URLs. All acceptance criteria verified; no follow-up required in scope.
+
+PR499 CI fix: corrected only shell quoting of the literal $schema regression assertion, preserving its JavaScript and resolving SC2016. ShellCheck 0.11.0 (default severities), bash syntax, isolated installer runtime tests, and whitespace checks all exit 0. No suppression or follow-up needed in scope.
 <!-- SECTION:FINAL_SUMMARY:END -->
