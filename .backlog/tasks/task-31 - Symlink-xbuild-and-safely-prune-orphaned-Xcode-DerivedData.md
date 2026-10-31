@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T22:19:00Z'
+updated_date: '2026-10-31T22:23:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -31,7 +31,7 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Treat parser AttributeError/IndexError from malformed plist XML as per-entry preservation errors without hiding unrelated failures. 2. Add regressions proving malformed entries remain untouched and later valid orphan candidates are still processed. 3. Re-run focused tests and linting, request a fresh Copilot review after pushing, and merge only after review and CI are clear.
+1. Keep malformed plist parser exceptions limited to plistlib.loads and test preservation plus continued scanning. 2. Harden dangerous-root checks against case-insensitive filesystem aliases by comparing filesystem identities for the root and protected home/current-directory locations while preserving the approved standard DerivedData subdirectory. 3. Preflight removal permissions and immutable/locked flags throughout an entry before deleting anything; preserve the whole entry when the preflight is uncertain, and test nested permission failures and case aliases. 4. Run focused tests, local review, push, request Copilot review again, and merge only after review and CI are clear.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -67,6 +67,8 @@ Copilot review has shown acceptance criterion #4 is not yet fully verified: malf
 Copilot review issue fixed in 738293b92d6ef42bb06e914643cba6fb39ca83ea. AttributeError and IndexError are handled only around plistlib.loads; regression test test_parser_attribute_and_index_errors_preserve_only_bad_entries confirms both malformed entries remain unchanged and a later eligible orphan is processed. Coordinator rerun: Ran 31 tests in 1.079s; OK; git diff --check origin/main...HEAD passed. Independent review of the focused fix: APPROVE.
 
 Second Copilot review follow-up: AC #4 is temporarily unchecked while investigating new reports about case-insensitive path aliases on macOS and partial deletion on permission errors. Do not finalize until each is fixed or the concern is demonstrated not applicable with safe evidence.
+
+Scout follow-up recommends identity-based root/ancestor checks that preserve the normal DerivedData root inside HOME, plus whole-tree directory-removal preflight (effective permissions and supported immutable flags) before any deletion; removal still cannot be transactional against races.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
