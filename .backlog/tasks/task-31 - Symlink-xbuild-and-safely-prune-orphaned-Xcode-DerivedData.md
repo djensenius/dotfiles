@@ -1,11 +1,11 @@
 ---
 id: TASK-31
 title: Symlink xbuild and safely prune orphaned Xcode DerivedData
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T22:06:00Z'
+updated_date: '2026-10-31T22:11:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -31,10 +31,7 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Switch the Darwin xbuild installation to the existing safe link_file helper and extend temporary installer fixtures for legacy/conflicting paths and reruns.
-2. Add cleanup-derived-data dispatch under the unchanged native xbuild lock, resolving installed symlinks to a standard-library Python helper. Require Python and symlink-safe descriptor-relative filesystem support only for explicit cleanup. Validate plist/workspace paths and recursively newest mtime, preserve uncertainty, and revalidate before safe removal.
-3. Document the approved dry-run/delete defaults, seven-day rule, conservative path exclusions, dependency and advisory-lock limitations; add portable cleanup fixtures plus native macOS contention/forwarding tests and a focused CI step.
-4. Run the affected full tests, syntax/lint checks and required YAML/Actions validation; commit logical changes with the required trailers and append actual evidence for coordinator review without finalizing the task.
+1. Treat parser AttributeError/IndexError from malformed plist XML as per-entry preservation errors without hiding unrelated failures. 2. Add regressions proving malformed entries remain untouched and later valid orphan candidates are still processed. 3. Re-run focused tests and linting, request a fresh Copilot review after pushing, and merge only after review and CI are clear.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -62,6 +59,8 @@ Diagnosed earlier failures, not weakened checks: the initial native deletion-gat
 Ready for coordinator local review. Acceptance criteria remain unchecked and status remains In Progress as requested; coordinator owns final acceptance/status. No forwarding installer files were touched, so mac/tests/install-mac-test.sh was not applicable.
 
 Coordinator verification: python3 -B ai-tools/tests/xbuild-cleanup-derived-data.py: Ran 30 tests in 1.296s; OK, including native xbuild lock-contention and forwarding tests. bash ai-tools/tests/install-runtime.sh: all xbuild symlink install/rerun/migration fixtures passed. bash ai-tools/tests/install-git-version.sh: installer Git version tests passed. bash -n and shellcheck passed for changed shell scripts. yamllint . passed using a temporary isolated package target after the preinstalled launcher lacked its module; mise exec actionlint@1.7.12 -- actionlint passed; git diff --check origin/main...HEAD passed. Independent code review: APPROVE, no significant issues.
+
+Copilot review follow-up: reviewer reproduced two malformed XML plist inputs that make plistlib.loads raise AttributeError or IndexError, neither covered by ENTRY_ERRORS, aborting the scan. Added a narrow follow-up to preserve malformed entries and continue candidate processing.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
