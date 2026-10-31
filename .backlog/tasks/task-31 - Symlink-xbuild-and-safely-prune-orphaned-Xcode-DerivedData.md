@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T22:29:00Z'
+updated_date: '2026-10-31T22:32:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -23,7 +23,7 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 - [x] #1 Re-running the AI tools installer creates or refreshes ~/.local/bin/xbuild as a symlink to the tracked executable, preserving unrelated existing paths and existing backups.
 - [x] #2 xbuild cleanup-derived-data reports eligible candidates without mutation by default and with --dry-run; --delete removes only verified orphaned direct-child DerivedData entries.
 - [x] #3 Candidates have a valid info.plist WorkspacePath identifying a missing workspace and are at least seven days old according to the newest modification in the entry.
-- [ ] #4 Existing workspaces, malformed or unrecognized entries, shared caches, recent orphans, unsafe paths and uncertain filesystem states remain untouched.
+- [x] #4 Existing workspaces, malformed or unrecognized entries, shared caches, recent orphans, unsafe paths and uncertain filesystem states remain untouched.
 - [x] #5 Cleanup holds the same effective xbuild lock through selection and deletion, cannot overlap cooperating builds, and does not invoke a build or simulator cleanup.
 - [x] #6 Documentation explains installation migration, cleanup usage, age and path safety rules, and locking limitations; focused tests cover candidate selection, safe deletion, symlink migration and lock contention.
 <!-- AC:END -->
@@ -71,6 +71,8 @@ Second Copilot review follow-up: AC #4 is temporarily unchecked while investigat
 Scout follow-up recommends identity-based root/ancestor checks that preserve the normal DerivedData root inside HOME, plus whole-tree directory-removal preflight (effective permissions and supported immutable flags) before any deletion; removal still cannot be transactional against races.
 
 Local review of b8b2782 found that sticky directories pass write/execute checks but can deny unlink for foreign-owned children after earlier siblings are removed. Scout recommends conservatively rejecting sticky-bit cleanup roots and candidate-tree directories, then revalidating this before deletion; ordinary DerivedData is unaffected.
+
+Path/permission safety fixes committed as b8b2782a9f1b08b8be704f5a62f91e5d9a432d6b; sticky-directory rejection and revalidation committed as 3b92f22034f8e7f4d4eae76a3f1a72ab2f412b64. Tests cover case-variant HOME roots, non-writable nested directories, sticky roots/nested dirs and sticky changes before removal; normal safe siblings still process. Coordinator rerun: Ran 36 tests in 2.103s; OK; git diff --check origin/main...HEAD passed. Independent review: APPROVE, no significant issues.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
