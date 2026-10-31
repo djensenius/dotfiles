@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T18:32:00Z'
+updated_date: '2026-10-31T18:36:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -27,3 +27,12 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 - [ ] #5 Cleanup holds the same effective xbuild lock through selection and deletion, cannot overlap cooperating builds, and does not invoke a build or simulator cleanup.
 - [ ] #6 Documentation explains installation migration, cleanup usage, age and path safety rules, and locking limitations; focused tests cover candidate selection, safe deletion, symlink migration and lock contention.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Switch the Darwin xbuild installation to the existing safe link_file helper and extend temporary installer fixtures for legacy/conflicting paths and reruns.
+2. Add cleanup-derived-data dispatch under the unchanged native xbuild lock, resolving installed symlinks to a standard-library Python helper. Require Python and symlink-safe descriptor-relative filesystem support only for explicit cleanup. Validate plist/workspace paths and recursively newest mtime, preserve uncertainty, and revalidate before safe removal.
+3. Document the approved dry-run/delete defaults, seven-day rule, conservative path exclusions, dependency and advisory-lock limitations; add portable cleanup fixtures plus native macOS contention/forwarding tests and a focused CI step.
+4. Run the affected full tests, syntax/lint checks and required YAML/Actions validation; commit logical changes with the required trailers and append actual evidence for coordinator review without finalizing the task.
+<!-- SECTION:PLAN:END -->
