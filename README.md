@@ -545,10 +545,12 @@ Copilot Herdr integration when Copilot is available, links the repository-owned
 Catppuccin footer config, links the
 `reviewer` and `council-gpt`/`council-claude`/`council-gemini` profiles into
 `~/.pi/agent/agents/` (the reviewer loads `../extensions/reviewer-git.ts`
-relative to itself), and installs `xbuild` into `~/.local/bin`. Re-running the
-installer converts older copied extension/profile/footer files into symlinks;
-if a non-repo file already exists at one of those paths, it is moved aside to a
-`.backup` file before the repo link is installed.
+relative to itself), and on macOS links `~/.local/bin/xbuild` to the tracked
+[`ai-tools/bin/xbuild`](ai-tools/bin/xbuild) executable. Re-running the installer
+converts older matching copies of extensions/profiles/footer/`xbuild` into
+symlinks. Conflicting files, directories, or links are moved aside to a unique
+`.backup`, `.backup.1`, etc. before linking; existing backups are never replaced.
+Keep the dotfiles checkout in place so the links continue to work.
 
 Copilot CLI custom agents live in `ai-tools/copilot/agents/*.agent.md`. The
 installer symlinks that whole directory to `${COPILOT_HOME:-~/.copilot}/agents`
