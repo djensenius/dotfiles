@@ -303,6 +303,32 @@ class CleanupTests(Fixture):
             del os.environ["XBUILD_DERIVED_DATA_ROOT"]
             self.assertEqual(cleanup.main(["--delete"]), 1)
 
+    def test_case_variant_home_root_is_refused_on_case_insensitive_filesystem(self):
+        fake_home = self.base / "FakeHome"
+        fake_home.mkdir()
+        root_alias = fake_home.with_name(fake_home.name.swapcase())
+        try:
+            same_directory = os.path.samefile(fake_home, root_alias)
+        except OSError:
+            same_directory = False
+        if not same_directory:
+            self.skipTest("temporary filesystem is case-sensitive")
+
+        entry = fake_home / "Eligible-hash"
+        (entry / "Build" / "Products").mkdir(parents=True)
+        (entry / "Build" / "Products" / "artifact").write_bytes(b"fixture")
+        (entry / "info.plist").write_bytes(plistlib.dumps({
+            "WorkspacePath": str(self.workspaces / "Gone.xcworkspace"),
+        }))
+        self.age(entry)
+        before = self.snapshot(fake_home)
+        with mock.patch.dict(os.environ, {
+            "HOME": str(fake_home), "XBUILD_DERIVED_DATA_ROOT": str(root_alias),
+        }), contextlib.redirect_stderr(io.StringIO()) as errors:
+            self.assertEqual(cleanup.main(["--delete"]), 1)
+        self.assertIn("refusing home", errors.getvalue())
+        self.assertEqual(self.snapshot(fake_home), before)
+
     def test_workspace_permission_io_and_not_directory_errors_are_not_absence(self):
         entry = self.entry()
         real_stat = os.stat
@@ -329,6 +355,28 @@ class CleanupTests(Fixture):
         with mock.patch.object(cleanup.os, "listdir", side_effect=failing_listdir):
             self.assertIn("KEEP ", self.run_cleanup(delete=True)[1])
         self.assertTrue(entry.exists())
+
+    def test_nonwritable_nested_directory_preserves_entry_before_removal(self):
+        entry = self.entry("Locked-hash")
+        allowed = self.entry("Good-hash")
+        sibling = entry / "A-sibling"
+        sibling.write_text("must remain")
+        nested = entry / "Build"
+        nested.chmod(0o500)
+        self.addCleanup(nested.chmod, 0o700)
+        self.age(entry)
+        before = self.snapshot(entry)
+
+        with mock.patch.object(cleanup.shutil, "rmtree", wraps=shutil.rmtree) as remove:
+            status, output, errors = self.run_cleanup(delete=True)
+
+        self.assertEqual((status, errors), (0, ""))
+        self.assertIn("KEEP ", output)
+        self.assertIn("DELETED ", output)
+        self.assertEqual([call.args[0] for call in remove.call_args_list], ["Good-hash"])
+        self.assertFalse(allowed.exists())
+        self.assertEqual(self.snapshot(entry), before)
+        self.assertEqual(sibling.read_text(), "must remain")
 
     def test_workspace_and_nested_filesystem_boundaries_are_kept(self):
         entry = self.entry()

@@ -767,9 +767,13 @@ seven days**, including its own directory, nested directories/files, and
 `info.plist`. This is not the time since the workspace disappeared. Recent or
 future mtimes, shared caches (including `*.noindex`), malformed metadata,
 symlinks/hard links/special files, filesystem boundaries, and uncertain I/O or
-permission errors are preserved. Paths must be normalized and absolute; symlinked
-roots/ancestors and roots equal to or above home/the current directory are
-rejected. Workspace paths must be outside the cleanup root and have an accessible
+permission errors are preserved. Before deleting, cleanup checks the removal
+permissions and supported immutable/locked flags throughout the entry; if any
+preflight check is uncertain, it preserves that entire entry and continues.
+Paths must be normalized and absolute; symlinked roots/ancestors and roots equal
+to or above home/the current directory are rejected using filesystem identity,
+including case aliases. The standard DerivedData location beneath home remains
+allowed. Workspace paths must be outside the cleanup root and have an accessible
 immediate parent on the same filesystem. Missing parent directories (including
 removed checkouts), linked parents/workspaces (even dangling links), and
 `/Volumes`, `/Network`, or `/net` paths are conservatively kept rather than
@@ -779,9 +783,11 @@ Selection and deletion hold the **same native `xbuild` lock** as builds
 (`${TMPDIR:-/tmp}/xbuild-${USER}.lock`), and cleanup invokes neither `xcodebuild`
 nor simulator shutdown. The lock only coordinates callers using the same user
 and `TMPDIR`; Xcode's GUI, direct builds, and other processes do not honor it.
-Stop those writers before cleanup. Metadata, workspace state, identity and age
-are rechecked before deletion, and descriptor-relative removal does not follow
-symlinks, but this is not a filesystem transaction against non-cooperating writers.
+Stop those writers before cleanup. Metadata, workspace state, identity, age, and
+relevant removal checks are repeated before deletion, and descriptor-relative
+removal does not follow symlinks. Recursive deletion is not transactional:
+permission or filesystem changes, or other races after preflight, can still cause
+partial deletion before an error.
 
 #### Plugin prerequisites
 

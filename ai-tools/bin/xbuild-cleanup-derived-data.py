@@ -14,6 +14,10 @@ MIN_AGE_NS = 7 * 24 * 60 * 60 * 1_000_000_000
 SHARED_CACHES = {
     "ModuleCache", "CompilationCache", "SDKStatCaches", "SymbolCache", "Index",
 }
+REMOVAL_BLOCKED_FLAGS = (
+    "UF_IMMUTABLE", "SF_IMMUTABLE", "UF_APPEND", "SF_APPEND",
+    "UF_NOUNLINK", "SF_NOUNLINK",
+)
 
 
 class Preserve(Exception):
@@ -74,15 +78,65 @@ def signature(info):
     )
 
 
+def is_same_or_ancestor(directory_fd, path):
+    """Compare directory identity along a protected path, not its spelling."""
+    parts = absolute_parts(path)
+    fd = os.open("/", os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        if os.path.samestat(os.fstat(directory_fd), os.fstat(fd)):
+            return True
+        for part in parts:
+            next_fd = os.open(
+                part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd
+            )
+            os.close(fd)
+            fd = next_fd
+            if os.path.samestat(os.fstat(directory_fd), os.fstat(fd)):
+                return True
+        return False
+    finally:
+        os.close(fd)
+
+
 def validate_root(root):
     if len(absolute_parts(root)) < 2:
         raise Preserve("refusing a filesystem root or top-level directory")
     home = os.environ.get("HOME")
     absolute_parts(home)
-    for protected in (home, os.getcwd()):
-        protected = os.path.realpath(protected, strict=True)
-        if os.path.commonpath((root, protected)) == root:
-            raise Preserve("refusing home, the current directory, or their ancestors")
+    with absolute_directory(root) as root_fd:
+        for protected in (home, os.getcwd()):
+            protected = os.path.realpath(protected, strict=True)
+            if is_same_or_ancestor(root_fd, protected):
+                raise Preserve("refusing home, the current directory, or their ancestors")
+
+
+def directory_removal_preflight(fd, info=None):
+    info = os.fstat(fd) if info is None else info
+    if not stat.S_ISDIR(info.st_mode):
+        raise Preserve("expected a directory during removal preflight")
+
+    flags = getattr(info, "st_flags", 0)
+    if any(flags & getattr(stat, name, 0) for name in REMOVAL_BLOCKED_FLAGS):
+        raise Preserve("directory has immutable, append-only, or no-unlink flags")
+
+    uid = os.geteuid()
+    groups = set(os.getgroups()) | {os.getegid()}
+    if uid == info.st_uid:
+        permission_bits = stat.S_IWUSR | stat.S_IXUSR
+    elif info.st_gid in groups:
+        permission_bits = stat.S_IWGRP | stat.S_IXGRP
+    else:
+        permission_bits = stat.S_IWOTH | stat.S_IXOTH
+    if info.st_mode & permission_bits != permission_bits:
+        raise Preserve("directory mode does not permit removal")
+    try:
+        accessible = os.access(
+            ".", os.W_OK | os.X_OK, dir_fd=fd, effective_ids=True
+        )
+    except (NotImplementedError, OSError, TypeError) as error:
+        raise Preserve("directory removal permissions are uncertain") from error
+    if not accessible:
+        raise Preserve("directory ACL or effective permissions deny removal")
 
 
 def verify_root(root, root_fd):
@@ -164,11 +218,15 @@ def tree_snapshot(entry_fd, device):
         before = os.fstat(fd)
         if before.st_dev != device:
             raise Preserve("entry crosses a filesystem boundary")
+        directory_removal_preflight(fd, before)
         snapshot.append((relative, signature(before)))
         for name in sorted(os.listdir(fd)):
             info = os.stat(name, dir_fd=fd, follow_symlinks=False)
             if info.st_dev != device:
                 raise Preserve("entry crosses a filesystem boundary")
+            flags = getattr(info, "st_flags", 0)
+            if any(flags & getattr(stat, flag, 0) for flag in REMOVAL_BLOCKED_FLAGS):
+                raise Preserve("entry contains immutable, append-only, or no-unlink flags")
             child = relative + "/" + name
             if stat.S_ISDIR(info.st_mode):
                 with directory(name, fd) as child_fd:
@@ -193,6 +251,7 @@ def inspect_entry(root_fd, name, root, cutoff):
         or name.endswith((".noindex", ".nosync"))
     ):
         raise Preserve("shared cache or unrecognized entry")
+    directory_removal_preflight(root_fd)
     with directory(name, root_fd) as entry_fd:
         workspace, metadata = read_workspace(entry_fd)
         device = os.fstat(root_fd).st_dev
