@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T22:23:00Z'
+updated_date: '2026-10-31T22:29:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -31,7 +31,7 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Keep malformed plist parser exceptions limited to plistlib.loads and test preservation plus continued scanning. 2. Harden dangerous-root checks against case-insensitive filesystem aliases by comparing filesystem identities for the root and protected home/current-directory locations while preserving the approved standard DerivedData subdirectory. 3. Preflight removal permissions and immutable/locked flags throughout an entry before deleting anything; preserve the whole entry when the preflight is uncertain, and test nested permission failures and case aliases. 4. Run focused tests, local review, push, request Copilot review again, and merge only after review and CI are clear.
+1. Keep malformed plist parser exceptions limited to plistlib.loads and test preservation plus continued scanning. 2. Harden dangerous-root checks against case-insensitive filesystem aliases by comparing filesystem identities for the root and protected home/current-directory locations while preserving the approved standard DerivedData subdirectory. 3. Preflight removal permissions and supported immutable/locked flags throughout each entry; reject sticky cleanup roots and candidate directories before any deletion; preserve entries on uncertainty and cover these cases with regression tests. 4. Run focused tests, local review, push, request Copilot review again, and merge only after review and CI are clear.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -69,6 +69,8 @@ Copilot review issue fixed in 738293b92d6ef42bb06e914643cba6fb39ca83ea. Attribut
 Second Copilot review follow-up: AC #4 is temporarily unchecked while investigating new reports about case-insensitive path aliases on macOS and partial deletion on permission errors. Do not finalize until each is fixed or the concern is demonstrated not applicable with safe evidence.
 
 Scout follow-up recommends identity-based root/ancestor checks that preserve the normal DerivedData root inside HOME, plus whole-tree directory-removal preflight (effective permissions and supported immutable flags) before any deletion; removal still cannot be transactional against races.
+
+Local review of b8b2782 found that sticky directories pass write/execute checks but can deny unlink for foreign-owned children after earlier siblings are removed. Scout recommends conservatively rejecting sticky-bit cleanup roots and candidate-tree directories, then revalidating this before deletion; ordinary DerivedData is unaffected.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
