@@ -141,7 +141,12 @@ def read_workspace(entry_fd):
         if info.st_size > 1024 * 1024:
             raise Preserve("unexpectedly large info.plist")
         with os.fdopen(fd, "rb", closefd=False) as stream:
-            data = plistlib.loads(stream.read(1024 * 1024 + 1), dict_type=UniqueKeys)
+            try:
+                data = plistlib.loads(
+                    stream.read(1024 * 1024 + 1), dict_type=UniqueKeys
+                )
+            except (AttributeError, IndexError) as error:
+                raise Preserve("malformed info.plist") from error
         if signature(os.fstat(fd)) != signature(info):
             raise Preserve("info.plist changed while reading")
     finally:

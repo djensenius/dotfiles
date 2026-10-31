@@ -204,6 +204,31 @@ class CleanupTests(Fixture):
         self.assertEqual(self.run_cleanup(delete=True)[1].count("KEEP "), len(invalid) + 2)
         self.assertEqual(self.snapshot(self.root), before)
 
+    def test_parser_attribute_and_index_errors_preserve_only_bad_entries(self):
+        malformed = {
+            "Malformed-date": (
+                b'<plist version="1.0"><dict><key>WorkspacePath</key>'
+                b'<date>not-a-date</date></dict></plist>'
+            ),
+            "Malformed-key": b'<plist version="1.0"><key>WorkspacePath</key></plist>',
+        }
+        entries = {}
+        for name, data in malformed.items():
+            entries[name] = self.entry(name)
+            (entries[name] / "info.plist").write_bytes(data)
+            self.age(entries[name])
+        eligible = self.entry("Z-Eligible-after-malformed")
+
+        status, output, errors = self.run_cleanup(delete=True)
+
+        self.assertEqual((status, errors), (0, ""))
+        self.assertEqual(output.count("KEEP "), len(malformed))
+        self.assertEqual(output.count("DELETED "), 1)
+        for name, data in malformed.items():
+            self.assertTrue(entries[name].is_dir())
+            self.assertEqual((entries[name] / "info.plist").read_bytes(), data)
+        self.assertFalse(eligible.exists())
+
     def test_shared_caches_are_kept_even_with_misleading_orphan_metadata(self):
         names = sorted(cleanup.SHARED_CACHES) + [
             "ModuleCache.noindex", "SDKStatCaches.noindex", "CompilationCache.noindex",
