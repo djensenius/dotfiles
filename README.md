@@ -545,10 +545,12 @@ Copilot Herdr integration when Copilot is available, links the repository-owned
 Catppuccin footer config, links the
 `reviewer` and `council-gpt`/`council-claude`/`council-gemini` profiles into
 `~/.pi/agent/agents/` (the reviewer loads `../extensions/reviewer-git.ts`
-relative to itself), and installs `xbuild` into `~/.local/bin`. Re-running the
-installer converts older copied extension/profile/footer files into symlinks;
-if a non-repo file already exists at one of those paths, it is moved aside to a
-`.backup` file before the repo link is installed.
+relative to itself), and on macOS links `~/.local/bin/xbuild` to the tracked
+[`ai-tools/bin/xbuild`](ai-tools/bin/xbuild) executable. Re-running the installer
+converts older matching copies of extensions/profiles/footer/`xbuild` into
+symlinks. Conflicting files, directories, or links are moved aside to a unique
+`.backup`, `.backup.1`, etc. before linking; existing backups are never replaced.
+Keep the dotfiles checkout in place so the links continue to work.
 
 Copilot CLI custom agents live in `ai-tools/copilot/agents/*.agent.md`. The
 installer symlinks that whole directory to `${COPILOT_HOME:-~/.copilot}/agents`
@@ -740,6 +742,54 @@ On macOS, `xbuild` is a drop-in `xcodebuild` wrapper that serializes builds
 with the native `lockf` utility. Test runs default to two parallel workers and
 shut down simulators afterward. Set `XBUILD_KEEP_SIMS=1` to keep them running,
 or `XBUILD_DERIVED_DATA_ROOT` to put per-checkout DerivedData elsewhere.
+
+To explicitly inspect abandoned DerivedData (never run automatically on install
+or build):
+
+```bash
+xbuild cleanup-derived-data             # dry-run: reports WOULD DELETE / KEEP
+xbuild cleanup-derived-data --dry-run   # same, no deletion
+xbuild cleanup-derived-data --delete    # revalidates and removes eligible entries
+```
+
+Cleanup requires `python3` 3.11+ on `PATH` with symlink-safe standard-library
+filesystem support; this dependency is checked only for cleanup, not builds or
+non-macOS installations. It scans direct children of
+`~/Library/Developer/Xcode/DerivedData`, or the explicit
+`XBUILD_DERIVED_DATA_ROOT` when set. It never removes the root or a workspace.
+Only XML/binary `info.plist` files with an absolute `WorkspacePath` identifying a
+missing `.xcworkspace`, `.xcodeproj`, or the implicit
+`.xcodeproj/project.xcworkspace` qualify. The containing project must also be
+missing for an implicit workspace.
+
+An eligible entry must have **no modification anywhere within it for at least
+seven days**, including its own directory, nested directories/files, and
+`info.plist`. This is not the time since the workspace disappeared. Recent or
+future mtimes, shared caches (including `*.noindex`), malformed metadata,
+symlinks/hard links/special files, filesystem boundaries, and uncertain I/O or
+permission errors are preserved. Sticky-bit cleanup roots and any sticky-bit
+directory within a candidate are also rejected. Before deleting, cleanup checks
+the removal permissions and supported immutable/locked flags throughout the
+entry; if any preflight check is uncertain, it preserves that entire entry and
+continues.
+Paths must be normalized and absolute; symlinked roots/ancestors and roots equal
+to or above home/the current directory are rejected using filesystem identity,
+including case aliases. The standard DerivedData location beneath home remains
+allowed. Workspace paths must be outside the cleanup root and have an accessible
+immediate parent on the same filesystem. Missing parent directories (including
+removed checkouts), linked parents/workspaces (even dangling links), and
+`/Volumes`, `/Network`, or `/net` paths are conservatively kept rather than
+mistaken for orphaned workspaces on an unavailable volume.
+
+Selection and deletion hold the **same native `xbuild` lock** as builds
+(`${TMPDIR:-/tmp}/xbuild-${USER}.lock`), and cleanup invokes neither `xcodebuild`
+nor simulator shutdown. The lock only coordinates callers using the same user
+and `TMPDIR`; Xcode's GUI, direct builds, and other processes do not honor it.
+Stop those writers before cleanup. Metadata, workspace state, identity, age, and
+relevant removal checks are repeated before deletion, and descriptor-relative
+removal does not follow symlinks. Recursive deletion is not transactional:
+permission or filesystem changes, or other races after preflight, can still cause
+partial deletion before an error.
 
 #### Plugin prerequisites
 

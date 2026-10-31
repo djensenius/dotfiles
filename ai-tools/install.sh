@@ -623,7 +623,7 @@ main() {
   if is_mac; then
     log "Installing xbuild"
     mkdir -p "$BIN_DIR"
-    sync_file "$DIR/bin/xbuild" "$BIN_DIR/xbuild" 755
+    link_file "$DIR/bin/xbuild" "$BIN_DIR/xbuild"
     case ":$PATH:" in
       *":$BIN_DIR:"*) ;;
       *) warn "$BIN_DIR is not on PATH" ;;

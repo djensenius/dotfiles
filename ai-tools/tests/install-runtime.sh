@@ -746,14 +746,73 @@ JSON
   assert_contains "ruleset requiring CI before merge" "$first_output"
 
   if [ "$system_name" = "Darwin" ]; then
-    cmp -s "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild" ||
-      fail "$name did not install xbuild"
-    assert_contains "installed xbuild" "$first_output"
-    assert_contains "xbuild is up to date" "$second_output"
+    assert_symlink_to "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild"
+    [ -x "$root/local-bin/xbuild" ] || fail "$name installed a non-executable xbuild"
+    assert_contains "linked xbuild" "$first_output"
+    assert_contains "xbuild is linked" "$second_output"
+    printf 'PASS: xbuild symlink install and rerun\n'
   else
     [ ! -e "$root/local-bin/xbuild" ] ||
       fail "$name unexpectedly installed xbuild on $system_name"
   fi
+}
+
+run_xbuild_symlink_migration() {
+  local kind root dst output
+  for kind in matching-copy local-file directory wrong-link dangling-link; do
+    # Spaces exercise BIN_DIR quoting as well as the existing safe-link helper.
+    root="$tmp/xbuild migration $kind"
+    dst="$root/local-bin/xbuild"
+    output="$root/install.out"
+    setup_fixture "$root" "no" "yes"
+    mkdir -p "$root/local-bin" "$dst.backup.2"
+    printf 'existing backup\n' > "$dst.backup"
+    ln -s "$root/missing-backup-target" "$dst.backup.1"
+    printf 'existing directory backup\n' > "$dst.backup.2/keep"
+    case "$kind" in
+      matching-copy) cp "$REPO_ROOT/ai-tools/bin/xbuild" "$dst" ;;
+      local-file) printf 'local xbuild\n' > "$dst" ;;
+      directory)
+        mkdir "$dst"
+        printf 'local directory\n' > "$dst/keep"
+        ;;
+      wrong-link)
+        printf 'unrelated command\n' > "$root/other-command"
+        ln -s "$root/other-command" "$dst"
+        ;;
+      dangling-link) ln -s "$root/missing-command" "$dst" ;;
+    esac
+
+    if ! run_installer "$root" "Darwin" 0 >"$output" 2>&1; then
+      cat "$output" >&2
+      fail "xbuild $kind migration failed"
+    fi
+    assert_symlink_to "$REPO_ROOT/ai-tools/bin/xbuild" "$dst"
+    [ -x "$dst" ] || fail "xbuild $kind migration lost executable mode"
+    case "$kind" in
+      matching-copy) assert_not_exists "$dst.backup.3" ;;
+      local-file) assert_contains 'local xbuild' "$dst.backup.3" ;;
+      directory) assert_contains 'local directory' "$dst.backup.3/keep" ;;
+      wrong-link)
+        assert_symlink_to "$root/other-command" "$dst.backup.3"
+        assert_contains 'unrelated command' "$root/other-command"
+        ;;
+      dangling-link) assert_symlink_to "$root/missing-command" "$dst.backup.3" ;;
+    esac
+
+    if ! run_installer "$root" "Darwin" 0 >"$output" 2>&1; then
+      cat "$output" >&2
+      fail "xbuild $kind rerun failed"
+    fi
+    assert_symlink_to "$REPO_ROOT/ai-tools/bin/xbuild" "$dst"
+    assert_contains 'xbuild is linked' "$output"
+    assert_contains 'existing backup' "$dst.backup"
+    assert_symlink_to "$root/missing-backup-target" "$dst.backup.1"
+    assert_contains 'existing directory backup' "$dst.backup.2/keep"
+    assert_not_exists "$dst.backup.4"
+    assert_no_runtime_markers "xbuild $kind" "$root"
+    printf 'PASS: xbuild symlink migration (%s)\n' "$kind"
+  done
 }
 
 run_darwin_with_brew_installs_backlog_md_and_sync() {
@@ -1238,6 +1297,7 @@ JSON
 run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"
 run_success_scenario "absent-system-runtimes" "no" "Linux" "no"
 run_success_scenario "darwin-with-lockf" "no" "Darwin" "yes"
+run_xbuild_symlink_migration
 run_darwin_with_brew_installs_backlog_md_and_sync
 run_darwin_with_existing_backlog_tools_skips_brew
 run_darwin_with_failing_brew_warns_and_continues
