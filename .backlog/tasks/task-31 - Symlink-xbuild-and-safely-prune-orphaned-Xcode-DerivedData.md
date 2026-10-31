@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T22:11:00Z'
+updated_date: '2026-10-31T22:13:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -23,7 +23,7 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 - [x] #1 Re-running the AI tools installer creates or refreshes ~/.local/bin/xbuild as a symlink to the tracked executable, preserving unrelated existing paths and existing backups.
 - [x] #2 xbuild cleanup-derived-data reports eligible candidates without mutation by default and with --dry-run; --delete removes only verified orphaned direct-child DerivedData entries.
 - [x] #3 Candidates have a valid info.plist WorkspacePath identifying a missing workspace and are at least seven days old according to the newest modification in the entry.
-- [ ] #4 Existing workspaces, malformed or unrecognized entries, shared caches, recent orphans, unsafe paths and uncertain filesystem states remain untouched.
+- [x] #4 Existing workspaces, malformed or unrecognized entries, shared caches, recent orphans, unsafe paths and uncertain filesystem states remain untouched.
 - [x] #5 Cleanup holds the same effective xbuild lock through selection and deletion, cannot overlap cooperating builds, and does not invoke a build or simulator cleanup.
 - [x] #6 Documentation explains installation migration, cleanup usage, age and path safety rules, and locking limitations; focused tests cover candidate selection, safe deletion, symlink migration and lock contention.
 <!-- AC:END -->
@@ -63,6 +63,8 @@ Coordinator verification: python3 -B ai-tools/tests/xbuild-cleanup-derived-data.
 Copilot review follow-up: reviewer reproduced two malformed XML plist inputs that make plistlib.loads raise AttributeError or IndexError, neither covered by ENTRY_ERRORS, aborting the scan. Added a narrow follow-up to preserve malformed entries and continue candidate processing.
 
 Copilot review has shown acceptance criterion #4 is not yet fully verified: malformed XML date/unbalanced-key plist entries currently abort scanning. The criterion remains unchecked until the parser fix and regression tests pass.
+
+Copilot review issue fixed in 738293b92d6ef42bb06e914643cba6fb39ca83ea. AttributeError and IndexError are handled only around plistlib.loads; regression test test_parser_attribute_and_index_errors_preserve_only_bad_entries confirms both malformed entries remain unchanged and a later eligible orphan is processed. Coordinator rerun: Ran 31 tests in 1.079s; OK; git diff --check origin/main...HEAD passed. Independent review of the focused fix: APPROVE.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
