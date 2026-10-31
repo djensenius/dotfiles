@@ -1,10 +1,11 @@
 ---
 id: TASK-31
 title: Symlink xbuild and safely prune orphaned Xcode DerivedData
-status: To Do
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
+updated_date: '2026-10-31T18:32:00Z'
 labels: []
 dependencies: []
 type: enhancement
