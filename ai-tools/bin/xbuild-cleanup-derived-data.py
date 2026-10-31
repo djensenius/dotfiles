@@ -114,6 +114,8 @@ def directory_removal_preflight(fd, info=None):
     info = os.fstat(fd) if info is None else info
     if not stat.S_ISDIR(info.st_mode):
         raise Preserve("expected a directory during removal preflight")
+    if info.st_mode & stat.S_ISVTX:
+        raise Preserve("directory has the sticky bit set")
 
     flags = getattr(info, "st_flags", 0)
     if any(flags & getattr(stat, name, 0) for name in REMOVAL_BLOCKED_FLAGS):

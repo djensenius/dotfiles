@@ -767,9 +767,11 @@ seven days**, including its own directory, nested directories/files, and
 `info.plist`. This is not the time since the workspace disappeared. Recent or
 future mtimes, shared caches (including `*.noindex`), malformed metadata,
 symlinks/hard links/special files, filesystem boundaries, and uncertain I/O or
-permission errors are preserved. Before deleting, cleanup checks the removal
-permissions and supported immutable/locked flags throughout the entry; if any
-preflight check is uncertain, it preserves that entire entry and continues.
+permission errors are preserved. Sticky-bit cleanup roots and any sticky-bit
+directory within a candidate are also rejected. Before deleting, cleanup checks
+the removal permissions and supported immutable/locked flags throughout the
+entry; if any preflight check is uncertain, it preserves that entire entry and
+continues.
 Paths must be normalized and absolute; symlinked roots/ancestors and roots equal
 to or above home/the current directory are rejected using filesystem identity,
 including case aliases. The standard DerivedData location beneath home remains

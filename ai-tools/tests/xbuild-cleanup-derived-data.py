@@ -12,6 +12,7 @@ from pathlib import Path
 import plistlib
 import select
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -101,6 +102,11 @@ class Fixture(unittest.TestCase):
             return result
 
         return mock.patch.object(cleanup, "inspect_entry", side_effect=intercept)
+
+    def set_sticky(self, path):
+        original_mode = path.stat().st_mode
+        path.chmod(original_mode | stat.S_ISVTX)
+        self.addCleanup(path.chmod, stat.S_IMODE(original_mode))
 
 
 class CleanupTests(Fixture):
@@ -377,6 +383,47 @@ class CleanupTests(Fixture):
         self.assertFalse(allowed.exists())
         self.assertEqual(self.snapshot(entry), before)
         self.assertEqual(sibling.read_text(), "must remain")
+
+    def test_sticky_cleanup_root_preserves_all_candidates(self):
+        entries = [self.entry("First-hash"), self.entry("Second-hash")]
+        self.set_sticky(self.root)
+        before = self.snapshot(self.root)
+
+        status, output, errors = self.run_cleanup(delete=True)
+
+        self.assertEqual((status, errors), (0, ""))
+        self.assertEqual(output.count("KEEP "), len(entries))
+        self.assertNotIn("DELETED ", output)
+        self.assertEqual(self.snapshot(self.root), before)
+
+    def test_sticky_nested_directory_preserves_candidate_and_processes_sibling(self):
+        sticky_entry = self.entry("Sticky-hash")
+        allowed_entry = self.entry("Eligible-hash")
+        nested = sticky_entry / "Build"
+        self.set_sticky(nested)
+        before = self.snapshot(sticky_entry)
+
+        status, output, errors = self.run_cleanup(delete=True)
+
+        self.assertEqual((status, errors), (0, ""))
+        self.assertEqual(output.count("KEEP "), 1)
+        self.assertEqual(output.count("DELETED "), 1)
+        self.assertTrue(sticky_entry.is_dir())
+        self.assertFalse(allowed_entry.exists())
+        self.assertEqual(self.snapshot(sticky_entry), before)
+
+    def test_sticky_directory_added_after_selection_preserves_candidate(self):
+        entry = self.entry()
+        nested = entry / "Build"
+
+        with self.mutate_after_selection(lambda: self.set_sticky(nested)):
+            status, output, errors = self.run_cleanup(delete=True)
+
+        self.assertEqual((status, errors), (0, ""))
+        self.assertIn("KEEP ", output)
+        self.assertIn("revalidation", output)
+        self.assertTrue(entry.is_dir())
+        self.assertTrue(nested.stat().st_mode & stat.S_ISVTX)
 
     def test_workspace_and_nested_filesystem_boundaries_are_kept(self):
         entry = self.entry()
