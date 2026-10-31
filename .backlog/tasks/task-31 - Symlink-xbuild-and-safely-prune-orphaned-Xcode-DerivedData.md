@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-10-31T18:31:00Z'
-updated_date: '2026-10-31T18:36:00Z'
+updated_date: '2026-10-31T18:37:00Z'
 labels: []
 dependencies: []
 type: enhancement
@@ -36,3 +36,9 @@ Copied xbuild installations drift from the tracked wrapper, and abandoned Xcode 
 3. Document the approved dry-run/delete defaults, seven-day rule, conservative path exclusions, dependency and advisory-lock limitations; add portable cleanup fixtures plus native macOS contention/forwarding tests and a focused CI step.
 4. Run the affected full tests, syntax/lint checks and required YAML/Actions validation; commit logical changes with the required trailers and append actual evidence for coordinator review without finalizing the task.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Committed installer migration as 75387e7510e6927ff2fc2ed3a2a03a5e56b7035b. Uses existing link_file without changing its backup semantics. Temporary HOME/BIN_DIR fixtures passed: PASS: xbuild symlink install and rerun; PASS: xbuild symlink migration (matching-copy); PASS: xbuild symlink migration (local-file); PASS: xbuild symlink migration (directory); PASS: xbuild symlink migration (wrong-link); PASS: xbuild symlink migration (dangling-link); installer mise runtime tests passed. Additional checks: installer Git version tests passed; PASS: installer bash syntax; PASS: installer shellcheck; PASS: git diff --check. No real user installation or DerivedData paths were modified.
+<!-- SECTION:NOTES:END -->
