@@ -7,15 +7,26 @@
 #
 # Usage:
 #   xbuild <any xcodebuild arguments>
+#   xbuild cleanup-derived-data [--dry-run|--delete]
 #
 # Env:
-#   XBUILD_DERIVED_DATA_ROOT  Base directory for per-checkout DerivedData.
+#   XBUILD_DERIVED_DATA_ROOT  Base directory for per-checkout DerivedData/cleanup.
 #   XBUILD_TEST_WORKERS       Parallel test workers (default: 2).
 #   XBUILD_KEEP_SIMS=1        Do not shut down simulators after tests.
 set -uo pipefail
 
 LOCK="${TMPDIR:-/tmp}/xbuild-${USER:-$(id -un)}.lock"
 args=("$@")
+is_cleanup=0
+if [ "${1:-}" = cleanup-derived-data ]; then
+  is_cleanup=1
+  if [ "$#" -gt 2 ] || {
+    [ "$#" -eq 2 ] && [ "$2" != --dry-run ] && [ "$2" != --delete ]
+  }; then
+    echo "usage: xbuild cleanup-derived-data [--dry-run|--delete]" >&2
+    exit 2
+  fi
+fi
 
 has_arg() {
   local arg
@@ -32,7 +43,7 @@ for arg in "${args[@]}"; do
   esac
 done
 
-if [ -n "${XBUILD_DERIVED_DATA_ROOT:-}" ] && ! has_arg -derivedDataPath; then
+if [ "$is_cleanup" = 0 ] && [ -n "${XBUILD_DERIVED_DATA_ROOT:-}" ] && ! has_arg -derivedDataPath; then
   key="$(basename "$PWD")-$(printf '%s' "$PWD" | shasum | cut -c1-8)"
   args+=(-derivedDataPath "$XBUILD_DERIVED_DATA_ROOT/$key")
 fi
@@ -53,6 +64,27 @@ command -v lockf >/dev/null 2>&1 || {
       echo "xbuild: failed to acquire the build lock" >&2
       exit 1
     fi
+  fi
+
+  if [ "$is_cleanup" = 1 ]; then
+    command -v python3 >/dev/null 2>&1 || {
+      echo "xbuild: cleanup requires Python 3.11+ (python3 on PATH)" >&2
+      exit 1
+    }
+    # The installer links xbuild; locate the helper beside the tracked script,
+    # including when an intermediate link uses a relative target.
+    source_path="${BASH_SOURCE[0]}"
+    while [ -L "$source_path" ]; do
+      source_dir="$(cd -P "$(dirname "$source_path")" && pwd)" || exit 1
+      source_path="$(readlink "$source_path")" || exit 1
+      case "$source_path" in
+        /*) ;;
+        *) source_path="$source_dir/$source_path" ;;
+      esac
+    done
+    source_dir="$(cd -P "$(dirname "$source_path")" && pwd)" || exit 1
+    python3 "$source_dir/xbuild-cleanup-derived-data.py" "${@:2}"
+    exit "$?"
   fi
 
   xcodebuild "${args[@]}"
