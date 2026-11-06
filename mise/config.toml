@@ -53,8 +53,8 @@ cargo-binstall = "1.24.0"
 # for example, .nvmrc in the case of node's nvm
 idiomatic_version_file_enable_tools = ['go', 'node', 'python', 'ruby', 'rust', 'zig']
 
-# configure `mise install` to always keep the downloaded archive
-always_keep_download = false        # deleted after install by default
+# Do not retain finished downloads in the download cache.
+download_cache = false
 always_keep_install = false         # deleted on failure by default
 
 verbose = false       # set to true to see full installation output, see `MISE_VERBOSE`
