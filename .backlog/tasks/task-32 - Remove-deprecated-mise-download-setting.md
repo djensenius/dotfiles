@@ -1,7 +1,7 @@
 ---
 id: TASK-32
 title: Remove deprecated mise download setting
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-11-06T12:52:00Z'
