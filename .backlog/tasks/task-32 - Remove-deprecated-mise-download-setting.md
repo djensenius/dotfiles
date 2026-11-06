@@ -20,8 +20,8 @@ Mise warns that `setting.always_keep_download` is deprecated and will be removed
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Neither mise configuration file sets the deprecated always_keep_download setting.
-- [ ] #2 The supported setting preserves the intended download-cache behavior and is accepted by mise.
+- [x] #1 Neither mise configuration file sets the deprecated always_keep_download setting.
+- [x] #2 The supported setting preserves the intended download-cache behavior and is accepted by mise.
 <!-- AC:END -->
 
 ## Implementation Plan
