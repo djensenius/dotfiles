@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T03:03:00Z'
+updated_date: '2026-11-11T03:16:00Z'
 labels:
   - herdr
   - desktop
@@ -71,6 +71,8 @@ Review fix round 1 evidence (P2):
 - Only the shared helper, focused test and CLI-managed TASK-33 metadata changed in this round. No YAML, JSON, installer-policy, app-source or live-config changes; no jactionlint policy work, push, PR or merge. Broader suites were not rerun because the focused suite exercises every affected production installer path. Same-reviewer re-review and stable/live adoption remain coordinator follow-ups.
 
 Reopened from local approval because actual PR #506 CI run 42949033670 (ShellCheck 0.11.0, one file per invocation) fails SC2329 for test timing callbacks at lines 90/91; prior combined eight-file lint was not CI-faithful. Copilot review 5853122864 comments 4533409495 and 4533409539 identify missing XDG_CONFIG_HOME fallback and a parent-traversal symlink-home bypass via linked_home/layouts/... followed by a parent component. Full evidence was read from /Users/david/.copilot/session-state/90f940df-55c2-48ce-bfc4-2d5274852701/files/herdr-fonts-ci-copilot-round-1.txt. Coordinator independently verified the app home precedence on every OS. AC2/3/4/5 temporarily unchecked for this bounded fix round.
+
+CI/Copilot regression evidence on unchanged production helper f402f6c: individual managed ShellCheck 0.11.0 exited 1 with SC2329 at focused-test lines 90/91. Added parent-traversal tests first; focused suite exited 1 after the first three Mac cases with: not ok mac accepted a symlinked desktop config directory: /.config/herdr-app/layouts/... (the final component was literal ..). Added XDG matrix next; unchanged production code exited 1 with: not ok mac selected the wrong config home: xdg-only. Both red runs verified production helper had no diff from f402f6c before running. Fix now follows verified HERDR_APP_HOME > XDG_CONFIG_HOME/herdr-app > HOME/.config/herdr-app nonempty precedence; rejects whole .. path components lexically before any target writes; retains suffix/root handling. All four actual installer paths now assert six empty/unset/precedence combinations, byte-preserving backups and untouched losing config homes; unsafe tests cover layouts/.., layouts/../. and layouts/../mods/.. with unchanged referent, directory link and backup list. Mac reporting now names the selected XDG-aware target. Temporary-home Mac/Linux/Pi/focused harnesses clear ambient config-home overrides. A first callback-export attempt deterministically still failed standalone SC2329; minimal stdin probes showed the lint checks subshell-local definitions even through a setup function. Final structure loads source-safe Codespaces definitions once with disposable HOME and declares the timing callbacks at harness top level, preserving actual link_files execution without ignores or check changes. Current focused output: Herdr App settings tests: 21 passed, 0 failed. CI-faithful one-file-per-invocation ShellCheck 0.11.0 and bash -n passed all nine PR-touched shell files; git diff --check PASS. No YAML/TOML/Brewfile changes. Remaining before finalization: normal fix commit, final directly affected harness checks including ambient-override isolation, and objective task evidence.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
