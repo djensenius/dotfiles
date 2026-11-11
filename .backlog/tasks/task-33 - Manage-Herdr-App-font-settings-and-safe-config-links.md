@@ -1,11 +1,11 @@
 ---
 id: TASK-33
 title: Manage Herdr App font settings and safe config links
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T02:14:00Z'
+updated_date: '2026-11-11T02:28:00Z'
 labels:
   - herdr
   - desktop
@@ -25,9 +25,9 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Tracked desktop settings select Monaspace Neon Var and enable font_ligatures while retaining existing zoom, sounds and minimum_contrast preferences; no unsupported font-face, weight, fallback or OpenType keys are added and existing default size is preserved.
-- [x] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
-- [x] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
-- [x] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
+- [ ] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
+- [ ] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
+- [ ] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
 - [x] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
 <!-- AC:END -->
 
@@ -40,6 +40,8 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 4. Document desktop/TUI separation, file ownership, installer/backup behavior, layout precedence and v0.1.15 font limits. Run focused suites, shell syntax/ShellCheck, JSON assertions and required YAML/workflow checks; append evidence, commit logical changes with the requested trailers, and finalize TASK-33 with live adoption explicitly pending.
 
 CI registration refinement: invoke the new cross-platform desktop suite from the already-CI-registered macOS test runner, rather than editing workflow YAML. Seed desktop settings links in existing fully-configured macOS fixtures; keep their whole-home snapshots and drift assertions intact.
+
+Review fix round 1 (P2 on HEAD 1e1ff8d28969d3342dd599c5478e478d817bd0df): extend the existing four-installer unsafe-home assertions to cover trailing /. and repeated dot/slash spellings, and run them before changing the helper to prove the gap. Then normalize only trailing slash/current-directory components lexically, without resolving symlinks, retaining absolute root and ordinary override handling. Verify refusal and unchanged referent/backups through all four actual installer paths, plus safe read-only root spelling coverage; run the focused suite, affected bash syntax/managed ShellCheck and diff checks, commit normally, and record final evidence before Done.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -56,6 +58,8 @@ Final objective evidence on committed source/docs 304542ef4c02a943069e9c66897805
 - Diagnosed and fixed the existing Mac configured-home fixture by seeding its new correct desktop link before whole-home snapshots and clean-check assertions; no assertion, timeout or test was weakened. Default jactionlint was also run against the original base workflow via git show 7d6ddea065254a8e852acbf78b64e9bc10c341af and reproduced the same six pre-existing policy findings/exit 1 (concurrency, timeout, permissions, checkout pin, checkout credentials, shellcheck action pin). Workflow YAML is byte-unchanged in this task; no policies were suppressed or unrelated fixes made.
 - AC5: README and Pi README document desktop/TUI separation, supported font/ligature settings and 14px default, unset UI font, unsupported face/weight/fallback/line-height/OpenType mappings, layout override precedence (main honors defaults), file ownership, installer modes/backups, and safe settings-only adoption from a persistent clone. git diff against the supplied base confirms herdr/config.toml, mac/Brewfile and workflow are unchanged.
 Both manual implementation/documentation commits include the requested Co-authored-by and Copilot-Session trailers. No push, PR, merge, app source change, package bootstrap or live config write was performed by this worker. Permanent live adoption remains pending coordinator review and arrival in the stable checkout; coordinator may independently enable the live font first. App-side writes preserve the eventual symlink and may dirty the tracked settings target.
+
+Reopened for the persisted local reviewer REQUEST CHANGES report at /Users/david/.copilot/session-state/90f940df-55c2-48ce-bfc4-2d5274852701/files/herdr-fonts-review-1.txt. One actionable P2: HERDR_APP_HOME ending in /., unlike a trailing slash alone, hides a directory symlink from the leaf -L guard. Scope is strictly that path-spelling defect and regression tests; installer policies, YAML/jactionlint policies, font settings, live config and Herdr App source remain unchanged. AC2/3/4 temporarily unchecked until the new evidence is collected.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
