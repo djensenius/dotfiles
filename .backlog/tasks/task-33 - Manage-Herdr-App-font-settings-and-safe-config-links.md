@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T01:46:00Z'
+updated_date: '2026-11-11T01:49:00Z'
 labels:
   - herdr
   - desktop
@@ -30,3 +30,18 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 - [ ] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
 - [ ] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Track only herdr-app/settings.json with the existing zoom/sounds/contrast values, Monaspace Neon Var and ligatures; leave size/UI font and TUI config unchanged.
+2. Add a narrow shared file-link helper, using installer-relative repository sources, HERDR_APP_HOME when set, byte-preserving collision-safe backups, real config directories and safe refusal of directory symlinks. Wire it into macOS/Linux/Pi/Codespaces with existing dry-run/check/skip policies; retain unrelated force behavior and native macOS/Pi backup locations.
+3. Extend the existing macOS/Linux harnesses and add a focused Pi/Codespaces/shared regression harness exercising the actual installer paths in temporary homes. Make Codespaces function definitions source-safe for bounded testing, without running bootstrap/software installation, and register the focused suite in existing shell CI.
+4. Document desktop/TUI separation, file ownership, installer/backup behavior, layout precedence and v0.1.15 font limits. Run focused suites, shell syntax/ShellCheck, JSON assertions and required YAML/workflow checks; append evidence, commit logical changes with the requested trailers, and finalize TASK-33 with live adoption explicitly pending.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Research confirmed no current desktop integration; macOS uses manifest plus special link rules and read-only counters, Linux leaves existing targets unless forced, Pi force deletes unrelated targets, and Codespaces executes bootstrap on source today. Implementation will preserve those unrelated semantics. The coordinator verified installed v0.1.15 font support and atomic-write symlink preservation; Herdr App source, existing Monaspace casks and live ~/.config are outside this worker change. Unsafe desktop directory links/non-directories will be left intact with an actionable error instead of migrating app-owned files.
+<!-- SECTION:NOTES:END -->
