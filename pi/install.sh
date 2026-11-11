@@ -9,6 +9,8 @@ set -euo pipefail
 
 PI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$PI_DIR/.." && pwd)"
+# shellcheck source=scripts/lib/herdr-app-settings.sh disable=SC1091
+. "$DOTFILES_DIR/scripts/lib/herdr-app-settings.sh"
 # Filled in by detect_target_user and init_logging, once HOME is known to
 # point at the account being provisioned rather than root's.
 TARGET_USER=""
@@ -120,7 +122,7 @@ Options:
   --skip-herdr      Do not install herdr plugins
   --ai-tools        After Pi setup, install the full AI/coding-agent tooling stack
   --fish-shell      Make the mise-managed fish your login shell (chsh)
-  --force           Replace existing config files instead of backing them up
+  --force           Replace existing configs (desktop Herdr App settings are always backed up)
   --dry-run         Print what would run without changing anything
   --yes, -y         Do not prompt for confirmation
   --help, -h        Show this help
@@ -439,11 +441,23 @@ install_mise_tools() {
 # that two configs sharing a basename (~/.config/gh/config.yml and
 # ~/.config/gh-dash/config.yml) cannot overwrite each other's backup.
 backup_path() {
-    local target="$1" rel dest
+    local target="$1" preserve_contents="${2:-false}" rel dest base suffix=1
     rel="${target#"$HOME"/}"
+    if $preserve_contents && [ "$rel" = "$target" ]; then
+        rel="$(basename "$target")"
+    fi
     dest="$BACKUP_DIR/$rel"
-    as_user mkdir -p "$(dirname "$dest")"
-    as_user mv "$target" "$dest"
+    if $preserve_contents; then
+        base="$dest"
+        while [ -e "$dest" ] || [ -L "$dest" ]; do
+            dest="$base.$suffix"
+            suffix=$((suffix + 1))
+        done
+        herdr_app_backup_to "$target" "$dest" as_user || return 1
+    else
+        as_user mkdir -p "$(dirname "$dest")"
+        as_user mv "$target" "$dest"
+    fi
     warn "Backed up ${target/#$HOME/\~} to ${dest/#$HOME/\~}"
 }
 
@@ -540,6 +554,8 @@ link_configs() {
     link_config herdr/config.toml "$HOME/.config/herdr/config.toml"
     link_config herdr/scripts "$HOME/.config/herdr/scripts"
     remove_legacy_herdr_fish_link
+    # Unlike unrelated Pi targets, personal desktop settings survive --force.
+    link_herdr_app_settings "$DOTFILES_DIR" true as_user backup_path
 
     # tmux.conf references this by name, so it has to resolve on PATH.
     link_config scripts/tmux-background-install-indicator.sh \

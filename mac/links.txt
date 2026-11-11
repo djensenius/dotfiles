@@ -1,7 +1,9 @@
 # source target [mode]
 # Modes: link (default), realdir, link-if-absent, optional.
 
-# Home dotfiles. ~/.gitconfig is handled specially by mac/install.sh.
+# ~/.gitconfig and desktop Herdr App settings (HERDR_APP_HOME aware) are
+# handled specially by mac/install.sh.
+# Home dotfiles.
 gitignore_local ~/.gitignore_local link-if-absent
 vale.ini ~/.vale.ini
 
@@ -37,6 +39,9 @@ gh-dash/config.yml ~/.config/gh-dash/config.yml
 - ~/.config/herdr realdir
 herdr/config.toml ~/.config/herdr/config.toml
 herdr/scripts ~/.config/herdr/scripts
+
+# Desktop Herdr App: only herdr-app/settings.json is linked; its directory,
+# keys, generated files, layouts/mods and runtime state remain app-owned.
 
 # Helper scripts exposed on PATH.
 scripts/tmux-background-install-indicator.sh ~/.local/bin/tmux-background-install-indicator.sh
