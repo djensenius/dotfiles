@@ -52,7 +52,9 @@ it would contain is already on the terminal — so previewing leaves nothing
 behind, including the real log.
 
 Step 3 also links only desktop [Herdr App settings](../README.md#herdr-app)
-inside a real `~/.config/herdr-app` directory (`HERDR_APP_HOME` can override it).
+inside a real directory. Like the app, it uses nonempty `HERDR_APP_HOME`, else
+`$XDG_CONFIG_HOME/herdr-app` when `XDG_CONFIG_HOME` is nonempty, else
+`~/.config/herdr-app`. Overrides must be absolute without `..` path components.
 This is separate from the Herdr TUI: keys, generated files, layouts/mods and
 runtime state stay unmanaged. Existing desktop settings are backed up even with
 `--force`; unrelated targets keep the existing force behavior.

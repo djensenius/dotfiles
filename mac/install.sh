@@ -603,7 +603,7 @@ install_herdr_app_settings() {
         return 1
     fi
     if $HERDR_APP_SETTINGS_CHANGED; then
-        change "desktop Herdr App settings link: ${HERDR_APP_HOME:-$HOME/.config/herdr-app}/settings.json"
+        change "desktop Herdr App settings link: ${HERDR_APP_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr-app}/settings.json"
     fi
 }
 

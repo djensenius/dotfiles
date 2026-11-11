@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ORIGINAL_HOME="${HOME:-}"
-unset HERDR_APP_HOME
+unset HERDR_APP_HOME XDG_CONFIG_HOME
 
 fail_test() {
     printf 'not ok %s\n' "$*" >&2

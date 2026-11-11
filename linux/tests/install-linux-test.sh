@@ -4,7 +4,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 INSTALLER="$REPO_ROOT/linux/install.sh"
-unset HERDR_APP_HOME
+unset HERDR_APP_HOME XDG_CONFIG_HOME
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/install-linux.XXXXXX")"
 cleanup() {

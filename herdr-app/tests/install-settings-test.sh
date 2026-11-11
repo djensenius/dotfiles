@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fail() { printf 'not ok %s\n' "$*" >&2; exit 1; }
 # The real Pi entry point resets HOME to the account database when run as root.
 [ "$(id -u)" -ne 0 ] || fail 'Herdr App settings tests must not run as root'
-unset HERDR_APP_HOME INSTALL_PI_LOG SUDO_USER
+unset HERDR_APP_HOME XDG_CONFIG_HOME INSTALL_PI_LOG SUDO_USER
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/herdr-app-settings.XXXXXX")"
 tmp="$(cd -P "$tmp" && pwd)"
@@ -51,6 +51,14 @@ chmod +x "$tmp/bin/"*
 export PATH="$tmp/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 passed=0
 
+# Load only source-safe Codespaces definitions with a disposable HOME.
+# Timing callbacks are public test substitutes for the bootstrap's log setup.
+mkdir -p "$tmp/source-home"
+# shellcheck source=install.sh disable=SC1091
+HOME="$tmp/source-home" source "$TEST_REPO/install.sh"
+start_operation() { printf '0\n'; }
+log_with_timing() { :; }
+
 snapshot_tree() {
     (
         cd "$1"
@@ -84,11 +92,6 @@ run_installer() {
                     --skip-nvim --skip-herdr --yes "$@"
                 ;;
             codespaces)
-                # Source-safe definitions only: never execute package/bootstrap phases.
-                # shellcheck source=install.sh disable=SC1091
-                source "$TEST_REPO/install.sh"
-                start_operation() { printf '0\n'; }
-                log_with_timing() { :; }
                 link_files
                 ;;
         esac
@@ -294,8 +297,60 @@ test_replacement_edges() {
     [ "$backups" = "$(backup_paths "$platform" "$home" "$dir")" ] || fail "$platform backed up a correct relative link"
 }
 
+test_config_home_precedence() {
+    local platform="$1" case_dir="$tmp/$1-precedence" mode home dir default_dir xdg explicit_dir other1 other2 before other_before output
+    for mode in xdg-only explicit-precedence empty-herdr empty-xdg empty-both unset-both; do
+        home="$case_dir/$mode/home"
+        default_dir="$home/.config/herdr-app"
+        xdg="$case_dir/$mode/xdg.. home"
+        explicit_dir="$case_dir/$mode/explicit home"
+        for dir in "$default_dir" "$xdg/herdr-app" "$explicit_dir"; do
+            seed_owned "$dir"
+            printf 'personal settings: %s\n\n' "$dir" >"$dir/settings.json"
+        done
+        case "$mode" in
+            xdg-only|empty-herdr)
+                dir="$xdg/herdr-app"; other1="$default_dir"; other2="$explicit_dir"
+                ;;
+            explicit-precedence)
+                dir="$explicit_dir"; other1="$default_dir"; other2="$xdg/herdr-app"
+                ;;
+            *)
+                dir="$default_dir"; other1="$xdg/herdr-app"; other2="$explicit_dir"
+                ;;
+        esac
+        cp "$dir/settings.json" "$case_dir/$mode/original"
+        before="$(owned_snapshot "$dir")"
+        other_before="$(snapshot_tree "$other1"; snapshot_tree "$other2")"
+        output="$(
+            unset HERDR_APP_HOME XDG_CONFIG_HOME
+            case "$mode" in
+                xdg-only) export XDG_CONFIG_HOME="$xdg" ;;
+                explicit-precedence) export HERDR_APP_HOME="$explicit_dir" XDG_CONFIG_HOME="$xdg" ;;
+                empty-herdr) export HERDR_APP_HOME="" XDG_CONFIG_HOME="$xdg" ;;
+                empty-xdg) export XDG_CONFIG_HOME="" ;;
+                empty-both) export HERDR_APP_HOME="" XDG_CONFIG_HOME="" ;;
+                unset-both) ;;
+            esac
+            replace_settings "$platform" "$home"
+        )"
+        [ -L "$dir/settings.json" ] || fail "$platform selected the wrong config home: $mode"
+        assert_link "$dir"
+        assert_saved "$platform" "$home" "$dir" "$case_dir/$mode/original"
+        [ "$before" = "$(owned_snapshot "$dir")" ] || fail "$platform changed app-owned files: $mode"
+        [ "$other_before" = "$(snapshot_tree "$other1"; snapshot_tree "$other2")" ] ||
+            fail "$platform changed an overridden config home: $mode"
+        if [ "$platform" = mac ]; then
+            case "$output" in
+                *"desktop Herdr App settings link: $dir/settings.json"*) ;;
+                *) fail "Mac reported the wrong config home: $mode" ;;
+            esac
+        fi
+    done
+}
+
 test_custom_and_unsafe_homes() {
-    local platform="$1" case_dir="$tmp/$1-homes" home dir before output status unsafe_home override_home backups
+    local platform="$1" case_dir="$tmp/$1-homes" home dir before output status unsafe_home override_home backups expected_error
     home="$case_dir/home"
     dir="$case_dir/custom home"
     mkdir -p "$home"
@@ -325,7 +380,13 @@ test_custom_and_unsafe_homes() {
     backups="$(backup_paths "$platform" "$home" "$dir")"
     for unsafe_home in "$home/.config/herdr-app" "$home/.config/herdr-app/" \
         "$home/.config/herdr-app/." "$home/.config/herdr-app/./" \
-        "$home/.config/herdr-app/././/" "$home/.config/herdr-app//.///./"; do
+        "$home/.config/herdr-app/././/" "$home/.config/herdr-app//.///./" \
+        "$home/.config/herdr-app/layouts/.." "$home/.config/herdr-app/layouts/../." \
+        "$home/.config/herdr-app/layouts/../mods/.."; do
+        case "/$unsafe_home/" in
+            */../*) expected_error='config home must not contain parent-directory (..) components' ;;
+            *) expected_error='config home must be a real directory' ;;
+        esac
         status=0
         output="$(HERDR_APP_HOME="$unsafe_home" replace_settings "$platform" "$home" 2>&1)" || status=$?
         [ "$status" -ne 0 ] || fail "$platform accepted a symlinked desktop config directory: ${unsafe_home#"$home"}"
@@ -334,7 +395,7 @@ test_custom_and_unsafe_homes() {
         [ "$before" = "$(snapshot_tree "$dir")" ] || fail "$platform wrote through an app-owned directory link"
         [ "$backups" = "$(backup_paths "$platform" "$home" "$dir")" ] || fail "$platform backed up settings through an app-owned directory link"
         case "$output" in
-            *'config home must be a real directory'*) ;;
+            *"$expected_error"*) ;;
             *) fail "$platform did not explain unsafe desktop config home" ;;
         esac
     done
@@ -361,7 +422,7 @@ test_root_home_spellings() (
 )
 
 for platform in mac linux pi codespaces; do
-    for test in initial_and_preserved read_only_and_skip replacement_edges custom_and_unsafe_homes; do
+    for test in initial_and_preserved read_only_and_skip replacement_edges config_home_precedence custom_and_unsafe_homes; do
         "test_$test" "$platform"
         printf 'ok %s %s\n' "$platform" "$test"
         passed=$((passed + 1))

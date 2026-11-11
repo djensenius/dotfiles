@@ -30,7 +30,7 @@ herdr_app_backup_settings() {
 link_herdr_app_settings() {
     local repo="$1" replace="${2:-true}" runner="${3:-command}"
     local backup="${4:-herdr_app_backup_settings}"
-    local dir="${HERDR_APP_HOME:-$HOME/.config/herdr-app}" source target
+    local dir="${HERDR_APP_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr-app}" source target
     HERDR_APP_SETTINGS_CHANGED=false
     # Strip trailing slash/current-directory components lexically: resolving
     # the path would hide the config-home symlink that the -L guard must reject.
@@ -51,7 +51,14 @@ link_herdr_app_settings() {
     case "$dir" in
         /*) ;;
         *)
-            printf 'herdr-app: HERDR_APP_HOME must be an absolute path\n' >&2
+            printf 'herdr-app: config home must be an absolute path (HERDR_APP_HOME or XDG_CONFIG_HOME)\n' >&2
+            return 1
+            ;;
+    esac
+    # Parent traversal can conceal a directory symlink even after suffix cleanup.
+    case "/$dir/" in
+        */../*)
+            printf 'herdr-app: config home must not contain parent-directory (..) components; use a direct absolute path: %s\n' "$dir" >&2
             return 1
             ;;
     esac

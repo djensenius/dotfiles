@@ -381,13 +381,16 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 #### Herdr App
 
 The [desktop Herdr App](https://github.com/herdrdev/herdr-app) is separate from
-the TUI above: it uses `~/.config/herdr-app`, not `herdr/config.toml`. All four
-installers (macOS, Linux, Raspberry Pi and Codespaces) link only
+the TUI above: its default home is `~/.config/herdr-app`, not `herdr/config.toml`.
+All four installers (macOS, Linux, Raspberry Pi and Codespaces) link only
 [`herdr-app/settings.json`](herdr-app/settings.json) inside a **real directory**.
 `keys.json`, generated `AGENTS.md`/`.d.ts` files, shipped layouts/mods and runtime
 state stay app-owned and unmanaged. An existing directory symlink or non-directory
 config home is refused unchanged; make it a real directory before retrying.
-Set `HERDR_APP_HOME` to an absolute path to use a different desktop config home.
+Like the app, installers use nonempty `HERDR_APP_HOME` first, otherwise
+`$XDG_CONFIG_HOME/herdr-app` when `XDG_CONFIG_HOME` is nonempty, otherwise
+`~/.config/herdr-app`. Empty overrides fall through. Override paths must be
+absolute, without parent-directory (`..`) components; use a direct path instead.
 
 The settings retain zoom `1.0`, enabled sounds and minimum contrast `1.0`, and
 select **Monaspace Neon Var** with `font_ligatures: true`. Monaspace is already
