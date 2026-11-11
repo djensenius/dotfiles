@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T03:16:00Z'
+updated_date: '2026-11-11T03:21:00Z'
 labels:
   - herdr
   - desktop
@@ -25,10 +25,10 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Tracked desktop settings select Monaspace Neon Var and enable font_ligatures while retaining existing zoom, sounds and minimum_contrast preferences; no unsupported font-face, weight, fallback or OpenType keys are added and existing default size is preserved.
-- [ ] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
-- [ ] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
-- [ ] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
-- [ ] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
+- [x] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
+- [x] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
+- [x] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
+- [x] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -73,12 +73,46 @@ Review fix round 1 evidence (P2):
 Reopened from local approval because actual PR #506 CI run 42949033670 (ShellCheck 0.11.0, one file per invocation) fails SC2329 for test timing callbacks at lines 90/91; prior combined eight-file lint was not CI-faithful. Copilot review 5853122864 comments 4533409495 and 4533409539 identify missing XDG_CONFIG_HOME fallback and a parent-traversal symlink-home bypass via linked_home/layouts/... followed by a parent component. Full evidence was read from /Users/david/.copilot/session-state/90f940df-55c2-48ce-bfc4-2d5274852701/files/herdr-fonts-ci-copilot-round-1.txt. Coordinator independently verified the app home precedence on every OS. AC2/3/4/5 temporarily unchecked for this bounded fix round.
 
 CI/Copilot regression evidence on unchanged production helper f402f6c: individual managed ShellCheck 0.11.0 exited 1 with SC2329 at focused-test lines 90/91. Added parent-traversal tests first; focused suite exited 1 after the first three Mac cases with: not ok mac accepted a symlinked desktop config directory: /.config/herdr-app/layouts/... (the final component was literal ..). Added XDG matrix next; unchanged production code exited 1 with: not ok mac selected the wrong config home: xdg-only. Both red runs verified production helper had no diff from f402f6c before running. Fix now follows verified HERDR_APP_HOME > XDG_CONFIG_HOME/herdr-app > HOME/.config/herdr-app nonempty precedence; rejects whole .. path components lexically before any target writes; retains suffix/root handling. All four actual installer paths now assert six empty/unset/precedence combinations, byte-preserving backups and untouched losing config homes; unsafe tests cover layouts/.., layouts/../. and layouts/../mods/.. with unchanged referent, directory link and backup list. Mac reporting now names the selected XDG-aware target. Temporary-home Mac/Linux/Pi/focused harnesses clear ambient config-home overrides. A first callback-export attempt deterministically still failed standalone SC2329; minimal stdin probes showed the lint checks subshell-local definitions even through a setup function. Final structure loads source-safe Codespaces definitions once with disposable HOME and declares the timing callbacks at harness top level, preserving actual link_files execution without ignores or check changes. Current focused output: Herdr App settings tests: 21 passed, 0 failed. CI-faithful one-file-per-invocation ShellCheck 0.11.0 and bash -n passed all nine PR-touched shell files; git diff --check PASS. No YAML/TOML/Brewfile changes. Remaining before finalization: normal fix commit, final directly affected harness checks including ambient-override isolation, and objective task evidence.
+
+Final CI/Copilot round evidence on normal implementation commit a0baf1d89afa9b72f50e3e2b88738c2405d3a6d0 (required Co-authored-by and Copilot-Session trailers present):
+- Exact pre-fix parent-traversal failure: not ok mac accepted a symlinked desktop config directory: /.config/herdr-app/layouts/..
+- Exact pre-fix XDG failure: not ok mac selected the wrong config home: xdg-only
+- Initial individual ShellCheck 0.11.0 exited 1 with SC2329 at focused-test lines 90/91; the intermediate export-only attempt also failed deterministically. Final callback setup fixes declaration lifetime rather than suppressing lint. Nine individual file invocations now pass: herdr-app/tests/install-settings-test.sh, install.sh, linux/install.sh, linux/tests/install-linux-test.sh, mac/install.sh, mac/tests/install-mac-test.sh, pi/install.sh, pi/tests/install-herdr-fish-cleanup.sh, scripts/lib/herdr-app-settings.sh. Actual summary: Individual shell syntax/ShellCheck: 9 files passed. All nine bash -n checks passed too. This supersedes the earlier combined-context lint evidence; remote CI on the old pushed head still needs a coordinator push/new exact-head run.
+- Final standalone focused suite and final existing CI-registered Mac runner both printed:
+ok mac initial_and_preserved
+ok mac read_only_and_skip
+ok mac replacement_edges
+ok mac config_home_precedence
+ok mac custom_and_unsafe_homes
+ok linux initial_and_preserved
+ok linux read_only_and_skip
+ok linux replacement_edges
+ok linux config_home_precedence
+ok linux custom_and_unsafe_homes
+ok pi initial_and_preserved
+ok pi read_only_and_skip
+ok pi replacement_edges
+ok pi config_home_precedence
+ok pi custom_and_unsafe_homes
+ok codespaces initial_and_preserved
+ok codespaces read_only_and_skip
+ok codespaces replacement_edges
+ok codespaces config_home_precedence
+ok codespaces custom_and_unsafe_homes
+ok root_home_spellings
+Herdr App settings tests: 21 passed, 0 failed
+- Final bash mac/tests/install-mac-test.sh: ok install-mac tests passed; Ambient config overrides untouched PASS (mac).
+- Final bash linux/tests/install-linux-test.sh: install-linux tests passed; Ambient config overrides untouched PASS (linux).
+- Final bash pi/tests/install-herdr-fish-cleanup.sh: exit 0, all three cases invoked (not skipped; the script has no native success line); Ambient config overrides untouched PASS (pi).
+- Each final platform harness was invoked with nonempty HERDR_APP_HOME and XDG_CONFIG_HOME pointing to its own disposable empty directories; the wrapper asserted no files/subdirectories appeared there. Mac retained its real-HOME read-only guard.
+- Managed jq-1.8.2 exact-object assertion returned true. Original preferences/font/ligatures are retained with no font_size, ui_font or unsupported keys. git diff --check PASS. TUI, Brewfile, workflows and managed tool configuration unchanged PASS against supplied main base.
+- AC2/3: all four actual installer paths cover six config-home precedence/empty/unset combinations, untouched nonwinning homes, actual repository settings links, byte-preserving backups and app-owned sentinels. Parent components are rejected with an actionable direct-absolute-path error before target writes/backups; layouts/.., layouts/../. and layouts/../mods/.. preserve the directory symlink, referent snapshot and backup inventory. Existing safe override/root, read-only/skip/force/idempotency cases still pass.
+- AC5: README and Pi README now describe exact app-compatible nonempty override precedence, defaults and parent-component refusal, while retaining ownership/font-limit/layout/adoption guidance. Helper interface is unchanged: link_herdr_app_settings REPO_ROOT [REPLACE=true] [RUNNER=command] [BACKUP=herdr_app_backup_settings]. Default helper backups remain collision-safe adjacent settings.json.backup(.N); native Mac/Pi installer callbacks are unchanged.
+- No push, workflow/policy change, package bootstrap, app-source edit or live config write in this round. Same-reviewer re-review of the new head, coordinator push/Copilot replies and re-review, exact-head green CI, merge/stable-checkout update and final live file-only adoption remain coordinator follow-ups.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Implemented desktop Monaspace Neon Var and enabled ligatures using only supported existing settings, preserving personal preferences and the installed default size. All four installers now manage only settings.json in a real desktop config home with byte-preserving backups, safe modes, HERDR_APP_HOME support, and unchanged unrelated force behavior. Added 16 cross-platform production-path regression cases through existing CI plus concise ownership/font-limit/adoption documentation. Final affected installer suites, shell syntax/ShellCheck, exact JSON, YAML and whitespace checks passed. Six stricter jactionlint policy findings are confirmed pre-existing on the unchanged base workflow and left out of scope. Implementation: 22b210eac9b828a9d0d1b6e3db3c087810f37ba9; docs: 304542ef4c02a943069e9c6689780537b76c5974. Stable-checkout/live symlink adoption and reviewer/PR remain the coordinator responsibility; worker did not touch live config or Herdr App source.
-
-Review fix round 1: addressed the local P2 with lexical trailing-dot/slash normalization before symlink refusal. Regression was proven to fail against the unchanged reviewed helper, then all 17 focused cases and eight-file shell syntax/managed ShellCheck passed on f3f22f2383013ae629c3b79eb20c64c852d4865f. Linked-home suffix variants now fail without changing referents or backups; supported real overrides and root handling remain covered. This round changes only the helper/tests plus task metadata; same-reviewer re-review and PR/live adoption are pending coordinator action.
+TASK-33 implementation is complete. Desktop font/ligature settings and file-only ownership remain intact across all four installers. CI/Copilot fix a0baf1d89afa9b72f50e3e2b88738c2405d3a6d0 honors nonempty HERDR_APP_HOME, then XDG_CONFIG_HOME/herdr-app, then HOME/.config/herdr-app; rejects whole parent-directory components without resolving away symlinks; and moves Codespaces timing callbacks into source-safe test setup so standalone CI lint passes. Added all-four-installer precedence and traversal regressions and isolated ambient overrides in temporary-home harnesses; related docs and Mac reporting are accurate. Pre-fix defects were reproduced. Final focused results: 21 passed, 0 failed. Individual ShellCheck 0.11.0 plus syntax passed nine files; final Mac/Linux/Pi harnesses and disposable ambient-isolation assertions passed; jq exact-object assertion returned true; diff/TUI/dependency/workflow checks passed unchanged. Helper signature/backups are unchanged. No push, app-source change or live config write. Coordinator owns same-reviewer re-review, PR #506 push/Copilot/comment handling, exact-head CI gate, merge/stable update and live adoption.
 <!-- SECTION:FINAL_SUMMARY:END -->
