@@ -32,9 +32,14 @@ link_herdr_app_settings() {
     local backup="${4:-herdr_app_backup_settings}"
     local dir="${HERDR_APP_HOME:-$HOME/.config/herdr-app}" source target
     HERDR_APP_SETTINGS_CHANGED=false
-    # A trailing slash must not hide a config-home symlink from the -L guard.
-    while [ "$dir" != / ] && [ "${dir%/}" != "$dir" ]; do
-        dir="${dir%/}"
+    # Strip trailing slash/current-directory components lexically: resolving
+    # the path would hide the config-home symlink that the -L guard must reject.
+    while [ "$dir" != / ]; do
+        case "$dir" in
+            */.) dir="${dir%.}" ;;
+            */) dir="${dir%/}" ;;
+            *) break ;;
+        esac
     done
     source="$repo/herdr-app/settings.json"
     target="$dir/settings.json"

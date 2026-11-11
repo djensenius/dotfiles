@@ -295,7 +295,7 @@ test_replacement_edges() {
 }
 
 test_custom_and_unsafe_homes() {
-    local platform="$1" case_dir="$tmp/$1-homes" home dir before output status unsafe_home
+    local platform="$1" case_dir="$tmp/$1-homes" home dir before output status unsafe_home override_home backups
     home="$case_dir/home"
     dir="$case_dir/custom home"
     mkdir -p "$home"
@@ -309,14 +309,30 @@ test_custom_and_unsafe_homes() {
     [ "$before" = "$(owned_snapshot "$dir")" ] || fail "$platform changed custom-home app files"
     [ ! -e "$home/.config/herdr-app" ] || fail "$platform ignored HERDR_APP_HOME"
 
+    before="$(snapshot_tree "$dir")"
+    for override_home in "$dir/." "$dir/././/"; do
+        output="$(HERDR_APP_HOME="$override_home" replace_settings "$platform" "$home")"
+        assert_link "$dir"
+        [ "$before" = "$(snapshot_tree "$dir")" ] || fail "$platform changed a real dot-suffixed config home"
+    done
+
+    # Keep personal bytes at the referent so a bypass would replace settings,
+    # rather than merely report an already-correct settings link.
+    rm "$dir/settings.json"
+    cp "$case_dir/original" "$dir/settings.json"
     ln -s "$dir" "$home/.config/herdr-app"
     before="$(snapshot_tree "$dir")"
-    for unsafe_home in "$home/.config/herdr-app" "$home/.config/herdr-app/"; do
+    backups="$(backup_paths "$platform" "$home" "$dir")"
+    for unsafe_home in "$home/.config/herdr-app" "$home/.config/herdr-app/" \
+        "$home/.config/herdr-app/." "$home/.config/herdr-app/./" \
+        "$home/.config/herdr-app/././/" "$home/.config/herdr-app//.///./"; do
         status=0
         output="$(HERDR_APP_HOME="$unsafe_home" replace_settings "$platform" "$home" 2>&1)" || status=$?
-        [ "$status" -ne 0 ] || fail "$platform accepted a symlinked desktop config directory"
+        [ "$status" -ne 0 ] || fail "$platform accepted a symlinked desktop config directory: ${unsafe_home#"$home"}"
         [ -L "$home/.config/herdr-app" ] || fail "$platform replaced an app-owned directory link"
+        [ "$(readlink "$home/.config/herdr-app")" = "$dir" ] || fail "$platform retargeted an app-owned directory link"
         [ "$before" = "$(snapshot_tree "$dir")" ] || fail "$platform wrote through an app-owned directory link"
+        [ "$backups" = "$(backup_paths "$platform" "$home" "$dir")" ] || fail "$platform backed up settings through an app-owned directory link"
         case "$output" in
             *'config home must be a real directory'*) ;;
             *) fail "$platform did not explain unsafe desktop config home" ;;
@@ -330,6 +346,20 @@ test_custom_and_unsafe_homes() {
     [ "$(cat "$home/.config/herdr-app")" = 'not a directory' ] || fail "$platform replaced a non-directory config home"
 }
 
+test_root_home_spellings() (
+    # Isolate the helper and give it a no-write runner even if dry-run regresses.
+    for root_home in / // /. /./ /././/; do
+        output="$(HOME="$tmp/root-home" HERDR_APP_HOME="$root_home" DRY_RUN=true bash -c '
+            source "$1/scripts/lib/herdr-app-settings.sh"
+            link_herdr_app_settings "$1" true false
+        ' _ "$TEST_REPO")" || fail "root config home was rejected: $root_home"
+        case "$output" in
+            *"would link //settings.json -> "*) ;;
+            *) fail "root config home was not preserved: $root_home" ;;
+        esac
+    done
+)
+
 for platform in mac linux pi codespaces; do
     for test in initial_and_preserved read_only_and_skip replacement_edges custom_and_unsafe_homes; do
         "test_$test" "$platform"
@@ -337,6 +367,9 @@ for platform in mac linux pi codespaces; do
         passed=$((passed + 1))
     done
 done
+test_root_home_spellings
+printf 'ok root_home_spellings\n'
+passed=$((passed + 1))
 cmp -s "$ROOT/herdr-app/settings.json" "$TEST_REPO/herdr-app/settings.json" || fail 'installer changed tracked desktop settings'
 cmp -s "$ROOT/herdr/config.toml" "$TEST_REPO/herdr/config.toml" || fail 'installer changed tracked TUI config'
 printf 'Herdr App settings tests: %s passed, 0 failed\n' "$passed"
