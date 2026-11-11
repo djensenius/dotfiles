@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T01:49:00Z'
+updated_date: '2026-11-11T01:57:00Z'
 labels:
   - herdr
   - desktop
@@ -38,10 +38,14 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 2. Add a narrow shared file-link helper, using installer-relative repository sources, HERDR_APP_HOME when set, byte-preserving collision-safe backups, real config directories and safe refusal of directory symlinks. Wire it into macOS/Linux/Pi/Codespaces with existing dry-run/check/skip policies; retain unrelated force behavior and native macOS/Pi backup locations.
 3. Extend the existing macOS/Linux harnesses and add a focused Pi/Codespaces/shared regression harness exercising the actual installer paths in temporary homes. Make Codespaces function definitions source-safe for bounded testing, without running bootstrap/software installation, and register the focused suite in existing shell CI.
 4. Document desktop/TUI separation, file ownership, installer/backup behavior, layout precedence and v0.1.15 font limits. Run focused suites, shell syntax/ShellCheck, JSON assertions and required YAML/workflow checks; append evidence, commit logical changes with the requested trailers, and finalize TASK-33 with live adoption explicitly pending.
+
+CI registration refinement: invoke the new cross-platform desktop suite from the already-CI-registered macOS test runner, rather than editing workflow YAML. Seed desktop settings links in existing fully-configured macOS fixtures; keep their whole-home snapshots and drift assertions intact.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Research confirmed no current desktop integration; macOS uses manifest plus special link rules and read-only counters, Linux leaves existing targets unless forced, Pi force deletes unrelated targets, and Codespaces executes bootstrap on source today. Implementation will preserve those unrelated semantics. The coordinator verified installed v0.1.15 font support and atomic-write symlink preservation; Herdr App source, existing Monaspace casks and live ~/.config are outside this worker change. Unsafe desktop directory links/non-directories will be left intact with an actionable error instead of migrating app-owned files.
+
+Implemented the settings file and shared file-only link path for all four installers. The isolated suite passed all 16 named platform/scenario cases. Diagnosed initial test failure as macOS /var versus /private/var fixture-path spelling; canonicalized the fixture root while retaining the exact source-link assertion. Removed callback-only adapters and renamed the test repository variable to resolve ShellCheck static-analysis findings without ignores. Shell syntax (8 files), managed ShellCheck (8 files), exact JSON assertion and yamllint passed. Existing macOS suite exposed a newly incomplete fixture: its no-adopt whole-home snapshot now legitimately gains the new desktop link. Will seed the newly required configured state rather than exclude it. Default jactionlint reported six existing workflow policy findings (concurrency, timeout, permissions, two unpinned actions, checkout credentials), not new-step errors; retain existing workflow and register tests through its existing macOS runner. Live settings/font adoption remains solely the coordinator responsibility.
 <!-- SECTION:NOTES:END -->
