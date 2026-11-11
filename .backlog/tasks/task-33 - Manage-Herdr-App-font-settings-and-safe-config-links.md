@@ -1,11 +1,11 @@
 ---
 id: TASK-33
 title: Manage Herdr App font settings and safe config links
-status: Done
+status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T02:34:00Z'
+updated_date: '2026-11-11T03:03:00Z'
 labels:
   - herdr
   - desktop
@@ -25,10 +25,10 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Tracked desktop settings select Monaspace Neon Var and enable font_ligatures while retaining existing zoom, sounds and minimum_contrast preferences; no unsupported font-face, weight, fallback or OpenType keys are added and existing default size is preserved.
-- [x] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
-- [x] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
-- [x] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
-- [x] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
+- [ ] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
+- [ ] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
+- [ ] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
+- [ ] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -42,6 +42,8 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 CI registration refinement: invoke the new cross-platform desktop suite from the already-CI-registered macOS test runner, rather than editing workflow YAML. Seed desktop settings links in existing fully-configured macOS fixtures; keep their whole-home snapshots and drift assertions intact.
 
 Review fix round 1 (P2 on HEAD 1e1ff8d28969d3342dd599c5478e478d817bd0df): extend the existing four-installer unsafe-home assertions to cover trailing /. and repeated dot/slash spellings, and run them before changing the helper to prove the gap. Then normalize only trailing slash/current-directory components lexically, without resolving symlinks, retaining absolute root and ordinary override handling. Verify refusal and unchanged referent/backups through all four actual installer paths, plus safe read-only root spelling coverage; run the focused suite, affected bash syntax/managed ShellCheck and diff checks, commit normally, and record final evidence before Done.
+
+CI/Copilot round 1 on PR #506, reviewed HEAD f402f6c4835853a8db5f0fa8220f5411134e73f1: reproduce standalone ShellCheck 0.11.0 and add parent-traversal/XDG actual-installer regressions before helper changes. Make the Codespaces timing callbacks statically reachable without ignores or check changes. Select the app home using nonempty HERDR_APP_HOME, then nonempty XDG_CONFIG_HOME/herdr-app, then HOME/.config/herdr-app; isolate ambient overrides in temporary-home test harnesses. Reject every parent-directory component before filesystem changes, retaining safe lexical suffix/root behavior. Update only related default/override documentation and reporting. Run focused regressions, individually lint all PR-touched shell files as CI does, syntax checks and any directly affected harness checks; make one normal fix commit with required trailers, then finalize with exact evidence. No workflow/TOML/Brewfile, app source, live config, push or unrelated policy changes.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
@@ -67,6 +69,8 @@ Review fix round 1 evidence (P2):
 - Final focused suite on that commit printed each of the 16 existing platform/scenario passes plus ok root_home_spellings and Herdr App settings tests: 17 passed, 0 failed. All four actual installer paths reject six linked-home spellings (plain, trailing slash, /., /./, /././/, and //.///./); assertions preserve the directory link target, personal settings bytes, all referent state and the backup inventory. Real override paths with spaces and trailing dot/slash variants still succeed unchanged. Root /, //, /., /./ and /./.// are tested read-only in an isolated shell with a false/no-write command runner.
 - Final validation output: Shell syntax: 8 files passed; ShellCheck: 8 files passed; Review-round diff whitespace: passed; Unrelated installers, settings, TUI, Brewfile and workflows: unchanged. An initial two-file lint invocation lacked the Codespaces source context; the full eight-file source set resolved the callback-only diagnostics. The new in-process root probe also exposed a HOME subshell-analysis diagnostic, so the probe was isolated in its own shell with an explicit scratch HOME and no-write runner. No lint ignores, assertion removals or timeout changes were added.
 - Only the shared helper, focused test and CLI-managed TASK-33 metadata changed in this round. No YAML, JSON, installer-policy, app-source or live-config changes; no jactionlint policy work, push, PR or merge. Broader suites were not rerun because the focused suite exercises every affected production installer path. Same-reviewer re-review and stable/live adoption remain coordinator follow-ups.
+
+Reopened from local approval because actual PR #506 CI run 42949033670 (ShellCheck 0.11.0, one file per invocation) fails SC2329 for test timing callbacks at lines 90/91; prior combined eight-file lint was not CI-faithful. Copilot review 5853122864 comments 4533409495 and 4533409539 identify missing XDG_CONFIG_HOME fallback and a parent-traversal symlink-home bypass via linked_home/layouts/... followed by a parent component. Full evidence was read from /Users/david/.copilot/session-state/90f940df-55c2-48ce-bfc4-2d5274852701/files/herdr-fonts-ci-copilot-round-1.txt. Coordinator independently verified the app home precedence on every OS. AC2/3/4/5 temporarily unchecked for this bounded fix round.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
