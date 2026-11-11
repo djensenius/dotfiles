@@ -1,7 +1,7 @@
 ---
 id: TASK-33
 title: Manage Herdr App font settings and safe config links
-status: In Progress
+status: Done
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
