@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@pi-worker'
 created_date: '2026-11-11T01:45:00Z'
-updated_date: '2026-11-11T02:28:00Z'
+updated_date: '2026-11-11T02:33:00Z'
 labels:
   - herdr
   - desktop
@@ -25,9 +25,9 @@ The desktop Herdr App has a separate settings home from Herdr TUI and currently 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Tracked desktop settings select Monaspace Neon Var and enable font_ligatures while retaining existing zoom, sounds and minimum_contrast preferences; no unsupported font-face, weight, fallback or OpenType keys are added and existing default size is preserved.
-- [ ] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
-- [ ] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
-- [ ] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
+- [x] #2 macOS, Linux, Raspberry Pi and Codespaces setup manage only the desktop settings.json file within a real herdr-app config directory, without changing TUI config, keys, generated files or runtime state.
+- [x] #3 Link replacement preserves existing desktop settings in a backup, is idempotent on rerun, targets the persistent repository path, and honors each installer applicable dry-run, check, force and skip-links behavior without destructive replacement of app-owned state.
+- [x] #4 Focused existing-suite tests cover initial linking, preserved existing settings and app files, reruns, and relevant read-only or skip modes; applicable shell, JSON and workflow checks pass.
 - [x] #5 Documentation explains desktop versus TUI settings, file-level ownership and installation, supported Monaspace and ligature behavior, layout precedence and unsupported advanced face or feature mappings.
 <!-- AC:END -->
 
@@ -60,10 +60,19 @@ Final objective evidence on committed source/docs 304542ef4c02a943069e9c66897805
 Both manual implementation/documentation commits include the requested Co-authored-by and Copilot-Session trailers. No push, PR, merge, app source change, package bootstrap or live config write was performed by this worker. Permanent live adoption remains pending coordinator review and arrival in the stable checkout; coordinator may independently enable the live font first. App-side writes preserve the eventual symlink and may dirty the tracked settings target.
 
 Reopened for the persisted local reviewer REQUEST CHANGES report at /Users/david/.copilot/session-state/90f940df-55c2-48ce-bfc4-2d5274852701/files/herdr-fonts-review-1.txt. One actionable P2: HERDR_APP_HOME ending in /., unlike a trailing slash alone, hides a directory symlink from the leaf -L guard. Scope is strictly that path-spelling defect and regression tests; installer policies, YAML/jactionlint policies, font settings, live config and Herdr App source remain unchanged. AC2/3/4 temporarily unchecked until the new evidence is collected.
+
+Review fix round 1 evidence (P2):
+- Added the new regression before changing the helper. git diff --exit-code against reviewed HEAD 1e1ff8d28969d3342dd599c5478e478d817bd0df confirmed the helper was unchanged; the focused suite exited 1 with: not ok mac accepted a symlinked desktop config directory: /.config/herdr-app/.
+- Committed the bounded helper/test fix as f3f22f2383013ae629c3b79eb20c64c852d4865f, including the requested Co-authored-by and Copilot-Session trailers. Trailing slash/current-directory components are normalized lexically; no symlinks are resolved away.
+- Final focused suite on that commit printed each of the 16 existing platform/scenario passes plus ok root_home_spellings and Herdr App settings tests: 17 passed, 0 failed. All four actual installer paths reject six linked-home spellings (plain, trailing slash, /., /./, /././/, and //.///./); assertions preserve the directory link target, personal settings bytes, all referent state and the backup inventory. Real override paths with spaces and trailing dot/slash variants still succeed unchanged. Root /, //, /., /./ and /./.// are tested read-only in an isolated shell with a false/no-write command runner.
+- Final validation output: Shell syntax: 8 files passed; ShellCheck: 8 files passed; Review-round diff whitespace: passed; Unrelated installers, settings, TUI, Brewfile and workflows: unchanged. An initial two-file lint invocation lacked the Codespaces source context; the full eight-file source set resolved the callback-only diagnostics. The new in-process root probe also exposed a HOME subshell-analysis diagnostic, so the probe was isolated in its own shell with an explicit scratch HOME and no-write runner. No lint ignores, assertion removals or timeout changes were added.
+- Only the shared helper, focused test and CLI-managed TASK-33 metadata changed in this round. No YAML, JSON, installer-policy, app-source or live-config changes; no jactionlint policy work, push, PR or merge. Broader suites were not rerun because the focused suite exercises every affected production installer path. Same-reviewer re-review and stable/live adoption remain coordinator follow-ups.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
 Implemented desktop Monaspace Neon Var and enabled ligatures using only supported existing settings, preserving personal preferences and the installed default size. All four installers now manage only settings.json in a real desktop config home with byte-preserving backups, safe modes, HERDR_APP_HOME support, and unchanged unrelated force behavior. Added 16 cross-platform production-path regression cases through existing CI plus concise ownership/font-limit/adoption documentation. Final affected installer suites, shell syntax/ShellCheck, exact JSON, YAML and whitespace checks passed. Six stricter jactionlint policy findings are confirmed pre-existing on the unchanged base workflow and left out of scope. Implementation: 22b210eac9b828a9d0d1b6e3db3c087810f37ba9; docs: 304542ef4c02a943069e9c6689780537b76c5974. Stable-checkout/live symlink adoption and reviewer/PR remain the coordinator responsibility; worker did not touch live config or Herdr App source.
+
+Review fix round 1: addressed the local P2 with lexical trailing-dot/slash normalization before symlink refusal. Regression was proven to fail against the unchanged reviewed helper, then all 17 focused cases and eight-file shell syntax/managed ShellCheck passed on f3f22f2383013ae629c3b79eb20c64c852d4865f. Linked-home suffix variants now fail without changing referents or backups; supported real overrides and root handling remain covered. This round changes only the helper/tests plus task metadata; same-reviewer re-review and PR/live adoption are pending coordinator action.
 <!-- SECTION:FINAL_SUMMARY:END -->
