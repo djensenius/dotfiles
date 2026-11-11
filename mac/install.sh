@@ -33,6 +33,8 @@ MISE_OWNED_HOMEBREW_FORMULAE=(
 # common.sh is shellchecked on its own; CI runs shellcheck without -x.
 # shellcheck source=mac/lib/common.sh disable=SC1091
 . "$MAC_DIR/lib/common.sh"
+# shellcheck source=scripts/lib/herdr-app-settings.sh disable=SC1091
+. "$DOTFILES_DIR/scripts/lib/herdr-app-settings.sh"
 
 ALL_SECTIONS=(preflight brew links mise herdr-plugins tmux nvim agent-stack shell)
 
@@ -45,7 +47,7 @@ Usage: ./install-mac [OPTIONS]
 Runs, in order:
   preflight       Darwin, Xcode Command Line Tools, Homebrew present
   brew            Homebrew bundle from mac/Brewfile (and apps with --apps)
-  links           Dotfile links from mac/links.txt plus gh/herdr/gitconfig rules
+  links           Dotfile links from mac/links.txt plus gh/herdr/herdr-app/gitconfig rules
   mise            mise trust, then mise install (never upgrade); --check probes missing tools
   herdr-plugins   Install only missing Herdr plugins from herdr/plugins.txt
   tmux            Clone TPM if missing, then run TPM install_plugins
@@ -207,7 +209,7 @@ backup_dir() {
 }
 
 backup_path() {
-    local target="$1" rel dest root suffix base_dest dest_parent
+    local target="$1" preserve_contents="${2:-false}" rel dest root suffix base_dest dest_parent
     rel="${target#"$HOME"/}"
     if [ "$rel" = "$target" ]; then
         rel="$(basename "$target")"
@@ -231,7 +233,12 @@ backup_path() {
         fail "failed to create backup parent $(pretty_path "$dest_parent")"
         return 1
     fi
-    if ! mv "$target" "$dest"; then
+    if $preserve_contents; then
+        if ! herdr_app_backup_to "$target" "$dest"; then
+            fail "failed to back up $(pretty_path "$target") to $(pretty_path "$dest")"
+            return 1
+        fi
+    elif ! mv "$target" "$dest"; then
         fail "failed to back up $(pretty_path "$target") to $(pretty_path "$dest")"
         return 1
     fi
@@ -590,6 +597,16 @@ install_gitconfig() {
     fi
 }
 
+install_herdr_app_settings() {
+    if ! link_herdr_app_settings "$DOTFILES_DIR" true command backup_path; then
+        fail "failed to link desktop Herdr App settings; app-owned files left alone"
+        return 1
+    fi
+    if $HERDR_APP_SETTINGS_CHANGED; then
+        change "desktop Herdr App settings link: ${HERDR_APP_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr-app}/settings.json"
+    fi
+}
+
 install_links() {
     section "links"
     ensure_real_dir "$HOME/.config"
@@ -599,6 +616,7 @@ install_links() {
     cleanup_ghostty_dangling_link
     install_gitconfig
     process_links_manifest
+    install_herdr_app_settings
 }
 
 preflight() {

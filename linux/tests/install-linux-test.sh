@@ -4,6 +4,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$DIR/../.." && pwd)"
 INSTALLER="$REPO_ROOT/linux/install.sh"
+unset HERDR_APP_HOME XDG_CONFIG_HOME
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/install-linux.XXXXXX")"
 cleanup() {
@@ -263,6 +264,8 @@ PRETTY_NAME="Debian Test"'
     [ -d "$home/.config/herdr" ] && [ ! -L "$home/.config/herdr" ] || fail 'Herdr config directory is not a real directory'
     assert_symlink_to "$home/.config/herdr/config.toml" "$REPO_ROOT/herdr/config.toml"
     assert_symlink_to "$home/.config/herdr/scripts" "$REPO_ROOT/herdr/scripts"
+    [ -d "$home/.config/herdr-app" ] && [ ! -L "$home/.config/herdr-app" ] || fail 'Desktop Herdr App config directory is not real'
+    assert_symlink_to "$home/.config/herdr-app/settings.json" "$REPO_ROOT/herdr-app/settings.json"
 }
 
 run_mise_links_global_config_and_installs_from_home() {

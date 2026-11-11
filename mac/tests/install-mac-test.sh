@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ORIGINAL_HOME="${HOME:-}"
+unset HERDR_APP_HOME XDG_CONFIG_HOME
 
 fail_test() {
     printf 'not ok %s\n' "$*" >&2
@@ -55,6 +56,9 @@ snapshot_real_home() {
         .config/herdr/plugins \
         .config/herdr/plugins.json \
         .config/herdr/sessions \
+        .config/herdr-app \
+        .config/herdr-app/settings.json \
+        .config/herdr-app/keys.json \
         .tmux/plugins/tpm \
         .local/bin/tmux-background-install-indicator.sh \
         .local/bin/herdr-fish; do
@@ -101,6 +105,9 @@ EOF
     cp "$ROOT/gitignore_local" "$repo/gitignore_local"
     cp "$ROOT/vale.ini" "$repo/vale.ini"
     mkdir -p "$repo/herdr" "$repo/gh" "$repo/gh-dash" "$repo/gopod" "$repo/scripts" "$repo/mise"
+    mkdir -p "$repo/herdr-app" "$repo/scripts/lib"
+    cp "$ROOT/herdr-app/settings.json" "$repo/herdr-app/settings.json"
+    cp "$ROOT/scripts/lib/herdr-app-settings.sh" "$repo/scripts/lib/herdr-app-settings.sh"
     printf 'repo gh config\n' >"$repo/gh/config.yml"
     printf 'repo gh-dash config\n' >"$repo/gh-dash/config.yml"
     printf 'repo gopod config\n' >"$repo/gopod/config.json"
@@ -401,6 +408,8 @@ test_gitconfig_real_file_without_adopt_reports_drift() {
     home="$tmp/home"
     manifest="$tmp/empty-links.txt"
     mkdir -p "$home/.config" "$home/.local/bin"
+    mkdir -p "$home/.config/herdr-app"
+    ln -s "$repo/herdr-app/settings.json" "$home/.config/herdr-app/settings.json"
     : >"$manifest"
     printf '[user]\n  name = Keep Me\n' >"$home/.gitconfig"
 
@@ -1220,6 +1229,8 @@ test_usage_errors_and_clean_full_check() {
     log="$tmp/fake.log"
     tpm="$home/.config/tmux/plugins/tpm"
     mkdir -p "$home/.config" "$home/.local/bin" "$tpm/bin" "$tpm/.git" "$home/.tmux/plugins"
+    mkdir -p "$home/.config/herdr-app"
+    ln -s "$repo/herdr-app/settings.json" "$home/.config/herdr-app/settings.json"
     printf '#!/usr/bin/env bash\n' >"$tpm/tpm"
     chmod +x "$tpm/tpm"
     : >"$manifest"
@@ -1423,6 +1434,7 @@ main() {
     test_check_exit_precedence_and_mise_probe
     test_legacy_herdr_plugin_and_invalid_tpm
     test_gitconfig_wrong_links_and_external_dir_links
+    bash "$ROOT/herdr-app/tests/install-settings-test.sh"
     real_home_after="$(snapshot_real_home)"
     test_real_home_guard "$real_home_before" "$real_home_after"
     printf 'ok install-mac tests passed\n'

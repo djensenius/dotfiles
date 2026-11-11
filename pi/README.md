@@ -51,6 +51,14 @@ Progress goes to the terminal; full command output goes to `~/install-pi.log`
 it would contain is already on the terminal — so previewing leaves nothing
 behind, including the real log.
 
+Step 3 also links only desktop [Herdr App settings](../README.md#herdr-app)
+inside a real directory. Like the app, it uses nonempty `HERDR_APP_HOME`, else
+`$XDG_CONFIG_HOME/herdr-app` when `XDG_CONFIG_HOME` is nonempty, else
+`~/.config/herdr-app`. Overrides must be absolute without `..` path components.
+This is separate from the Herdr TUI: keys, generated files, layouts/mods and
+runtime state stay unmanaged. Existing desktop settings are backed up even with
+`--force`; unrelated targets keep the existing force behavior.
+
 ## Options
 
 ```text
@@ -62,7 +70,7 @@ behind, including the real log.
 --skip-herdr    No herdr plugins
 --ai-tools      Install the full AI/coding-agent tooling stack after Pi setup
 --fish-shell    Make the mise-managed fish the login shell (chsh)
---force         Overwrite existing configs instead of backing them up
+--force         Overwrite existing configs (desktop Herdr App settings are always backed up)
 --dry-run       Print every action without doing it
 --yes, -y       No confirmation prompt
 --help, -h      Usage

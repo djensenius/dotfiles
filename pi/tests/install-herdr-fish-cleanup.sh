@@ -11,7 +11,7 @@ if [ "$(id -u)" -eq 0 ]; then
     printf 'install-pi herdr-fish cleanup test skipped: must not run as root\n'
     exit 0
 fi
-unset INSTALL_PI_LOG
+unset HERDR_APP_HOME XDG_CONFIG_HOME INSTALL_PI_LOG
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/install-pi-herdr-fish.XXXXXX")"
 cleanup() {

@@ -177,8 +177,8 @@ so machines that already link `~/.gitconfig` continue to commit after a pull.
 
 Repo-managed dotfiles are intended to keep working after a normal `git pull`.
 If a machine already has the repo links installed, linked files such as Fish,
-Neovim, tmux, Herdr scripts/config, GitHub CLI config, and `~/.gitconfig` update
-as soon as the clone updates. Machine-local state stays outside those links:
+Neovim, tmux, Herdr scripts/config, desktop Herdr App settings, GitHub CLI config,
+and `~/.gitconfig` update as soon as the clone updates. Machine-local state stays outside those links:
 Herdr and `gh` keep real config directories, secrets and credentials stay in
 local files such as `~/.gitconfig.local`, and installers back up drift before
 replacing repo-owned paths.
@@ -261,6 +261,8 @@ For local installation, most configurations can be symlinked to your `~/.config`
    ln -sfn ~/.dotfiles/herdr/scripts ~/.config/herdr/scripts
    ```
    Then install the plugins listed in the [herdr](#herdr) section below.
+   The separate desktop app uses only a
+   [settings.json file link](#herdr-app); do not link its whole directory.
 
 5. **Install required tools** (see [Applications](#applications) section for details)
 
@@ -375,6 +377,54 @@ Herdr is a terminal workspace manager for AI coding agents. Its config is a deli
 - **Directory**: `herdr/`
 - **Files**: `herdr/config.toml`, status/popup helpers, and the Kitty graphics diagnostic in `herdr/scripts/`
 - **Linking**: Herdr keeps live sockets, logs and session state in `~/.config/herdr`, and owns `~/.config/herdr/plugins` for its own managed checkouts, so the directory is *not* symlinked wholesale. The installers link `config.toml` and `scripts/` individually.
+
+#### Herdr App
+
+The [desktop Herdr App](https://github.com/herdrdev/herdr-app) is separate from
+the TUI above: its default home is `~/.config/herdr-app`, not `herdr/config.toml`.
+All four installers (macOS, Linux, Raspberry Pi and Codespaces) link only
+[`herdr-app/settings.json`](herdr-app/settings.json) inside a **real directory**.
+`keys.json`, generated `AGENTS.md`/`.d.ts` files, shipped layouts/mods and runtime
+state stay app-owned and unmanaged. An existing directory symlink or non-directory
+config home is refused unchanged; make it a real directory before retrying.
+Like the app, installers use nonempty `HERDR_APP_HOME` first, otherwise
+`$XDG_CONFIG_HOME/herdr-app` when `XDG_CONFIG_HOME` is nonempty, otherwise
+`~/.config/herdr-app`. Empty overrides fall through. Override paths must be
+absolute, without parent-directory (`..`) components; use a direct path instead.
+
+The settings retain zoom `1.0`, enabled sounds and minimum contrast `1.0`, and
+select **Monaspace Neon Var** with `font_ligatures: true`. Monaspace is already
+in the macOS Brewfile; on other hosts the font must be installed separately.
+For installed v0.1.15, only the primary family and ligature toggle are mapped:
+separate bold/italic families, Light weight, explicit fallback chains, line-height
+and custom OpenType feature keys are unsupported. `font_size` is omitted to
+preserve the installed **14px** default (terminal 15-point settings are not pixel
+sizes), and `ui_font` is left unset. A layout's own font settings override personal
+defaults; the `main` layout honors these defaults.
+
+Run installers from the persistent dotfiles clone so links target that clone,
+not a temporary worktree. macOS and Pi back up replaced settings under
+`~/.dotfiles-backup/<timestamp>/`; Linux and Codespaces use adjacent
+`settings.json.backup`, `.backup.1`, etc. Backups preserve the old bytes even
+when settings were a relative symlink. Linux leaves an existing settings file
+alone unless `--force` is given; Pi **always backs up desktop settings even with
+`--force`**, without changing that flag for unrelated configs. macOS
+`--dry-run`/`--check` and Linux/Pi `--dry-run` are read-only; skipping the links
+section (`--skip links` on macOS, `--skip-links` on Linux/Pi) skips desktop links.
+
+To adopt **only** desktop settings without running a bootstrap or repairing
+unrelated configs, from the persistent clone:
+
+```bash
+(
+  . ./scripts/lib/herdr-app-settings.sh
+  link_herdr_app_settings "$(pwd -P)"
+)
+```
+
+This helper also backs up existing settings (adjacent `.backup` files).
+App settings writes follow the file symlink and can dirty the tracked target;
+review `git diff -- herdr-app/settings.json` before pulling or committing.
 
 #### tmux → herdr keymap
 
@@ -887,6 +937,7 @@ The `install.sh` script is designed to set up and configure a development enviro
   - `kitty`
   - `rio`
   - `herdr/config.toml`, `herdr/scripts`
+  - `herdr-app/settings.json` only (desktop app; its directory/state are not linked)
 
 - If running within a GitHub Codespace, it links executables (e.g., `rubocop`, `srb`, `bundle`, `solargraph`, `safe-ruby`) to `/usr/local/bin` and updates locale settings.
 

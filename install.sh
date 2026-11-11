@@ -3,6 +3,9 @@
 
 # Check if parallel installation is requested
 PARALLEL_MODE=${PARALLEL_MODE:-true}
+DOTFILES_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/herdr-app-settings.sh disable=SC1091
+source "$DOTFILES_DIR/scripts/lib/herdr-app-settings.sh"
 
 # Help function
 show_help() {
@@ -23,46 +26,6 @@ show_help() {
     echo "  $0 --sequential       # Run in original sequential mode"
     echo "  PARALLEL_MODE=false $0  # Run in sequential mode via env var"
 }
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --parallel)
-            PARALLEL_MODE=true
-            shift
-            ;;
-        --sequential)
-            PARALLEL_MODE=false
-            shift
-            ;;
-        --help|-h)
-            show_help
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            echo "Use --help for usage information"
-            exit 1
-            ;;
-    esac
-done
-
-if [[ "$PARALLEL_MODE" == "true" ]]; then
-    # Source parallel installation framework
-    # shellcheck disable=SC1091
-    source "$(dirname "$0")/scripts/parallel-install.sh"
-    echo "🚀 Parallel installation mode enabled"
-else
-    # Original sequential mode
-    INSTALL_START_TIME=$(date +%s)
-    LOG_FILE=~/install.log
-    declare -A TIMING_DATA
-
-    # Initialize log file with header
-    echo "=== Dotfiles Installation Log ===" > $LOG_FILE
-    echo "Started: $(date)" >> $LOG_FILE
-    echo "" >> $LOG_FILE
-fi
 
 # Helper function to detect Codespaces environment
 is_codespaces() {
@@ -204,6 +167,9 @@ function link_files() {
     mkdir -p ~/.config/herdr ~/.local/bin
     ln -sf "$(pwd)/herdr/config.toml" ~/.config/herdr/config.toml
     ln -sfn "$(pwd)/herdr/scripts" ~/.config/herdr/scripts
+
+    # The desktop app owns everything in its real config home except settings.
+    link_herdr_app_settings "$DOTFILES_DIR" || return 1
 
     local legacy_herdr_fish_link="$HOME/.local/bin/herdr-fish"
     local legacy_herdr_fish_target
@@ -920,10 +886,55 @@ setup_herdr_plugins() {
     log_with_timing "Installing Herdr marketplace plugins" "$start_time"
 }
 
+# Define functions without starting bootstrap/logging when sourced by tests.
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+    return 0
+fi
+
+# Parse command line arguments before initializing the installation framework.
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --parallel)
+            PARALLEL_MODE=true
+            shift
+            ;;
+        --sequential)
+            PARALLEL_MODE=false
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+if [[ "$PARALLEL_MODE" == "true" ]]; then
+    # Source parallel installation framework
+    # shellcheck disable=SC1091
+    source "$(dirname "$0")/scripts/parallel-install.sh"
+    echo "🚀 Parallel installation mode enabled"
+else
+    # Original sequential mode
+    INSTALL_START_TIME=$(date +%s)
+    LOG_FILE=~/install.log
+    declare -A TIMING_DATA
+
+    # Initialize log file with header
+    echo "=== Dotfiles Installation Log ===" > $LOG_FILE
+    echo "Started: $(date)" >> $LOG_FILE
+    echo "" >> $LOG_FILE
+fi
+
 # shellcheck disable=SC2031
 echo '🔗 Starting file linking phase' >> "$LOG_FILE"
 link_files_start=$(date +%s)
-link_files
+link_files || exit 1
 log_with_timing "🔗 File linking phase" "$link_files_start"
 
 # shellcheck disable=SC2031

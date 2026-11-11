@@ -6,6 +6,8 @@ set -euo pipefail
 
 LINUX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$LINUX_DIR/.." && pwd)"
+# shellcheck source=scripts/lib/herdr-app-settings.sh disable=SC1091
+. "$DOTFILES_DIR/scripts/lib/herdr-app-settings.sh"
 
 DO_PACKAGES=true
 DO_LINKS=true
@@ -350,6 +352,9 @@ link_configs() {
     ensure_real_dir "$HOME/.config/herdr"
     link_config herdr/config.toml "$HOME/.config/herdr/config.toml"
     link_config herdr/scripts "$HOME/.config/herdr/scripts"
+
+    # Desktop Herdr App is separate from the TUI; own only its settings file.
+    link_herdr_app_settings "$DOTFILES_DIR" "$FORCE" as_user
 }
 
 install_mise() {
