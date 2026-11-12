@@ -3,8 +3,9 @@
 Execute ONE reconciliation tick for the repositories and objective explicitly
 authorized by the user. This text does not start a schedule. Before scheduling,
 the coordinator must record the authorized absolute repository paths, objective,
-dependency/task source, owned worktree/cache/log roots, any objective-scoped lock
-paths, and the returned schedule ID. Initialize a session registry of returned
+authoritative GitHub Issues/dependency links, owned worktree/cache/log roots,
+any objective-scoped lock paths, and the returned schedule ID.
+Initialize a session registry of returned
 agent/session IDs, assigned tasks, worktree paths, state and last consumed
 completion turn (empty at first). If authorization or this context is missing,
 ask; never substitute another project's paths.
@@ -14,10 +15,16 @@ ask; never substitute another project's paths.
    record its consumed turn and outcome, and do not replay it next tick.
    Do not invent SQL tables, IDs, tool arguments or repeatedly poll in this tick.
    Inspect failures yourself and give concrete root causes to the next worker.
-2. Refresh objective task/dependency state, branch/PR heads, exact-head review
-   and CI evidence. Integrate completed work only through the personal and
-   repository PR gates: local review, Copilot review after every push, all
-   feedback addressed/resolved, completed current-head review and exact-head
+2. Refresh authorized GitHub Issues and their explicit dependencies/sub-issues,
+   branch/PR heads, exact-head review and CI evidence. Search existing open
+   issues before creating work; do not use a parallel local task file/database
+   or invent a built-in SQL tasks table. The session registry is ephemeral
+   running-agent bookkeeping only. Comment progress, results and blockers on
+   the issue; keep it open until delivery is complete and let the coordinator
+   own finalization after merged delivery and canonical checks.
+   Integrate completed work only through the personal and
+   repository PR gates: exact-head local reviewer approval, Copilot review after
+   every push, all feedback addressed/resolved, completed current-head review and exact-head
    green checks, then head-guarded normal merge. Update and test main before
    launching dependent work. Head changes invalidate prior gates.
 3. Measure free disk on the worktree/build filesystem; target at least 15 GiB.
