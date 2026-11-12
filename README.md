@@ -638,8 +638,8 @@ optional `model` and `include-custom-instructions`) into `ai-tools/copilot/agent
 #### Persistent Copilot defaults
 
 Run `./ai-tools/install.sh` from the **stable canonical dotfiles checkout**
-after merging changes, never from a temporary task worktree. Personal assets
-are symlinked, not copied:
+after merging changes, never from a temporary task worktree. Instruction,
+prompt, and agent assets are symlinked, not copied:
 
 | Repository source | Personal destination under `${COPILOT_HOME:-$HOME/.copilot}` |
 | --- | --- |
@@ -658,6 +658,26 @@ installation keeps correct symlinks. Verify actual loaded sources with:
 ```bash
 copilot instruction list --json
 ```
+
+The nonsecret [Copilot settings defaults](ai-tools/copilot/settings.json) are
+deep-merged into `$COPILOT_HOME/settings.json` (default `~/.copilot/settings.json`),
+**not symlinked**. The validated atomic merge preserves unrelated personal keys,
+nested settings, hooks, and permission rules, and intentionally overwrites
+`defaultPermissionMode` with `allow-all`. New files are regular files with mode
+`0600`; existing file permission bits are preserved. Invalid/nonobject JSON
+fails without changing settings. Existing settings symlinks or other non-regular
+paths are refused and left unchanged; resolve them to a personal regular file
+before retrying. Personal values and secrets must not be committed to dotfiles.
+
+Copilot CLI 1.0.109 supports `defaultPermissionMode` values `manual`, `assisted`,
+and `allow-all`. This default applies to **new interactive sessions**, not the
+current session. Organization policy such as `disableBypass` and explicit
+deny/ask rules still apply; outside-sandbox operations always prompt.
+Noninteractive `-p`/autopilot execution may still require documented permission
+flags. This does not change organization permissions, trust directories, or set
+`COPILOT_ALLOW_ALL=true` (which would automatically trust the working directory).
+Permission mode does not authorize broader objectives or replace owner decisions,
+repository safeguards, or explicit 1Password approvals.
 
 The [personal defaults](ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md)
 cover bounded planning/research, appropriate fleets, persistent worktree sessions

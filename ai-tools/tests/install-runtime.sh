@@ -1363,6 +1363,127 @@ run_copilot_defaults_preservation() {
   printf '%s passed\n' "$name"
 }
 
+# Exercise the real JSON helper through a disposable runtime, without running
+# the rest of the installer or requiring a configured personal mise environment.
+run_copilot_defaults_fixture() {
+  local root="$1" source_dir="$2" home="${3:-}"
+  local runtime="$root/defaults-mise"
+
+  cat > "$runtime" <<'EOF'
+#!/bin/bash
+set -euo pipefail
+[ "$1" = "-C" ] && [ "$3" = "exec" ] &&
+  [ "$4" = "--" ] && [ "$5" = "node" ]
+shift 5
+exec "$RUNTIME_TEST_REAL_NODE" "$@"
+EOF
+  chmod 755 "$runtime"
+  env -i HOME="$root/home" PATH="$PATH" \
+    RUNTIME_TEST_REAL_NODE="$(command -v node)" \
+    /bin/bash -c "
+      source \"\$1\"
+      MISE_BIN=\"\$2\"
+      DIR=\"\$3\"
+      if [ -n \"\$4\" ]; then export COPILOT_HOME=\"\$4\"; fi
+      install_copilot_defaults
+    " bash "$INSTALLER" "$runtime" "$source_dir" "$home"
+}
+
+run_copilot_settings_merge() {
+  local name="copilot-settings-merge"
+  local root="$tmp/$name" output before
+  local home="$root/custom-copilot"
+  local settings="$home/settings.json"
+  local invalid
+
+  mkdir -p "$root/home"
+  output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)" ||
+    fail "$name missing settings activation failed: $output"
+  [ -f "$settings" ] && [ ! -L "$settings" ] ||
+    fail "$name did not create regular settings"
+  assert_json "$settings" \
+    'Object.keys(value).length === 1 && value.defaultPermissionMode === "allow-all"' \
+    "$name missing settings did not apply only the shared default"
+  node -e 'if ((require("fs").statSync(process.argv[1]).mode & 0o777) !== 0o600) process.exit(1)' \
+    "$settings" || fail "$name new settings permissions were not 0600"
+
+  cat > "$settings" <<'EOF'
+{
+  "defaultPermissionMode": "manual",
+  "localOnly": true,
+  "nested": {"keep": {"enabled": true}},
+  "hooks": {"preToolUse": [{"command": "synthetic-local-hook"}]},
+  "permissions": {"deny": ["shell(rm)"], "ask": ["shell(git push)"]},
+  "integration": {"herdr": {"enabled": true}}
+}
+EOF
+  chmod 640 "$settings"
+  output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)" ||
+    fail "$name existing settings activation failed: $output"
+  assert_json "$settings" \
+    'value.defaultPermissionMode === "allow-all" && value.localOnly === true && value.nested.keep.enabled === true && value.hooks.preToolUse[0].command === "synthetic-local-hook" && value.permissions.deny[0] === "shell(rm)" && value.permissions.ask[0] === "shell(git push)" && value.integration.herdr.enabled === true' \
+    "$name merge dropped personal values or did not overwrite the mode"
+  node -e 'if ((require("fs").statSync(process.argv[1]).mode & 0o777) !== 0o640) process.exit(1)' \
+    "$settings" || fail "$name existing settings permissions changed"
+  cp "$settings" "$root/settings-before.json"
+  before="$(node -p 'require("fs").statSync(process.argv[1]).ino' "$settings")"
+  output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)" ||
+    fail "$name repeat activation failed: $output"
+  case "$output" in
+    *"Copilot settings.json is up to date"*) ;;
+    *) fail "$name repeat activation did not report up to date" ;;
+  esac
+  cmp -s "$settings" "$root/settings-before.json" ||
+    fail "$name repeat activation changed settings"
+  [ "$before" = "$(node -p 'require("fs").statSync(process.argv[1]).ino' "$settings")" ] ||
+    fail "$name repeat activation replaced an up-to-date settings file"
+
+  for invalid in '{"synthetic-sensitive-value":' '[]' 'null' '"text"' '42'; do
+    printf '%s\n' "$invalid" > "$settings"
+    cp "$settings" "$root/settings-before.json"
+    if output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)"; then
+      fail "$name accepted invalid or nonobject settings"
+    fi
+    cmp -s "$settings" "$root/settings-before.json" ||
+      fail "$name mutated invalid settings"
+    case "$output" in
+      *"failed to merge Copilot settings.json; existing settings left unchanged"*) ;;
+      *) fail "$name did not report a safe settings error" ;;
+    esac
+    case "$output" in
+      *synthetic-sensitive-value*) fail "$name exposed parser input" ;;
+    esac
+  done
+
+  rm "$settings"
+  printf '{"localOnly":true}\n' > "$root/linked-settings.json"
+  ln -s "$root/linked-settings.json" "$settings"
+  if output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)"; then
+    fail "$name accepted symlinked settings"
+  fi
+  assert_symlink_to "$root/linked-settings.json" "$settings"
+  assert_count 1 '{"localOnly":true}' "$root/linked-settings.json"
+  rm "$root/linked-settings.json"
+  if output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)"; then
+    fail "$name accepted dangling settings symlink"
+  fi
+  assert_symlink_to "$root/linked-settings.json" "$settings"
+  assert_not_exists "$root/linked-settings.json"
+  rm "$settings"
+  mkdir "$settings"
+  if output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)"; then
+    fail "$name accepted settings directory"
+  fi
+  [ -d "$settings" ] || fail "$name replaced settings directory"
+  assert_symlink_to \
+    "$REPO_ROOT/ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md" \
+    "$home/instructions/dotfiles-coordinator.instructions.md"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/prompts/coordinator-tick.md" \
+    "$home/prompts/coordinator-tick.md"
+  assert_not_exists "$root/home/.copilot"
+  printf '%s passed\n' "$name"
+}
+
 run_copilot_default_home() {
   local name="copilot-default-home"
   local root="$tmp/$name" output
@@ -1381,13 +1502,14 @@ run_copilot_default_home() {
   assert_not_exists "$root/home/.config/copilot"
   # Source only the additive function with COPILOT_HOME genuinely unset. This
   # also verifies its usable isolated activation path without Pi installation.
-  output="$(env -i HOME="$root/home" PATH="$PATH" \
-    /bin/bash -c "source \"\$1\"; install_copilot_defaults" bash "$INSTALLER")" ||
+  output="$(run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools")" ||
     fail "$name unset COPILOT_HOME activation failed"
   case "$output" in
     *"dotfiles-coordinator.instructions.md is linked"*) ;;
     *) fail "$name unset COPILOT_HOME did not retain the default link" ;;
   esac
+  assert_json "$home/settings.json" 'value.defaultPermissionMode === "allow-all"' \
+    "$name unset COPILOT_HOME did not merge into the default home"
   assert_not_exists "$home/instructions/dotfiles-coordinator.instructions.md.backup"
   printf '%s passed\n' "$name"
 }
@@ -1401,7 +1523,10 @@ run_copilot_defaults_linked_parents() {
   local prompt="prompts/coordinator-tick.md"
   local asset attempt output
 
-  mkdir -p "$root/home" "$home" "$assets/instructions" "$assets/prompts"
+  mkdir -p "$root/home" "$home" "$assets/instructions" "$assets/prompts" \
+    "$root/repo/ai-tools/bin"
+  cp "$REPO_ROOT/ai-tools/copilot/settings.json" "$assets/settings.json"
+  cp "$REPO_ROOT/ai-tools/bin/merge-json.mjs" "$root/repo/ai-tools/bin/merge-json.mjs"
   # Disposable repository sources: never point a destructive regression at
   # the real checkout's instruction assets.
   for asset in "$instruction" "$prompt"; do
@@ -1411,9 +1536,7 @@ run_copilot_defaults_linked_parents() {
   ln -s "../repo/ai-tools/copilot/prompts" "$home/prompts"
 
   for attempt in 1 2; do
-    output="$(env -i HOME="$root/home" COPILOT_HOME="$home" PATH="$PATH" \
-      /bin/bash -c "source \"\$1\"; DIR=\"\$2\"; install_copilot_defaults" \
-      bash "$INSTALLER" "$root/repo/ai-tools" 2>&1)" ||
+    output="$(run_copilot_defaults_fixture "$root" "$root/repo/ai-tools" "$home" 2>&1)" ||
       fail "$name installation $attempt failed: $output"
     for asset in "$instruction" "$prompt"; do
       [ -f "$assets/$asset" ] && [ -r "$assets/$asset" ] && [ ! -L "$assets/$asset" ] ||
@@ -1429,6 +1552,8 @@ run_copilot_defaults_linked_parents() {
     done
     assert_symlink_to "$assets/instructions" "$home/instructions"
     assert_symlink_to "../repo/ai-tools/copilot/prompts" "$home/prompts"
+    assert_json "$home/settings.json" 'value.defaultPermissionMode === "allow-all"' \
+      "$name did not merge settings with linked instruction parents"
   done
   printf '%s passed\n' "$name"
 }
@@ -1442,6 +1567,7 @@ run_mcp_adapter_upgrade_migration
 run_symlink_preserves_local_files
 run_copilot_agents_directory_migration
 run_copilot_defaults_preservation
+run_copilot_settings_merge
 run_copilot_default_home
 run_copilot_defaults_linked_parents
 
