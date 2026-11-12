@@ -1,10 +1,11 @@
 ---
 id: TASK-34
 title: Persist Copilot orchestration and autonomous PR review defaults
-status: To Do
+status: In Progress
 assignee:
   - '@copilot-worker'
 created_date: '2026-11-12T17:19:00Z'
+updated_date: '2026-11-12T17:25:00Z'
 labels: []
 dependencies: []
 ordinal: 30000
