@@ -176,10 +176,39 @@ link_file() {
   ok "linked $(basename "$dst") -> $dst"
 }
 
-# Additive personal instructions: never replace copilot-instructions.md or
-# unrelated files. Install from the stable canonical checkout.
+validate_copilot_settings() {
+  local home="${COPILOT_HOME:-$HOME/.copilot}"
+
+  # The atomic helper replaces its destination, so do not pass it a symlink
+  # (including a dangling one) or another non-regular settings path.
+  if [ -L "$home/settings.json" ] ||
+    { [ -e "$home/settings.json" ] && [ ! -f "$home/settings.json" ]; }; then
+    die "Copilot settings.json must be a regular file; existing path left unchanged"
+  fi
+  if [ -f "$home/settings.json" ]; then
+    # Read-only preflight: integration tools must never see invalid personal
+    # JSON, and parser diagnostics must not expose personal input.
+    mise_exec node -e "
+      const fs = require('node:fs');
+      const value = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+        process.exit(1);
+      }
+    " "$home/settings.json" 2>/dev/null ||
+      die "invalid Copilot settings.json; existing settings left unchanged"
+  fi
+}
+
+# Merge personal settings and link additive instructions from the stable
+# canonical checkout; never replace unrelated personal values or instructions.
 install_copilot_defaults() {
   local home="${COPILOT_HOME:-$HOME/.copilot}"
+
+  validate_copilot_settings
+  # JSON parser diagnostics can contain personal input. Report only the label.
+  (merge_json_file "$DIR/copilot/settings.json" "$home/settings.json" \
+    "Copilot settings.json") 2>/dev/null ||
+    die "failed to merge Copilot settings.json; existing settings left unchanged"
 
   mkdir -p "$home/instructions" "$home/prompts"
   link_file "$DIR/copilot/instructions/dotfiles-coordinator.instructions.md" \
@@ -420,6 +449,9 @@ main() {
   node_version="$(mise_exec node -p 'process.versions.node')" ||
     die "mise-managed node is unavailable after installation"
   node_ok || die "mise-managed node >= $MIN_NODE is required (current: $node_version)"
+  # Preflight before any agent settings writer, including Herdr integration.
+  # Standalone defaults activation repeats this check.
+  validate_copilot_settings
   mise_exec npx --version >/dev/null || die "mise-managed npx is unavailable after installation"
   pi_version="$(mise_exec pi --version | head -n1)" ||
     die "mise-managed pi is unavailable after installation"
@@ -617,6 +649,8 @@ Copilot personal defaults are symlinked under:
   ${COPILOT_HOME:-$HOME/.copilot}/instructions/dotfiles-coordinator.instructions.md
   ${COPILOT_HOME:-$HOME/.copilot}/prompts/coordinator-tick.md
 Existing copilot-instructions.md and unrelated personal instructions are preserved.
+Copilot settings.json is merged, not symlinked: new interactive sessions default to allow-all.
+Organization policy and deny/ask rules still apply; outside-sandbox operations prompt.
 Install from your stable canonical dotfiles checkout, never a temporary worktree.
 Verify automatic discovery with: copilot instruction list --json
 Scheduling is opt-in: enable --experimental or /settings experimental on, then:

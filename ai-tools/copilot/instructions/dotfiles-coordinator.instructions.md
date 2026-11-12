@@ -8,6 +8,10 @@ scope, or behavior decisions belong to the user. Ask and record those decisions.
 Never bypass permission controls, weaken checks, discard dirty work, reset,
 rebase, force-push, or kill another agent's builds.
 
+The CLI's `allow-all` permission mode is not authorization to broaden the
+objective. Owner decisions, repository safeguards, and explicit approvals for
+1Password access still apply.
+
 ## Roles and proportional orchestration
 
 - The primary session coordinates nontrivial delivery: research, plan bounded
