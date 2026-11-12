@@ -193,7 +193,9 @@ backup_path_for() {
 link_file() {
   local src="$1" dst="$2" backup_path
 
-  if [ -L "$dst" ] && [ "$dst" -ef "$src" ]; then
+  # A symlinked parent can make even a regular destination the source itself.
+  # Check identity before removing or backing up anything.
+  if [ "$dst" -ef "$src" ]; then
     ok "$(basename "$dst") is linked"
     return
   fi

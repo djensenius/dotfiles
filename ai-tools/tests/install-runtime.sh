@@ -1414,6 +1414,47 @@ run_copilot_default_home() {
   printf '%s passed\n' "$name"
 }
 
+run_copilot_defaults_linked_parents() {
+  local name="copilot-defaults-linked-parents"
+  local root="$tmp/$name"
+  local home="$root/copilot-home"
+  local assets="$root/repo/ai-tools/copilot"
+  local instruction="instructions/dotfiles-coordinator.instructions.md"
+  local prompt="prompts/coordinator-tick.md"
+  local asset attempt output
+
+  mkdir -p "$root/home" "$home" "$assets/instructions" "$assets/prompts"
+  # Disposable repository sources: never point a destructive regression at
+  # the real checkout's instruction assets.
+  for asset in "$instruction" "$prompt"; do
+    cp "$REPO_ROOT/ai-tools/copilot/$asset" "$assets/$asset"
+  done
+  ln -s "$assets/instructions" "$home/instructions"
+  ln -s "../repo/ai-tools/copilot/prompts" "$home/prompts"
+
+  for attempt in 1 2; do
+    output="$(env -i HOME="$root/home" COPILOT_HOME="$home" PATH="$PATH" \
+      /bin/bash -c "source \"\$1\"; DIR=\"\$2\"; install_copilot_defaults" \
+      bash "$INSTALLER" "$root/repo/ai-tools" 2>&1)" ||
+      fail "$name installation $attempt failed: $output"
+    for asset in "$instruction" "$prompt"; do
+      [ -f "$assets/$asset" ] && [ -r "$assets/$asset" ] && [ ! -L "$assets/$asset" ] ||
+        fail "$name installation $attempt replaced the source with a self-link"
+      cmp -s "$REPO_ROOT/ai-tools/copilot/$asset" "$assets/$asset" ||
+        fail "$name installation $attempt changed source contents"
+      cmp -s "$REPO_ROOT/ai-tools/copilot/$asset" "$home/$asset" ||
+        fail "$name installation $attempt left unreadable personal instructions"
+      assert_not_exists "$assets/$asset.backup"
+      assert_not_exists "$assets/$asset.backup.1"
+      assert_not_exists "$home/$asset.backup"
+      assert_not_exists "$home/$asset.backup.1"
+    done
+    assert_symlink_to "$assets/instructions" "$home/instructions"
+    assert_symlink_to "../repo/ai-tools/copilot/prompts" "$home/prompts"
+  done
+  printf '%s passed\n' "$name"
+}
+
 run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
@@ -1424,5 +1465,6 @@ run_symlink_preserves_local_files
 run_copilot_agents_directory_migration
 run_copilot_defaults_preservation
 run_copilot_default_home
+run_copilot_defaults_linked_parents
 
 printf 'installer mise runtime tests passed\n'
