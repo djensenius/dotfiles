@@ -1,3 +1,5 @@
 {
-  "defaultPermissionMode": "allow-all"
+  "defaultPermissionMode": "allow-all",
+  "model": "auto",
+  "fusionTier": "high"
 }

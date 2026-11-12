@@ -662,8 +662,10 @@ copilot instruction list --json
 The nonsecret [Copilot settings defaults](ai-tools/copilot/settings.json) are
 deep-merged into `$COPILOT_HOME/settings.json` (default `~/.copilot/settings.json`),
 **not symlinked**. The validated atomic merge preserves unrelated personal keys,
-nested settings, hooks, and permission rules, and intentionally overwrites
-`defaultPermissionMode` with `allow-all`. New files are regular files with mode
+nested settings, hooks, and permission rules, and intentionally reapplies
+`defaultPermissionMode: "allow-all"`, `model: "auto"`, and `fusionTier: "high"`
+on every install. The model and tier select **Fusion High** for **new sessions**,
+not the currently running session. New files are regular files with mode
 `0600`; existing file permission bits are preserved. Invalid/nonobject JSON
 fails without changing settings. Existing settings symlinks or other non-regular
 paths are refused and left unchanged; resolve them to a personal regular file
