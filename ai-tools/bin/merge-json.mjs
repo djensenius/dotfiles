@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, statSync, writeFileSync, fsyncSync } from "node:fs";
+import { closeSync, existsSync, fchmodSync, mkdirSync, openSync, readFileSync, renameSync, statSync, writeFileSync, fsyncSync } from "node:fs";
 import { dirname, basename, join } from "node:path";
 import { randomBytes } from "node:crypto";
 
@@ -71,6 +71,8 @@ function writeAtomic(path, text, mode) {
   const file = openSync(temp, "wx", mode);
   try {
     writeFileSync(file, text, "utf8");
+    // Creation applies umask; restore the intended mode before publishing.
+    fchmodSync(file, mode);
     fsyncSync(file);
   } finally {
     closeSync(file);
