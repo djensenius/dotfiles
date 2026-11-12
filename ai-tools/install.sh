@@ -628,7 +628,7 @@ main() {
   rmdir "$LEGACY_PROFILE_DIR" "$PI_AGENT_DIR/herdr-subagents" 2>/dev/null || true
 
   mkdir -p "$BIN_DIR"
-  link_file "$DIR/bin/jev-route.mjs" "$BIN_DIR/jev-route"
+  link_file "$DIR/bin/jev-route" "$BIN_DIR/jev-route"
 
   if is_mac; then
     log "Installing xbuild"

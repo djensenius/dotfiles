@@ -174,10 +174,7 @@ async function main() {
   let advice;
   try {
     const args = parseArgs(process.argv.slice(2));
-    if (args.summary !== undefined && !process.stdin.isTTY) {
-      // Allow empty stdin (e.g. /dev/null), but reject two input sources.
-      if ((await stdinSummary()).length > 0) throw new Error("invalid");
-    }
+    // Explicit text is authoritative; do not read or wait for stdin EOF.
     const summary = args.summary ?? await stdinSummary();
     advice = await routeSummary(summary, { send: args.send });
   } catch {

@@ -694,9 +694,13 @@ never bypassed. No Copilot models or budgets are pinned.
 
 #### Optional Jev delegation advice
 
-The installer links [`jev-route`](ai-tools/bin/jev-route.mjs) into
-`${BIN_DIR:-$HOME/.local/bin}` on supported platforms; it requires Node 20+,
-has no package dependencies, and never executes agents. Use only when ambiguous
+The installer links the source-owned [`jev-route` launcher](ai-tools/bin/jev-route) into
+`${BIN_DIR:-$HOME/.local/bin}` on supported platforms. It runs the
+[Node 20+ helper](ai-tools/bin/jev-route.mjs) with this checkout's mise-managed
+runtime, not caller-PATH Node, even outside the checkout. Mise must be on PATH or
+in a standard bootstrap location (`~/.local/bin`, `/opt/homebrew/bin`, or
+`/usr/local/bin`); the launcher does not install or trust tools.
+It has no package dependencies and never executes agents. Use only when ambiguous
 delegation warrants a narrow semantic judgment, not for trivial/deterministic
 cases or cheap writing/planning/chat. Copilot remains the full LLM;
 [Jev is not a native Copilot `/model` replacement](https://docs.typesafe.ai/introduction/coding-agents.md).
@@ -717,7 +721,8 @@ out-of-band through an approved environment, for example with separately approve
 op run --environment <approved-id> -- jev-route --send --summary 'Review an existing synthetic change'
 ```
 
-Stdin is also supported, but cannot be combined with `--summary`. Missing/blank
+Stdin is supported when `--summary` is omitted. Explicit `--summary` is
+authoritative and ignores stdin without waiting for EOF. Missing/blank
 keys or unresolved `op://` references defer without a request. The helper sends
 one batched [Choice and companion Noul](https://docs.typesafe.ai/patterns/companion-noul.md)
 to pinned `jev-1.14.0`: suggest scout/planner/worker/reviewer only when both chosen

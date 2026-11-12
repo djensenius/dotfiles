@@ -1,0 +1,34 @@
+#!/bin/bash
+set -euo pipefail
+
+# Resolve the source-owned launcher, including relative installation symlinks.
+source_path="${BASH_SOURCE[0]}"
+while [ -L "$source_path" ]; do
+  source_dir="$(cd -P "$(dirname "$source_path")" && pwd)"
+  source_path="$(readlink "$source_path")"
+  case "$source_path" in
+    /*) ;;
+    *) source_path="$source_dir/$source_path" ;;
+  esac
+done
+DIR="$(cd -P "$(dirname "$source_path")" && pwd)"
+REPO_ROOT="$(cd "$DIR/../.." && pwd)"
+
+# Like the installer, use mise -C for this checkout's managed Node, never
+# caller-PATH Node. Standard bootstrap locations support unactivated shells.
+MISE_BIN="$(command -v mise || true)"
+if [ -z "$MISE_BIN" ]; then
+  for candidate in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+    if [ -x "$candidate" ]; then
+      MISE_BIN="$candidate"
+      break
+    fi
+  done
+fi
+if [ -z "$MISE_BIN" ]; then
+  printf '{"agent":null,"reason":"runtime_unavailable"}\n'
+  exit 1
+fi
+
+# exec preserves arguments, stdin and signal delivery; no installation/trust.
+exec "$MISE_BIN" -C "$REPO_ROOT" exec -- node "$DIR/jev-route.mjs" "$@"

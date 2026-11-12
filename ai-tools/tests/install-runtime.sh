@@ -187,6 +187,12 @@ case "$action" in
             printf 'exec:node migrate-mcp-adapter:%s\n' "$(basename "$2")" >> "$RUNTIME_TEST_LOG"
             "$RUNTIME_TEST_REAL_NODE" "$@"
             ;;
+          "$RUNTIME_TEST_REPO_ROOT/ai-tools/bin/jev-route.mjs")
+            # Real helper execution through the fixture's configured managed
+            # Node, which is deliberately absent from caller PATH.
+            printf 'exec:node jev-route\n' >> "$RUNTIME_TEST_LOG"
+            exec "$RUNTIME_TEST_REAL_NODE" "$@"
+            ;;
           *)
             fail "unexpected node arguments: $*"
             ;;
@@ -514,6 +520,22 @@ assert_no_runtime_markers() {
   done
 }
 
+run_installed_jev() {
+  local root="$1" caller_path="$2"
+  shift 2
+  local real_node
+  real_node="$(command -v node)"
+  (
+    cd "$root/outside"
+    env -i HOME="$root/home" PATH="$caller_path" \
+      RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
+      RUNTIME_TEST_REAL_NODE="$real_node" \
+      RUNTIME_TEST_LOG="$root/mise.log" \
+      RUNTIME_TEST_MARKERS="$root/markers" \
+      "$root/local-bin/jev-route" "$@"
+  )
+}
+
 assert_no_agent_stack_mutations() {
   local name="$1" root="$2" package_source
 
@@ -760,13 +782,25 @@ JSON
   assert_no_backlog_tracking "$second_output" "$root/mise.log"
   assert_contains "ruleset requiring CI before merge" "$first_output"
 
-  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route.mjs" "$root/local-bin/jev-route"
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route" "$root/local-bin/jev-route"
   assert_contains "linked jev-route" "$first_output"
   assert_contains "jev-route is linked" "$second_output"
   assert_not_exists "$root/local-bin/jev-route.backup"
-  [ "$(env -i PATH="$PATH" "$root/local-bin/jev-route" \
+  mkdir -p "$root/outside" "$root/old-bin" "$root/home/.local/bin"
+  ln -s "$root/system-bin/mise" "$root/home/.local/bin/mise"
+  cp "$root/home/.local/share/mise/shims/node" "$root/old-bin/node"
+  [ "$(run_installed_jev "$root" "$root/common-bin" \
     --summary 'Review an existing synthetic change')" = '{"agent":null,"reason":"dry_run"}' ] ||
-    fail "$name installed jev-route did not execute a real offline dry run"
+    fail "$name outside-checkout dry run failed without caller Node or mise on PATH"
+  [ "$(run_installed_jev "$root" "$root/old-bin:$root/system-bin:$root/common-bin" \
+    --dry-run --summary 'Review an existing synthetic change')" = '{"agent":null,"reason":"dry_run"}' ] ||
+    fail "$name outside-checkout dry run selected old caller Node"
+  [ "$(printf 'Synthetic review task' | run_installed_jev "$root" "$root/common-bin" \
+    --dry-run)" = '{"agent":null,"reason":"dry_run"}' ] ||
+    fail "$name launcher did not preserve stdin"
+  assert_count 3 "exec:node jev-route" "$log"
+  assert_no_runtime_markers "$name" "$root"
+  printf '%s installed-jev managed-runtime outside-checkout/no-node/old-node/stdin passed\n' "$name"
 
   if [ "$system_name" = "Darwin" ]; then
     cmp -s "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild" ||
@@ -1255,14 +1289,14 @@ JSON
   assert_contains "moved existing reviewer.md aside -> $root/pi-agent/agents/reviewer.md.backup" "$output"
   assert_contains "moved existing catppuccin-footer.json aside -> $root/pi-agent/catppuccin-footer.json.backup" "$output"
   assert_no_runtime_markers "$name" "$root"
-  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route.mjs" "$root/local-bin/jev-route"
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route" "$root/local-bin/jev-route"
   assert_contains "local routing helper" "$root/local-bin/jev-route.backup.1"
   assert_contains "existing routing backup" "$root/local-bin/jev-route.backup"
   if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
     cat "$output" >&2
     fail "$name routing helper rerun failed"
   fi
-  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route.mjs" "$root/local-bin/jev-route"
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route" "$root/local-bin/jev-route"
   assert_not_exists "$root/local-bin/jev-route.backup.2"
   assert_contains "jev-route is linked" "$output"
 }

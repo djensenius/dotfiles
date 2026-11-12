@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { routeSummary } from "../bin/jev-route.mjs";
 
@@ -211,11 +211,38 @@ test("CLI text/stdin are dry by default, malformed inputs are generic, import is
     ["--summary", "🌱".repeat(4097)],
   ]) fallback(cli(args), "invalid_input");
   fallback(cli([], "🌱".repeat(4097)), "invalid_input");
-  fallback(cli(["--summary", summary], summary), "invalid_input");
+  fallback(cli(["--summary", summary], "🌱".repeat(4097)), "dry_run");
   const imported = spawnSync(process.execPath, ["--input-type=module", "-e",
     `globalThis.fetch = () => { throw new Error("unexpected fetch"); }; await import(${JSON.stringify(helper.href)});`,
   ], { encoding: "utf8", timeout: 2000 });
   assert.equal(imported.status, 0);
   assert.equal(imported.stdout, "");
   assert.equal(imported.stderr, "");
+});
+
+test("explicit summary and malformed arguments exit while stdin remains open", async () => {
+  const helper = new URL("../bin/jev-route.mjs", import.meta.url);
+  for (const [args, reason] of [
+    [["--summary", summary, "--dry-run"], "dry_run"],
+    [["--summary", summary, "--send", "--dry-run"], "invalid_input"],
+  ]) {
+    const child = spawn(process.execPath, [helper.pathname, ...args], {
+      env: { PATH: process.env.PATH }, timeout: 2000,
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8").on("data", (text) => { stdout += text; });
+    child.stderr.setEncoding("utf8").on("data", (text) => { stderr += text; });
+    // Intentionally never send EOF: explicit arguments must not consume stdin.
+    child.stdin.write("Synthetic stdin that must be ignored.");
+    const [code, signal] = await new Promise((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", (exitCode, exitSignal) => resolve([exitCode, exitSignal]));
+    });
+    child.stdin.destroy();
+    assert.equal(signal, null, "CLI waited for stdin EOF until subprocess timeout");
+    assert.equal(code, 0);
+    assert.equal(stderr, "");
+    fallback(JSON.parse(stdout), reason);
+  }
 });
