@@ -6,16 +6,16 @@
   do not recursively delegate or own PR delivery. The coordinator plans and
   delegates; it does not edit source files itself.
 - Break work into small, independent tasks with clear acceptance criteria, and
-  track them in Backlog.md (see "Backlog.md task workflow" below).
+  track them in GitHub Issues (see "GitHub Issues workflow" below).
 - Use scout/explore/research to investigate before assigning implementation;
   use planner/rubber-duck for uncertain plans and fleet only for safe independent
   work, not every tool for trivial tasks. When a worker gets stuck, look at the
   failure yourself (test logs, result bundles,
   screenshots) and hand the next worker concrete root causes, not "try again".
 - Use `worker` subagents for implementation. Before each worker, create a
-  persistent branch and worktree named after the task
+  persistent branch and worktree named after the issue
   (fetch `origin/main`, then
-  `git worktree add ../sample-repo-task-12 -b task-12-short-slug origin/main`).
+  `git worktree add ../sample-repo-issue-508 -b issue-508-short-slug origin/main`).
   Give the worker the absolute worktree path and require shell commands to
   start with `cd` there. Pi supports `cwd`; Copilot's task tool does not.
   Copilot `/new worktree` or `/fork worktree` sessions are also available.
@@ -33,16 +33,16 @@
 - Each worker commits in logical steps (never amends) and reports the branch,
   full 40-character commit SHA, files, and the checks it ran with their actual
   output lines (per-test pass/fail for test suites), not just "passed".
-- After each worker finishes, start a reviewer/code-review on that branch/commit
-  with the task spec. Copilot reviewers use read-only shell inspection; Pi
+- After each worker finishes, start a reviewer/code-review on the full 40-character
+  head SHA with the issue spec. Copilot reviewers use read-only shell inspection; Pi
   reviewers must fetch every `review_git` output page. Push the branch
-  and open a PR only on APPROVE or APPROVE WITH NOTES. Save each review where
+  and open a PR only on APPROVE or APPROVE WITH NOTES for that exact head. Save each review where
   the next worker can read it, and send blocking items back in a fix round.
 - Never weaken a check to make it pass: no audit/test exclusions, no hiding
   content, no stand-in UI for audits, no raised timeouts without a diagnosed
   cause. Fix the cause or stop and ask the owner.
 - Product or scope decisions belong to the owner. Ask, record the answer in the
-  task, and keep a decision visible in docs when it changes behaviour.
+  issue, and keep a decision visible in docs when it changes behaviour.
 - Routine execution, feedback fixes and gated normal merges are autonomous
   within the authorized repositories/objective. Never bypass permissions,
   reset/rebase/force-push, discard dirty work or silently broaden scope.
@@ -58,24 +58,23 @@
 - After the PR merges, update the main checkout and run the checks before
   starting any dependent worker. Gate dependent work on the checks' exit codes,
   not on reading the output afterwards. A test that fails once and passes on
-  rerun is flaky: track it as a task and fix the cause.
+  rerun is flaky: track it as a GitHub Issue and fix the cause.
 - Infrastructure failures (simulator hangs, runner killed before connecting)
   get one rerun before you treat them as code failures; say which it was.
 
 ## Pull request workflow (all agents)
 Nothing reaches `main` directly. Every source change goes through a pull
 request:
-1. Work on the task branch (`task-12-short-slug`); task status changes ride in
-   the same branch.
+1. Work on the issue branch (`issue-508-short-slug`).
 2. The coordinator pushes the branch and opens a PR titled
-   `task-12: Short title` that names the Backlog task and lists the checks run.
+   `issue508: Short title` with `Closes #508` and the checks run in its body.
 3. After EVERY push, the coordinator requests/re-requests Copilot review using
    GraphQL `requestReviewsByLogin` with the PR node ID and
    `botLogins: ["copilot-pull-request-reviewer"]`, never a stale hardcoded bot ID.
    Inspect every review/comment/thread page; fix findings or respond with
    concrete reasoning and resolve all feedback. Push fixes and repeat local
    checks/review and current-head Copilot review until satisfied. Findings about
-   unchanged code become To Do follow-up Backlog tasks, not silent scope changes.
+   unchanged code become follow-up GitHub Issues, not silent scope changes.
 4. Immediately before merge, freshly verify the full PR head SHA, a completed
    Copilot review recorded on that exact commit, satisfactory addressed feedback,
    no unresolved threads/outstanding change requests and all relevant
@@ -86,65 +85,39 @@ request:
    `gh pr merge --merge --match-head-commit <full-head-SHA>` (or the owner merges).
    No admin bypass or history rewriting. Update main by normal fast-forward/
    merge without discarding local changes, re-run checks successfully, then
-   remove only owned clean inactive merged task worktrees.
+   remove only owned clean inactive merged issue worktrees.
 
-## Backlog.md task workflow (all agents)
-Backlog.md (`.backlog/`) is the single source of truth for work. Initialize it
-with `backlog init --backlog-dir .backlog`, then run
-`backlog config set autoCommit true` and
-`backlog config set checkActiveBranches true`. Any GitHub Project mirrored by
-[backlog-sync](https://github.com/djensenius/backlog-sync) is the live board;
-`backlog board` on main catches up when PRs merge. Do not track work on GitHub
-except through triaged issues labelled `inbox`.
+## GitHub Issues workflow (all agents)
+GitHub Issues are the only authoritative work-tracking source for Copilot and
+Pi. Do not maintain a parallel local task file/database or mirrored task store.
+An ephemeral session registry may track running agents and consumed results;
+it is not a second task source.
 
-- At the start of a session run `backlog instructions overview`, and read
-  `backlog instructions task-creation`, `task-execution` or `task-finalization`
-  before creating, working on, or finishing tasks. Also check GitHub issues
-  labelled `inbox`, search for existing tasks first, triage each issue into a
-  task, then remove the label.
-- Always use the `backlog` CLI to read and change tasks, with `--plain` for
-  agent output (`--json` for scripts). Never create or edit files in `.backlog/`
-  directly. Pass task text with backticks as argv or single-quoted strings so the
-  shell doesn't run it.
-- Search first (`backlog search "words" --plain`) and don't create duplicates.
-  New tasks need a description that says why the work exists, testable
-  acceptance criteria (`--ac`), `--dep` for ordering, `-p` for subtasks, `-m`
-  for milestones, and `-a` when the owner is known. No implementation plan at
-  creation time.
-- Start a task from its own branch. In that branch's worktree, run
-  `backlog task edit task-12 -s "In Progress" -a @copilot-worker` (or `@pi-worker`
-  for Pi), then research the code and record a short plan with `--plan` before
-  writing code.
-- Put the task ID in the branch name and PR title (`task-12-short-slug`,
-  `task-12: Short title`). Nested IDs keep every segment (`task-1.2.7-slug`).
-- Task changes are auto-committed on the branch you run the CLI on. Once a task
-  is In Progress, make every further change (plan, notes, checked criteria,
-  final summary, Done) from its worktree, so it reaches main with the merge.
-  Don't edit that task on main while its branch is open: `task list` and
-  `task view` read only the current checkout, `backlog board` lets the current
-  checkout's copy win, and `updated_date` has minute resolution, so edits on
-  main can mask the branch's state. If a merge conflicts only in a `.backlog/`
-  task file, keep the branch's version.
-- While working, use `--append-notes`. Do not add out-of-scope work, create a
-  follow-up task, or start a follow-up task without the owner's OK. Exception:
-  Copilot findings about unchanged code become To Do follow-up Backlog tasks.
-- When finished: verify each acceptance criterion with real evidence, check it
-  (`--check-ac 1`), add notes, write `--final-summary`, and set `Done` as the
-  branch's last task change. Leave criteria unchecked if they need evidence you
-  don't have yet.
-- If you're blocked, say so in the task notes, leave it `In Progress`, and tell
-  the owner (subagents tell the coordinator).
-- Refresh the CLI's managed instruction block with
-  `backlog agents --update-instructions`. It only rewrites the text between its
-  `BACKLOG.MD GUIDELINES` markers, so keep project rules outside them.
-
-Tracking repo variant: when work spans several code repos, Backlog.md can live
-in a separate meta repo that accepts direct task-state commits. Code repos stay
-PR-only. Point agents at the meta repo with `BACKLOG_CWD`, and use one Backlog
-project per code repo. In that variant, branch-based task rules do not apply:
-task status does not ride in code PRs, and there are no `.backlog/` conflicts
-where the code branch's version should win, because tasks live only in the
-tracking repo.
+- At session start, search existing open issues before creating work, for example
+  `gh issue list --state open --search "words"`. Read the relevant issue with
+  `gh issue view 508 --comments`. Reuse existing issues; `inbox` issues are
+  already issues, not inputs to another tracker. No labels, Projects or invented
+  assignees are required by this workflow.
+- Each issue describes why the work exists, testable acceptance criteria as
+  checkboxes, and a short implementation plan recorded after research and before
+  editing. Record explicit dependencies and use sub-issues for bounded subtasks;
+  cross-repository dependencies must use fully qualified issue links
+  (`https://github.com/owner/repo/issues/N`). Work only in authorized repositories.
+- Use an issue-named persistent branch/worktree (`issue-508-short-slug`, or
+  `issue-N-short-slug` for another issue). Existing branches for migrated work
+  may retain their names. Record the branch and PR in the issue.
+- Use issue comments for In Progress updates, decisions, progress, actual check
+  results and blockers. Keep the issue open until delivery is complete. Blocked
+  workers report to the coordinator; do not invent a required status label.
+- Do not add out-of-scope work or create/start follow-up issues without the
+  owner's OK. Exception: Copilot findings about unchanged code become follow-up
+  GitHub Issues, linked from the review with a concrete scope explanation.
+- Workers implement only their brief and report evidence; they do not own PR
+  delivery or close issues recursively. The coordinator verifies each acceptance
+  criterion with real evidence, records the final summary/results, and owns issue
+  finalization after merged delivery and successful canonical checks. Leave
+  criteria unchecked when evidence is missing. PRs use `Closes #508` (or the
+  appropriate fully qualified issue reference) to link merged delivery.
 
 ## Build and test rules (all agents)
 - Never call `xcodebuild` directly. Always use `xbuild` with the same arguments;

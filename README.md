@@ -815,36 +815,33 @@ cp ~/.dotfiles/ai-tools/templates/AGENTS.md ./AGENTS.md
 The repository template is deliberately opt-in, separate from automatically
 loaded personal defaults. It requires research before
 implementation, worktree workers, reviewer approval before opening a PR, PR-only
-source changes, task tracking in [Backlog.md](https://github.com/MrLesk/Backlog.md),
-and pushed task branches. Its coordinator rules support Copilot and Pi, keep
+source changes, GitHub Issues-only tracking,
+and pushed issue branches. Its coordinator rules support Copilot and Pi, keep
 delegated roles scoped, and use the same per-push review and exact-head merge
-gates as the personal defaults. Set up Backlog.md with:
+gates as the personal defaults.
 
-```bash
-brew install backlog-md
-backlog init --backlog-dir .backlog
-backlog config set autoCommit true
-backlog config set checkActiveBranches true
-backlog agents --update-instructions
-mkdir -p .github/instructions
-cp ~/.dotfiles/ai-tools/templates/backlog.instructions.md .github/instructions/
-```
+GitHub Issues are the only authoritative work-tracking source; no parallel local
+task files/databases or mirrored task stores. Search existing open issues before
+creating work (`gh issue list --state open --search "words"`) and reuse them,
+including `inbox` issues. Describe why, testable acceptance criteria and a plan
+after research; record explicit dependencies, sub-issues and fully qualified
+cross-repository issue links. Comment In Progress updates, decisions, results
+and blockers. No required labels, Projects or invented assignees are needed.
 
-Also include this two-line section in the repository's
-`.github/copilot-instructions.md`:
-
-```markdown
-## Backlog.md files
-Copilot code review must not review or comment on Backlog.md task files; `.github/instructions/backlog.instructions.md` owns the path rule.
-```
+Use persistent `issue-N-short-slug` branches/worktrees and PR titles such as
+`issue508: Short title`, with `Closes #508` in the body. Workers report evidence;
+the coordinator owns finalization after merged delivery and canonical checks,
+leaving unsupported criteria unchecked. Follow-up work needs owner approval,
+except unchanged-code Copilot findings, which become linked GitHub Issues.
 
 Land these setup files through a PR before relying on the workflow; Copilot reads
 instructions from the base branch. Enable automatic Copilot code review and a
 ruleset or branch protection that requires CI before merge.
 
-Optionally mirror `.backlog/` into a GitHub Project with
-[backlog-sync](https://github.com/djensenius/backlog-sync). The template's
-workflow section describes the PR, backlog board, and `inbox` triage rules.
+Scheduling remains opt-in: explicitly read the installed
+`$COPILOT_HOME/prompts/coordinator-tick.md` in an authorized experimental
+`/every [interval] [prompt]` session. It reconciles Issues/dependencies and an
+ephemeral running-agent registry; copying the template starts no schedule.
 
 On macOS, `xbuild` is a drop-in `xcodebuild` wrapper that serializes builds
 with the native `lockf` utility. Test runs default to two parallel workers and

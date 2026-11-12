@@ -123,48 +123,6 @@ node_ok() {
   ' "$MIN_NODE"
 }
 
-install_backlog_cli() {
-  if ! is_mac || ! has brew; then
-    return 0
-  fi
-
-  if has backlog; then
-    ok "backlog CLI is already installed"
-    return 0
-  fi
-
-  log "Installing Backlog.md CLI"
-  if HOMEBREW_NO_AUTO_UPDATE=1 \
-    HOMEBREW_NO_INSTALL_CLEANUP=1 \
-    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
-    brew install backlog-md; then
-    ok "installed backlog-md"
-  else
-    warn "failed to install backlog-md; continuing without the backlog CLI"
-  fi
-}
-
-install_backlog_sync() {
-  if ! is_mac || ! has brew; then
-    return 0
-  fi
-
-  if has backlog-sync; then
-    ok "backlog-sync is already installed"
-    return 0
-  fi
-
-  log "Installing backlog-sync"
-  if HOMEBREW_NO_AUTO_UPDATE=1 \
-    HOMEBREW_NO_INSTALL_CLEANUP=1 \
-    HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
-    brew install djensenius/tap/backlog-sync; then
-    ok "installed backlog-sync"
-  else
-    warn "failed to install backlog-sync; continuing without backlog-sync"
-  fi
-}
-
 sync_file() {
   local src="$1" dst="$2" mode="${3:-644}"
   if [ -f "$dst" ] && [ ! -L "$dst" ] && cmp -s "$src" "$dst"; then
@@ -648,9 +606,6 @@ main() {
     has xcodebuild || warn "xcodebuild is unavailable; install Xcode before using xbuild"
   fi
 
-  install_backlog_cli
-  install_backlog_sync
-
   cat <<EOF
 
 AI/coding-agent tools installed.
@@ -671,19 +626,14 @@ No schedule was started.
 
 Enable the coordinator workflow in a repository (land this setup through a PR,
 because Copilot reads instructions from the base branch):
-  # On non-Homebrew systems, install the Backlog.md CLI and backlog-sync first:
-  # npm i -g backlog.md
-  # Install backlog-sync from https://github.com/djensenius/backlog-sync
   cp "$DIR/templates/AGENTS.md" ./AGENTS.md
-  backlog init --backlog-dir .backlog
-  backlog config set autoCommit true
-  backlog config set checkActiveBranches true
-  backlog agents --update-instructions
-  mkdir -p .github/instructions
-  cp "$DIR/templates/backlog.instructions.md" .github/instructions/
-  # Add this two-line Backlog section to the repo's .github/copilot-instructions.md:
-  # ## Backlog.md files
-  # Copilot code review must not review or comment on Backlog.md task files; \`.github/instructions/backlog.instructions.md\` owns the path rule.
+  # GitHub Issues are the only authoritative work-tracking source.
+  # Search existing open issues before creating work; reuse issues without duplicates.
+  # Record why, testable acceptance criteria, a researched plan and explicit dependencies.
+  # Use sub-issues and fully qualified links for cross-repository dependencies.
+  # Comment progress, actual check results and blockers; keep issues open until delivery.
+  # Use issue-N branches and PR bodies with Closes #N; the coordinator owns finalization.
+  # Do not maintain a parallel local task file/database or mirrored task store.
   # Then enable automatic Copilot code review and a ruleset requiring CI before merge.
 
 Smoke test from Pi (ideally in a Herdr pane):
