@@ -25,3 +25,9 @@ The owner has switched from Pi to Copilot CLI and currently repeats agent orches
 - [ ] #4 Installation respects COPILOT_HOME, preserves unrelated personal instructions, remains idempotent, and retains Pi behavior; focused runtime tests and actual Copilot instruction discovery verify deployment.
 - [ ] #5 Shared and repository coordinator instructions plus README consistently explain the Copilot defaults and how to opt into scheduling without repeating the full prompt.
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Add role-aware personal Copilot coordinator defaults and an explicitly opt-in tick asset, using documented CLI commands and exact-head review/merge gates. 2. Link additive instructions and tick through the existing backup/idempotent helper without replacing personal top-level instructions; align root/template/README while retaining Pi and Backlog rules. 3. Extend isolated runtime fixtures for preservation, conflicts, repeat installs, default/overridden COPILOT_HOME and output; run syntax, available shellcheck, full runtime suite once and isolated actual Copilot discovery. 4. Record objective evidence and remaining post-merge canonical deployment, leave In Progress, and commit implementation with requested trailers.
+<!-- SECTION:PLAN:END -->
