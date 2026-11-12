@@ -6,6 +6,7 @@
 # Env:
 #   SKIP_HERDR_SKILL=1          Skip Herdr skill installation and migration.
 #   PI_CODING_AGENT_DIR=path    Override Pi's agent directory.
+#   COPILOT_HOME=path           Override Copilot's personal directory (~/.copilot).
 #   BIN_DIR=path                Override the wrapper installation directory.
 set -euo pipefail
 
@@ -213,6 +214,18 @@ link_file() {
     die "failed to link $(basename "$dst")"
   fi
   ok "linked $(basename "$dst") -> $dst"
+}
+
+# Additive personal instructions: never replace copilot-instructions.md or
+# unrelated files. Install from the stable canonical checkout.
+install_copilot_defaults() {
+  local home="${COPILOT_HOME:-$HOME/.copilot}"
+
+  mkdir -p "$home/instructions" "$home/prompts"
+  link_file "$DIR/copilot/instructions/dotfiles-coordinator.instructions.md" \
+    "$home/instructions/dotfiles-coordinator.instructions.md"
+  link_file "$DIR/copilot/prompts/coordinator-tick.md" \
+    "$home/prompts/coordinator-tick.md"
 }
 
 # Links the whole repository agents directory so new profiles are picked up
@@ -580,6 +593,8 @@ main() {
 
   log "Installing Copilot CLI custom agents"
   install_copilot_agents
+  log "Installing Copilot CLI personal defaults (schedule remains opt-in)"
+  install_copilot_defaults
 
   log "Installing repository-owned Pi extensions"
   mkdir -p "$PI_AGENT_DIR/extensions"
@@ -640,6 +655,17 @@ AI/coding-agent tools installed.
 
 Subagents extension (latest):
   $SUBAGENTS_SOURCE
+
+Copilot personal defaults are symlinked under:
+  ${COPILOT_HOME:-$HOME/.copilot}/instructions/dotfiles-coordinator.instructions.md
+  ${COPILOT_HOME:-$HOME/.copilot}/prompts/coordinator-tick.md
+Existing copilot-instructions.md and unrelated personal instructions are preserved.
+Install from your stable canonical dotfiles checkout, never a temporary worktree.
+Verify automatic discovery with: copilot instruction list --json
+Scheduling is opt-in: enable --experimental or /settings experimental on, then:
+  /every 10m Read ${COPILOT_HOME:-$HOME/.copilot}/prompts/coordinator-tick.md and execute one tick for the authorized repositories and objective recorded in this session.
+The tick file is explicitly read prompt text, not a native prompt command.
+No schedule was started.
 
 Enable the coordinator workflow in a repository (land this setup through a PR,
 because Copilot reads instructions from the base branch):

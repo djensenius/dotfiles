@@ -1,21 +1,31 @@
 # Agent instructions
 
-## Coordinator rules (the Pi session in the root pane)
-- You are the coordinator. Plan and delegate; do not edit source files yourself.
+## Coordinator rules (primary Copilot session, or Pi root pane)
+- These rules apply to the primary coordinator, not delegated agents. Workers
+  implement only their brief; scouts/planners/reviewers stay in their roles and
+  do not recursively delegate or own PR delivery. The coordinator plans and
+  delegates; it does not edit source files itself.
 - Break work into small, independent tasks with clear acceptance criteria, and
   track them in Backlog.md (see "Backlog.md task workflow" below).
-- Use a `scout` subagent to investigate before assigning implementation. When a
-  worker gets stuck, look at the failure yourself (test logs, result bundles,
+- Use scout/explore/research to investigate before assigning implementation;
+  use planner/rubber-duck for uncertain plans and fleet only for safe independent
+  work, not every tool for trivial tasks. When a worker gets stuck, look at the
+  failure yourself (test logs, result bundles,
   screenshots) and hand the next worker concrete root causes, not "try again".
 - Use `worker` subagents for implementation. Before each worker, create a
   persistent branch and worktree named after the task
-  (`git worktree add ../sample-repo-task-12 -b task-12-short-slug`) and launch the
-  worker with `cwd` set to that worktree. Create the worktree in a separate step
-  that finishes before the launch; a workflow started in the same step can fail
-  with "cwd does not exist". Do not use managed `worktree: true` runs here: they
+  (fetch `origin/main`, then
+  `git worktree add ../sample-repo-task-12 -b task-12-short-slug origin/main`).
+  Give the worker the absolute worktree path and require shell commands to
+  start with `cd` there. Pi supports `cwd`; Copilot's task tool does not.
+  Copilot `/new worktree` or `/fork worktree` sessions are also available.
+  Create the worktree in a separate step that finishes before the launch; a
+  workflow started in the same step can fail with "cwd does not exist".
+  Do not use Pi's managed `worktree: true` runs here: they
   return a patch and delete their branch, which breaks branch review.
-- Run workers one at a time unless the owner allows parallel lanes. Parallel
-  lanes need separate worktrees and disjoint files. Generated project files
+- Use proportional parallelism, at most about five safe independent agents
+  within the authorized objective; serialize when files/dependencies overlap.
+  Parallel lanes need separate worktrees and disjoint files. Generated project files
   (e.g. XcodeGen output) are regenerated, never hand-merged.
 - Keep worker scope small. If a worker runs out of time or reports partial
   work, split the rest into smaller sequential workers instead of re-sending the
@@ -23,8 +33,9 @@
 - Each worker commits in logical steps (never amends) and reports the branch,
   full 40-character commit SHA, files, and the checks it ran with their actual
   output lines (per-test pass/fail for test suites), not just "passed".
-- After each worker finishes, start a `reviewer` on that branch/commit with the
-  task spec. Require it to fetch every `review_git` output page. Push the branch
+- After each worker finishes, start a reviewer/code-review on that branch/commit
+  with the task spec. Copilot reviewers use read-only shell inspection; Pi
+  reviewers must fetch every `review_git` output page. Push the branch
   and open a PR only on APPROVE or APPROVE WITH NOTES. Save each review where
   the next worker can read it, and send blocking items back in a fix round.
 - Never weaken a check to make it pass: no audit/test exclusions, no hiding
@@ -32,6 +43,18 @@
   cause. Fix the cause or stop and ask the owner.
 - Product or scope decisions belong to the owner. Ask, record the answer in the
   task, and keep a decision visible in docs when it changes behaviour.
+- Routine execution, feedback fixes and gated normal merges are autonomous
+  within the authorized repositories/objective. Never bypass permissions,
+  reset/rebase/force-push, discard dirty work or silently broaden scope.
+- Scheduling is opt-in only. Copilot personal defaults live in
+  `$COPILOT_HOME/instructions/dotfiles-coordinator.instructions.md`
+  (`COPILOT_HOME` defaults to `~/.copilot`). Explicitly read
+  `$COPILOT_HOME/prompts/coordinator-tick.md` in an authorized experimental
+  `/every [interval] [prompt]`; this is ordinary text, not native prompt discovery.
+  The tick tracks returned IDs/consumed completions once, dependency-ready work,
+  >=15 GiB disk target, no new heavy jobs below 5 GiB, serialized builds and
+  only owned inactive cleanup. Inspect only configured objective locks; stop
+  the known schedule when done or genuinely blocked. Never start one implicitly.
 - After the PR merges, update the main checkout and run the checks before
   starting any dependent worker. Gate dependent work on the checks' exit codes,
   not on reading the output afterwards. A test that fails once and passes on
@@ -44,17 +67,26 @@ Nothing reaches `main` directly. Every source change goes through a pull
 request:
 1. Work on the task branch (`task-12-short-slug`); task status changes ride in
    the same branch.
-2. Push the branch and open a PR titled `task-12: Short title` that names the
-   Backlog task and lists the checks run.
-3. Automatic Copilot code review and CI must run before merge. Address findings,
-   push fixes, reply on each comment, and request a new Copilot review.
-4. Review-loop stopping rule: fix high-severity findings and re-request review.
-   Medium/low or not-applicable findings are fixed or answered with reasoning
-   and resolved. Findings about code the PR didn't change become To Do follow-up
-   Backlog tasks. Merge when the latest Copilot review has no unresolved
-   high-severity findings and CI is green.
-5. Either the owner or the coordinator merges. Afterwards, update the main
-   checkout, re-run the checks, and remove the task worktree.
+2. The coordinator pushes the branch and opens a PR titled
+   `task-12: Short title` that names the Backlog task and lists the checks run.
+3. After EVERY push, the coordinator requests/re-requests Copilot review using
+   GraphQL `requestReviewsByLogin` with the PR node ID and
+   `botLogins: ["copilot-pull-request-reviewer"]`, never a stale hardcoded bot ID.
+   Inspect every review/comment/thread page; fix findings or respond with
+   concrete reasoning and resolve all feedback. Push fixes and repeat local
+   checks/review and current-head Copilot review until satisfied. Findings about
+   unchanged code become To Do follow-up Backlog tasks, not silent scope changes.
+4. Immediately before merge, freshly verify the full PR head SHA, a completed
+   Copilot review recorded on that exact commit, satisfactory addressed feedback,
+   no unresolved threads/outstanding change requests and all relevant
+   required/expected checks successful on that exact head. Pending, missing,
+   skipped, neutral, cancelled or failed checks are not green. A head change
+   invalidates all gates. Missing evidence/permission blocks merge.
+5. The coordinator normally merges autonomously with
+   `gh pr merge --merge --match-head-commit <full-head-SHA>` (or the owner merges).
+   No admin bypass or history rewriting. Update main by normal fast-forward/
+   merge without discarding local changes, re-run checks successfully, then
+   remove only owned clean inactive merged task worktrees.
 
 ## Backlog.md task workflow (all agents)
 Backlog.md (`.backlog/`) is the single source of truth for work. Initialize it
@@ -80,8 +112,9 @@ except through triaged issues labelled `inbox`.
   for milestones, and `-a` when the owner is known. No implementation plan at
   creation time.
 - Start a task from its own branch. In that branch's worktree, run
-  `backlog task edit task-12 -s "In Progress" -a @pi-worker`, then research the
-  code and record a short plan with `--plan` before writing code.
+  `backlog task edit task-12 -s "In Progress" -a @copilot-worker` (or `@pi-worker`
+  for Pi), then research the code and record a short plan with `--plan` before
+  writing code.
 - Put the task ID in the branch name and PR title (`task-12-short-slug`,
   `task-12: Short title`). Nested IDs keep every segment (`task-1.2.7-slug`).
 - Task changes are auto-committed on the branch you run the CLI on. Once a task
@@ -118,6 +151,8 @@ tracking repo.
   it serializes builds across all agents and cleans up simulators.
 - Prefer one simulator destination per run; do not boot extra simulators.
 - If a build is waiting on the lock, wait. Do not kill other builds.
+- On shared hosts, use `XBUILD_KEEP_SIMS=1`: the shipped wrapper otherwise
+  shuts down all simulators, not just owned ones. Leave others' resources alone.
 - While iterating, run only the affected tests (`-only-testing`); run the full
   suites once on the final commit and report their per-test results.
 
