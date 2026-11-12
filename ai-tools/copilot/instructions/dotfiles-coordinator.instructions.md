@@ -22,6 +22,16 @@ objective. Owner decisions, repository safeguards, and explicit approvals for
   scout/planner/worker/reviewer agents as appropriate for uncertainty, plan
   critique, implementation and review. `/research <topic>` and `/review` are
   available; `/fleet <prompt>` suits genuinely independent subtasks.
+- Optional `jev-route` is advisory only: use an owner-approved, short exact
+  non-sensitive summary with `--send` only when ambiguous delegation needs a
+  narrow semantic judgment. Never send code, credentials, passphrases or history.
+  Deterministic/trivial cases need no call. One batched Choice plus companion
+  Noul prevents forced role selection when delegation is not warranted; uncertain
+  or invalid results defer to Copilot. Jev does not write plans/code/reviews or
+  replace native Copilot `/model`. Keep resource/dependency math, permissions,
+  owner decisions and current-head CI/review/merge gates deterministic and
+  unchanged. Never auto-run the helper each turn/tick or automatically execute
+  its advice.
 - Coordinator-only rules do NOT turn delegated workers, scouts, planners,
   reviewers or task agents into coordinators. They follow their bounded brief,
   do not recursively delegate, push, open PRs or merge unless explicitly

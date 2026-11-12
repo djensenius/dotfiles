@@ -760,6 +760,14 @@ JSON
   assert_no_backlog_tracking "$second_output" "$root/mise.log"
   assert_contains "ruleset requiring CI before merge" "$first_output"
 
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route.mjs" "$root/local-bin/jev-route"
+  assert_contains "linked jev-route" "$first_output"
+  assert_contains "jev-route is linked" "$second_output"
+  assert_not_exists "$root/local-bin/jev-route.backup"
+  [ "$(env -i PATH="$PATH" "$root/local-bin/jev-route" \
+    --summary 'Review an existing synthetic change')" = '{"agent":null,"reason":"dry_run"}' ] ||
+    fail "$name installed jev-route did not execute a real offline dry run"
+
   if [ "$system_name" = "Darwin" ]; then
     cmp -s "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild" ||
       fail "$name did not install xbuild"
@@ -1182,6 +1190,9 @@ run_symlink_preserves_local_files() {
   printf 'local status extension\n' > "$root/pi-agent/extensions/subagent-status.ts"
   printf 'local reviewer profile\n' > "$root/pi-agent/agents/reviewer.md"
   printf 'local footer config\n' > "$root/pi-agent/catppuccin-footer.json"
+  mkdir -p "$root/local-bin"
+  printf 'local routing helper\n' > "$root/local-bin/jev-route"
+  printf 'existing routing backup\n' > "$root/local-bin/jev-route.backup"
   cat > "$root/pi-agent/settings.json" <<'JSON'
 {
   "localOnly": true
@@ -1244,6 +1255,16 @@ JSON
   assert_contains "moved existing reviewer.md aside -> $root/pi-agent/agents/reviewer.md.backup" "$output"
   assert_contains "moved existing catppuccin-footer.json aside -> $root/pi-agent/catppuccin-footer.json.backup" "$output"
   assert_no_runtime_markers "$name" "$root"
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route.mjs" "$root/local-bin/jev-route"
+  assert_contains "local routing helper" "$root/local-bin/jev-route.backup.1"
+  assert_contains "existing routing backup" "$root/local-bin/jev-route.backup"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name routing helper rerun failed"
+  fi
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route.mjs" "$root/local-bin/jev-route"
+  assert_not_exists "$root/local-bin/jev-route.backup.2"
+  assert_contains "jev-route is linked" "$output"
 }
 
 run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"

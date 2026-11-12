@@ -12,6 +12,16 @@
   work, not every tool for trivial tasks. When a worker gets stuck, look at the
   failure yourself (test logs, result bundles,
   screenshots) and hand the next worker concrete root causes, not "try again".
+- Optional `jev-route` is advisory only: use an owner-approved, short exact
+  non-sensitive summary with `--send` only when ambiguous delegation needs a
+  narrow semantic judgment. Never send code, credentials, passphrases or history.
+  Deterministic/trivial cases need no call. One batched Choice plus companion
+  Noul prevents forced role selection when delegation is not warranted; uncertain
+  or invalid results defer to Copilot. Jev does not write plans/code/reviews or
+  replace native Copilot `/model`. Keep resource/dependency math, permissions,
+  owner decisions and current-head CI/review/merge gates deterministic and
+  unchanged. Never auto-run the helper each turn/tick or automatically execute
+  its advice.
 - Use `worker` subagents for implementation. Before each worker, create a
   persistent branch and worktree named after the issue
   (fetch `origin/main`, then
