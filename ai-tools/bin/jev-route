@@ -1,0 +1,48 @@
+#!/bin/bash
+set -euo pipefail
+
+# Resolve the source-owned launcher, including relative installation symlinks.
+source_path="${BASH_SOURCE[0]}"
+while [ -L "$source_path" ]; do
+  source_dir="$(cd -P "$(dirname "$source_path")" && pwd)"
+  source_path="$(readlink "$source_path")"
+  case "$source_path" in
+    /*) ;;
+    *) source_path="$source_dir/$source_path" ;;
+  esac
+done
+DIR="$(cd -P "$(dirname "$source_path")" && pwd)"
+REPO_ROOT="$(cd "$DIR/../.." && pwd)"
+
+# Like the installer, use mise -C for this checkout's managed Node, never
+# caller-PATH Node. Standard bootstrap locations support unactivated shells.
+MISE_BIN="$(command -v mise || true)"
+if [ -z "$MISE_BIN" ]; then
+  for candidate in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+    if [ -x "$candidate" ]; then
+      MISE_BIN="$candidate"
+      break
+    fi
+  done
+fi
+if [ -z "$MISE_BIN" ]; then
+  printf '{"agent":null,"reason":"runtime_unavailable"}\n'
+  exit 1
+fi
+
+# Resolve only already-installed Node, offline. Unlike `mise exec`, `which`
+# does not prepare the whole checkout's tools; --tool prevents PATH fallback.
+# These settings apply only to resolution, not to an explicitly approved send.
+if ! NODE_BIN="$(MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false MISE_OFFLINE=true \
+  "$MISE_BIN" -C "$REPO_ROOT" which --tool node node 2>/dev/null)" ||
+  [ ! -x "$NODE_BIN" ]; then
+  printf '{"agent":null,"reason":"runtime_unavailable"}\n'
+  exit 1
+fi
+case "$NODE_BIN" in
+  /*) ;;
+  *) printf '{"agent":null,"reason":"runtime_unavailable"}\n'; exit 1 ;;
+esac
+
+# Direct exec preserves args/stdin/signals without mise preparing dependencies.
+exec "$NODE_BIN" "$DIR/jev-route.mjs" "$@"

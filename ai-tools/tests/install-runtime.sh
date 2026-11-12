@@ -140,6 +140,19 @@ case "$action" in
     printf 'reshim\n' >> "$RUNTIME_TEST_LOG"
     ;;
   which)
+    if [ "$*" = "--tool node node" ]; then
+      [ "${MISE_AUTO_INSTALL:-}" = "false" ] &&
+        [ "${MISE_EXEC_AUTO_INSTALL:-}" = "false" ] &&
+        [ "${MISE_OFFLINE:-}" = "true" ] ||
+        fail "Node resolution must disable auto-install and network access"
+      if [ "${RUNTIME_TEST_MANAGED_NODE_MISSING:-0}" = "1" ]; then
+        printf 'which:node:missing\n' >> "$RUNTIME_TEST_LOG"
+        exit 1
+      fi
+      printf 'which:node:installed\n' >> "$RUNTIME_TEST_LOG"
+      printf '%s\n' "$RUNTIME_TEST_REAL_NODE"
+      exit 0
+    fi
     [ "$#" -eq 1 ] && [ "$1" = "qmd" ] ||
       fail "unexpected which arguments: $*"
     [ -f "$RUNTIME_TEST_STATE/qmd-installed" ] ||
@@ -514,6 +527,23 @@ assert_no_runtime_markers() {
   done
 }
 
+run_installed_jev() {
+  local root="$1" caller_path="$2"
+  shift 2
+  local real_node
+  real_node="$(command -v node)"
+  (
+    cd "$root/outside"
+    env -i HOME="$root/home" PATH="$caller_path" \
+      RUNTIME_TEST_REPO_ROOT="$REPO_ROOT" \
+      RUNTIME_TEST_REAL_NODE="$real_node" \
+      RUNTIME_TEST_LOG="$root/mise.log" \
+      RUNTIME_TEST_MARKERS="$root/markers" \
+      RUNTIME_TEST_MANAGED_NODE_MISSING="${RUNTIME_TEST_MANAGED_NODE_MISSING:-0}" \
+      "$root/local-bin/jev-route" "$@"
+  )
+}
+
 assert_no_agent_stack_mutations() {
   local name="$1" root="$2" package_source
 
@@ -601,7 +631,7 @@ run_success_scenario() {
   local log="$root/mise.log"
   local first_output="$root/first.out"
   local second_output="$root/second.out"
-  local package_source
+  local package_source missing_output
 
   setup_fixture "$root" "$system_runtimes" "$with_lockf"
   mkdir -p \
@@ -759,6 +789,34 @@ JSON
   assert_no_backlog_tracking "$first_output" "$root/mise.log"
   assert_no_backlog_tracking "$second_output" "$root/mise.log"
   assert_contains "ruleset requiring CI before merge" "$first_output"
+
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route" "$root/local-bin/jev-route"
+  assert_contains "linked jev-route" "$first_output"
+  assert_contains "jev-route is linked" "$second_output"
+  assert_not_exists "$root/local-bin/jev-route.backup"
+  mkdir -p "$root/outside" "$root/old-bin" "$root/home/.local/bin"
+  ln -s "$root/system-bin/mise" "$root/home/.local/bin/mise"
+  cp "$root/home/.local/share/mise/shims/node" "$root/old-bin/node"
+  [ "$(run_installed_jev "$root" "$root/common-bin" \
+    --summary 'Review an existing synthetic change')" = '{"agent":null,"reason":"dry_run"}' ] ||
+    fail "$name outside-checkout dry run failed without caller Node or mise on PATH"
+  [ "$(run_installed_jev "$root" "$root/old-bin:$root/system-bin:$root/common-bin" \
+    --dry-run --summary 'Review an existing synthetic change')" = '{"agent":null,"reason":"dry_run"}' ] ||
+    fail "$name outside-checkout dry run selected old caller Node"
+  [ "$(printf 'Synthetic review task' | run_installed_jev "$root" "$root/common-bin" \
+    --dry-run)" = '{"agent":null,"reason":"dry_run"}' ] ||
+    fail "$name launcher did not preserve stdin"
+  assert_count 3 "which:node:installed" "$log"
+  if missing_output="$(RUNTIME_TEST_MANAGED_NODE_MISSING=1 run_installed_jev \
+    "$root" "$root/old-bin:$root/system-bin:$root/common-bin" \
+    --dry-run --summary 'Review an existing synthetic change')"; then
+    fail "$name launcher accepted missing managed Node"
+  fi
+  [ "$missing_output" = '{"agent":null,"reason":"runtime_unavailable"}' ] ||
+    fail "$name launcher did not fail closed for missing managed Node"
+  assert_count 1 "which:node:missing" "$log"
+  assert_no_runtime_markers "$name" "$root"
+  printf '%s installed-jev offline Node-only outside-checkout/no-node/old-node/stdin/missing-runtime passed\n' "$name"
 
   if [ "$system_name" = "Darwin" ]; then
     cmp -s "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild" ||
@@ -1182,6 +1240,9 @@ run_symlink_preserves_local_files() {
   printf 'local status extension\n' > "$root/pi-agent/extensions/subagent-status.ts"
   printf 'local reviewer profile\n' > "$root/pi-agent/agents/reviewer.md"
   printf 'local footer config\n' > "$root/pi-agent/catppuccin-footer.json"
+  mkdir -p "$root/local-bin"
+  printf 'local routing helper\n' > "$root/local-bin/jev-route"
+  printf 'existing routing backup\n' > "$root/local-bin/jev-route.backup"
   cat > "$root/pi-agent/settings.json" <<'JSON'
 {
   "localOnly": true
@@ -1244,6 +1305,16 @@ JSON
   assert_contains "moved existing reviewer.md aside -> $root/pi-agent/agents/reviewer.md.backup" "$output"
   assert_contains "moved existing catppuccin-footer.json aside -> $root/pi-agent/catppuccin-footer.json.backup" "$output"
   assert_no_runtime_markers "$name" "$root"
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route" "$root/local-bin/jev-route"
+  assert_contains "local routing helper" "$root/local-bin/jev-route.backup.1"
+  assert_contains "existing routing backup" "$root/local-bin/jev-route.backup"
+  if ! run_installer "$root" "Linux" 0 >"$output" 2>&1; then
+    cat "$output" >&2
+    fail "$name routing helper rerun failed"
+  fi
+  assert_symlink_to "$REPO_ROOT/ai-tools/bin/jev-route" "$root/local-bin/jev-route"
+  assert_not_exists "$root/local-bin/jev-route.backup.2"
+  assert_contains "jev-route is linked" "$output"
 }
 
 run_success_scenario "qualifying-system-runtimes" "yes" "Linux" "no"

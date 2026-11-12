@@ -692,6 +692,55 @@ head, and `gh pr merge --merge --match-head-commit <full-head-SHA>`.
 Missing/pending/skipped checks or stale reviews block merge; permissions are
 never bypassed. No Copilot models or budgets are pinned.
 
+#### Optional Jev delegation advice
+
+The installer links the source-owned [`jev-route` launcher](ai-tools/bin/jev-route) into
+`${BIN_DIR:-$HOME/.local/bin}` on supported platforms. It runs the
+[Node 20+ helper](ai-tools/bin/jev-route.mjs) with this checkout's mise-managed
+runtime, not caller-PATH Node, even outside the checkout. Mise must be on PATH or
+in a standard bootstrap location (`~/.local/bin`, `/opt/homebrew/bin`, or
+`/usr/local/bin`); the launcher does not install or trust tools.
+It resolves only already-installed Node offline, with mise auto-install disabled,
+then directly executes that binary. Missing managed Node fails closed with
+`runtime_unavailable`; unrelated configured tools are not prepared or installed.
+It has no package dependencies and never executes agents. Use only when ambiguous
+delegation warrants a narrow semantic judgment, not for trivial/deterministic
+cases or cheap writing/planning/chat. Copilot remains the full LLM;
+[Jev is not a native Copilot `/model` replacement](https://docs.typesafe.ai/introduction/coding-agents.md).
+
+Default invocation (or `--dry-run`) makes no network request:
+
+```sh
+jev-route --summary 'Review an existing synthetic change'
+```
+
+`--send` explicitly declares this exact short summary owner-approved and
+non-sensitive. Never send code, credentials, passphrases, issues, transcripts or
+session history; nothing is automatically ingested. Supply `TYPESAFE_API_KEY`
+out-of-band through an approved environment, for example with separately approved
+1Password access (the installer does not install `op` or retrieve secrets):
+
+```sh
+op run --environment <approved-id> -- jev-route --send --summary 'Review an existing synthetic change'
+```
+
+Stdin is supported when `--summary` is omitted. Explicit `--summary` is
+authoritative and ignores stdin without waiting for EOF. Missing/blank
+keys or unresolved `op://` references defer without a request. The helper sends
+one batched [Choice and companion Noul](https://docs.typesafe.ai/patterns/companion-noul.md)
+to pinned `jev-1.14.0`: suggest scout/planner/worker/reviewer only when both chosen
+option probability and delegation applicability are at least 0.9. These initial
+advisory thresholds are **unvalidated policy**, not guaranteed accuracy;
+[Choice confidence](https://docs.typesafe.ai/confidence.md) is not independent
+corroboration. JSON advice includes validated probabilities and token usage for
+future calibration, with no payload log/cache. Invalid, uncertain, error or
+deadline results defer to Copilot; never auto-run every turn/tick. Input is limited
+to 16 KiB UTF-8, response to 64 KiB, and fetch plus body to 10 seconds, with no
+redirects or retries. Resource/dependency math, permissions, owner authorization,
+and exact-current-head CI/review/merge gates remain deterministic and unchanged.
+Offline tests prove the contract and fallback, not model quality or savings;
+no local live API measurement has been made.
+
 The [coordinator tick](ai-tools/copilot/prompts/coordinator-tick.md) is reusable
 **opt-in text**, not native prompt discovery or a custom slash command. First
 explicitly authorize the repositories/objective and record its task dependencies,
