@@ -140,6 +140,19 @@ case "$action" in
     printf 'reshim\n' >> "$RUNTIME_TEST_LOG"
     ;;
   which)
+    if [ "$*" = "--tool node node" ]; then
+      [ "${MISE_AUTO_INSTALL:-}" = "false" ] &&
+        [ "${MISE_EXEC_AUTO_INSTALL:-}" = "false" ] &&
+        [ "${MISE_OFFLINE:-}" = "true" ] ||
+        fail "Node resolution must disable auto-install and network access"
+      if [ "${RUNTIME_TEST_MANAGED_NODE_MISSING:-0}" = "1" ]; then
+        printf 'which:node:missing\n' >> "$RUNTIME_TEST_LOG"
+        exit 1
+      fi
+      printf 'which:node:installed\n' >> "$RUNTIME_TEST_LOG"
+      printf '%s\n' "$RUNTIME_TEST_REAL_NODE"
+      exit 0
+    fi
     [ "$#" -eq 1 ] && [ "$1" = "qmd" ] ||
       fail "unexpected which arguments: $*"
     [ -f "$RUNTIME_TEST_STATE/qmd-installed" ] ||
@@ -186,12 +199,6 @@ case "$action" in
             [ "$#" -eq 3 ] || fail "unexpected MCP adapter migration arguments: $*"
             printf 'exec:node migrate-mcp-adapter:%s\n' "$(basename "$2")" >> "$RUNTIME_TEST_LOG"
             "$RUNTIME_TEST_REAL_NODE" "$@"
-            ;;
-          "$RUNTIME_TEST_REPO_ROOT/ai-tools/bin/jev-route.mjs")
-            # Real helper execution through the fixture's configured managed
-            # Node, which is deliberately absent from caller PATH.
-            printf 'exec:node jev-route\n' >> "$RUNTIME_TEST_LOG"
-            exec "$RUNTIME_TEST_REAL_NODE" "$@"
             ;;
           *)
             fail "unexpected node arguments: $*"
@@ -532,6 +539,7 @@ run_installed_jev() {
       RUNTIME_TEST_REAL_NODE="$real_node" \
       RUNTIME_TEST_LOG="$root/mise.log" \
       RUNTIME_TEST_MARKERS="$root/markers" \
+      RUNTIME_TEST_MANAGED_NODE_MISSING="${RUNTIME_TEST_MANAGED_NODE_MISSING:-0}" \
       "$root/local-bin/jev-route" "$@"
   )
 }
@@ -623,7 +631,7 @@ run_success_scenario() {
   local log="$root/mise.log"
   local first_output="$root/first.out"
   local second_output="$root/second.out"
-  local package_source
+  local package_source missing_output
 
   setup_fixture "$root" "$system_runtimes" "$with_lockf"
   mkdir -p \
@@ -798,9 +806,17 @@ JSON
   [ "$(printf 'Synthetic review task' | run_installed_jev "$root" "$root/common-bin" \
     --dry-run)" = '{"agent":null,"reason":"dry_run"}' ] ||
     fail "$name launcher did not preserve stdin"
-  assert_count 3 "exec:node jev-route" "$log"
+  assert_count 3 "which:node:installed" "$log"
+  if missing_output="$(RUNTIME_TEST_MANAGED_NODE_MISSING=1 run_installed_jev \
+    "$root" "$root/old-bin:$root/system-bin:$root/common-bin" \
+    --dry-run --summary 'Review an existing synthetic change')"; then
+    fail "$name launcher accepted missing managed Node"
+  fi
+  [ "$missing_output" = '{"agent":null,"reason":"runtime_unavailable"}' ] ||
+    fail "$name launcher did not fail closed for missing managed Node"
+  assert_count 1 "which:node:missing" "$log"
   assert_no_runtime_markers "$name" "$root"
-  printf '%s installed-jev managed-runtime outside-checkout/no-node/old-node/stdin passed\n' "$name"
+  printf '%s installed-jev offline Node-only outside-checkout/no-node/old-node/stdin/missing-runtime passed\n' "$name"
 
   if [ "$system_name" = "Darwin" ]; then
     cmp -s "$REPO_ROOT/ai-tools/bin/xbuild" "$root/local-bin/xbuild" ||

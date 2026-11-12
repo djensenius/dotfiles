@@ -700,6 +700,9 @@ The installer links the source-owned [`jev-route` launcher](ai-tools/bin/jev-rou
 runtime, not caller-PATH Node, even outside the checkout. Mise must be on PATH or
 in a standard bootstrap location (`~/.local/bin`, `/opt/homebrew/bin`, or
 `/usr/local/bin`); the launcher does not install or trust tools.
+It resolves only already-installed Node offline, with mise auto-install disabled,
+then directly executes that binary. Missing managed Node fails closed with
+`runtime_unavailable`; unrelated configured tools are not prepared or installed.
 It has no package dependencies and never executes agents. Use only when ambiguous
 delegation warrants a narrow semantic judgment, not for trivial/deterministic
 cases or cheap writing/planning/chat. Copilot remains the full LLM;

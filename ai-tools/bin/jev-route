@@ -30,5 +30,19 @@ if [ -z "$MISE_BIN" ]; then
   exit 1
 fi
 
-# exec preserves arguments, stdin and signal delivery; no installation/trust.
-exec "$MISE_BIN" -C "$REPO_ROOT" exec -- node "$DIR/jev-route.mjs" "$@"
+# Resolve only already-installed Node, offline. Unlike `mise exec`, `which`
+# does not prepare the whole checkout's tools; --tool prevents PATH fallback.
+# These settings apply only to resolution, not to an explicitly approved send.
+if ! NODE_BIN="$(MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false MISE_OFFLINE=true \
+  "$MISE_BIN" -C "$REPO_ROOT" which --tool node node 2>/dev/null)" ||
+  [ ! -x "$NODE_BIN" ]; then
+  printf '{"agent":null,"reason":"runtime_unavailable"}\n'
+  exit 1
+fi
+case "$NODE_BIN" in
+  /*) ;;
+  *) printf '{"agent":null,"reason":"runtime_unavailable"}\n'; exit 1 ;;
+esac
+
+# Direct exec preserves args/stdin/signals without mise preparing dependencies.
+exec "$NODE_BIN" "$DIR/jev-route.mjs" "$@"
