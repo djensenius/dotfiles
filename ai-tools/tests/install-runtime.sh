@@ -471,7 +471,8 @@ setup_fixture() {
 run_installer() {
   local root="$1" system_name="$2" pi_list_failure="$3" pi_list_source="${4:-}"
   local pi_agent_dir="${RUNTIME_TEST_PI_AGENT_DIR:-$root/pi-agent}"
-  local copilot_home="${RUNTIME_TEST_COPILOT_HOME:-$root/copilot-home}"
+  # An explicit empty override exercises the installer's default personal home.
+  local copilot_home="${RUNTIME_TEST_COPILOT_HOME-$root/copilot-home}"
   local managed_package_sources real_node
 
   managed_package_sources="$(printf '%s\n' "${MANAGED_PACKAGE_SOURCES[@]}")"
@@ -714,12 +715,25 @@ JSON
   [ -d "$root/copilot-home" ] ||
     fail "$name did not honor COPILOT_HOME"
   assert_symlink_to "$REPO_ROOT/ai-tools/copilot/agents" "$root/copilot-home/agents"
+  assert_symlink_to \
+    "$REPO_ROOT/ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md" \
+    "$root/copilot-home/instructions/dotfiles-coordinator.instructions.md"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/prompts/coordinator-tick.md" \
+    "$root/copilot-home/prompts/coordinator-tick.md"
+  assert_not_exists "$root/home/.copilot"
+  assert_not_exists "$root/home/.config/copilot"
   for agent in docs-sync planner reviewer scout shell-linter worker; do
     [ -f "$root/copilot-home/agents/$agent.agent.md" ] ||
       fail "$name did not expose the $agent Copilot agent under COPILOT_HOME"
   done
   assert_contains "linked Copilot agents directory" "$first_output"
   assert_contains "Copilot agents directory is linked" "$second_output"
+  assert_contains "dotfiles-coordinator.instructions.md is linked" "$second_output"
+  assert_contains "coordinator-tick.md is linked" "$second_output"
+  assert_contains "copilot instruction list --json" "$first_output"
+  assert_contains "/every 10m Read $root/copilot-home/prompts/coordinator-tick.md" "$first_output"
+  assert_contains "Existing copilot-instructions.md and unrelated personal instructions are preserved." "$first_output"
+  assert_contains "No schedule was started." "$first_output"
   assert_contains "linked reviewer-git.ts" "$first_output"
   assert_contains "reviewer-git.ts is linked" "$second_output"
   assert_contains "linked subagent-status.ts" "$first_output"
@@ -1317,6 +1331,130 @@ run_copilot_agents_directory_migration() {
   assert_not_exists "$agents_dst.backup.1"
 }
 
+run_copilot_defaults_preservation() {
+  local name="copilot-defaults-preservation"
+  local root="$tmp/$name" output
+  local home="$root/copilot-home"
+  local instruction="$home/instructions/dotfiles-coordinator.instructions.md"
+  local prompt="$home/prompts/coordinator-tick.md"
+
+  setup_fixture "$root" "no" "no"
+  mkdir -p "$home/instructions" "$home/prompts"
+  printf 'personal top-level\n' > "$home/copilot-instructions.md"
+  printf 'unrelated instruction\n' > "$home/instructions/mine.instructions.md"
+  printf 'linked personal instruction\n' > "$root/personal.instructions.md"
+  ln -s "$root/personal.instructions.md" "$home/instructions/personal.instructions.md"
+  printf 'unrelated prompt\n' > "$home/prompts/mine.md"
+  printf 'prior instruction backup\n' > "$instruction.backup"
+  printf 'local instruction\n' > "$instruction"
+  printf 'local prompt\n' > "$root/local-prompt.md"
+  ln -s "$root/local-prompt.md" "$prompt"
+
+  output="$(run_installer "$root" "Linux" 0 2>&1)" ||
+    fail "$name installer run failed"
+  assert_symlink_to \
+    "$REPO_ROOT/ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md" \
+    "$instruction"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/prompts/coordinator-tick.md" "$prompt"
+  assert_contains "local instruction" "$instruction.backup.1"
+  assert_contains "prior instruction backup" "$instruction.backup"
+  assert_symlink_to "$root/local-prompt.md" "$prompt.backup"
+  assert_contains "local prompt" "$root/local-prompt.md"
+  case "$output" in
+    *"moved existing dotfiles-coordinator.instructions.md aside -> $instruction.backup.1"*) ;;
+    *) fail "$name did not report numbered instruction backup" ;;
+  esac
+
+  output="$(run_installer "$root" "Linux" 0)" ||
+    fail "$name repeat installer run failed"
+  assert_symlink_to \
+    "$REPO_ROOT/ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md" \
+    "$instruction"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/prompts/coordinator-tick.md" "$prompt"
+  assert_not_exists "$instruction.backup.2"
+  assert_not_exists "$prompt.backup.1"
+  [ ! -L "$home/copilot-instructions.md" ] ||
+    fail "$name replaced top-level personal instructions"
+  assert_count 1 "personal top-level" "$home/copilot-instructions.md"
+  assert_count 1 "unrelated instruction" "$home/instructions/mine.instructions.md"
+  assert_count 1 "unrelated prompt" "$home/prompts/mine.md"
+  assert_symlink_to "$root/personal.instructions.md" \
+    "$home/instructions/personal.instructions.md"
+  assert_count 1 "linked personal instruction" "$root/personal.instructions.md"
+  assert_not_exists "$root/home/.copilot"
+  printf '%s passed\n' "$name"
+}
+
+run_copilot_default_home() {
+  local name="copilot-default-home"
+  local root="$tmp/$name" output
+  local home="$root/home/.copilot"
+
+  setup_fixture "$root" "no" "no"
+  output="$(RUNTIME_TEST_COPILOT_HOME="" run_installer "$root" "Linux" 0)" ||
+    fail "$name installer run failed"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/agents" "$home/agents"
+  assert_symlink_to \
+    "$REPO_ROOT/ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md" \
+    "$home/instructions/dotfiles-coordinator.instructions.md"
+  assert_symlink_to "$REPO_ROOT/ai-tools/copilot/prompts/coordinator-tick.md" \
+    "$home/prompts/coordinator-tick.md"
+  assert_not_exists "$root/copilot-home"
+  assert_not_exists "$root/home/.config/copilot"
+  # Source only the additive function with COPILOT_HOME genuinely unset. This
+  # also verifies its usable isolated activation path without Pi installation.
+  output="$(env -i HOME="$root/home" PATH="$PATH" \
+    /bin/bash -c "source \"\$1\"; install_copilot_defaults" bash "$INSTALLER")" ||
+    fail "$name unset COPILOT_HOME activation failed"
+  case "$output" in
+    *"dotfiles-coordinator.instructions.md is linked"*) ;;
+    *) fail "$name unset COPILOT_HOME did not retain the default link" ;;
+  esac
+  assert_not_exists "$home/instructions/dotfiles-coordinator.instructions.md.backup"
+  printf '%s passed\n' "$name"
+}
+
+run_copilot_defaults_linked_parents() {
+  local name="copilot-defaults-linked-parents"
+  local root="$tmp/$name"
+  local home="$root/copilot-home"
+  local assets="$root/repo/ai-tools/copilot"
+  local instruction="instructions/dotfiles-coordinator.instructions.md"
+  local prompt="prompts/coordinator-tick.md"
+  local asset attempt output
+
+  mkdir -p "$root/home" "$home" "$assets/instructions" "$assets/prompts"
+  # Disposable repository sources: never point a destructive regression at
+  # the real checkout's instruction assets.
+  for asset in "$instruction" "$prompt"; do
+    cp "$REPO_ROOT/ai-tools/copilot/$asset" "$assets/$asset"
+  done
+  ln -s "$assets/instructions" "$home/instructions"
+  ln -s "../repo/ai-tools/copilot/prompts" "$home/prompts"
+
+  for attempt in 1 2; do
+    output="$(env -i HOME="$root/home" COPILOT_HOME="$home" PATH="$PATH" \
+      /bin/bash -c "source \"\$1\"; DIR=\"\$2\"; install_copilot_defaults" \
+      bash "$INSTALLER" "$root/repo/ai-tools" 2>&1)" ||
+      fail "$name installation $attempt failed: $output"
+    for asset in "$instruction" "$prompt"; do
+      [ -f "$assets/$asset" ] && [ -r "$assets/$asset" ] && [ ! -L "$assets/$asset" ] ||
+        fail "$name installation $attempt replaced the source with a self-link"
+      cmp -s "$REPO_ROOT/ai-tools/copilot/$asset" "$assets/$asset" ||
+        fail "$name installation $attempt changed source contents"
+      cmp -s "$REPO_ROOT/ai-tools/copilot/$asset" "$home/$asset" ||
+        fail "$name installation $attempt left unreadable personal instructions"
+      assert_not_exists "$assets/$asset.backup"
+      assert_not_exists "$assets/$asset.backup.1"
+      assert_not_exists "$home/$asset.backup"
+      assert_not_exists "$home/$asset.backup.1"
+    done
+    assert_symlink_to "$assets/instructions" "$home/instructions"
+    assert_symlink_to "../repo/ai-tools/copilot/prompts" "$home/prompts"
+  done
+  printf '%s passed\n' "$name"
+}
+
 run_special_agent_dir
 run_success_scenario "filtered-user-package" "no" "Linux" "no" " (filtered)"
 run_migration "legacy-maxedapps-migration" "$LEGACY_SOURCE"
@@ -1325,5 +1463,8 @@ run_memctx_upgrade_migration
 run_mcp_adapter_upgrade_migration
 run_symlink_preserves_local_files
 run_copilot_agents_directory_migration
+run_copilot_defaults_preservation
+run_copilot_default_home
+run_copilot_defaults_linked_parents
 
 printf 'installer mise runtime tests passed\n'

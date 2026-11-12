@@ -623,9 +623,9 @@ when Copilot runs them as subagents:
 `bash -n`, and `shellcheck`. Their prompts forbid changes, but the `execute`
 tool alias grants the full shell, so that restriction is instruction-only. Invoke an agent with
 `/agent <name>`, `copilot --agent <name>`, or by asking Copilot to "use the
-planner agent to …". A sequence such as scout → planner → worker → reviewer is
-driven by asking for each step; this setup adds no chained agent workflow
-because Copilot CLI does not document one.
+planner agent to …". The personal defaults below let the primary session choose
+research → plan → worker → review proportionally without repeating that request.
+This is instruction-driven orchestration, not a new native chained workflow.
 Copilot already ships built-in subagents that need no configuration: `explore`
 (fast read-only codebase questions), `task` (runs tests/builds, terse output),
 `research`, `code-review` (review of staged/branch changes), `rubber-duck`
@@ -634,6 +634,63 @@ ask for one by name to force it. `/fleet <goal>` runs independent subtasks in
 parallel through those subagents and needs no setup. Add more profiles by
 dropping `<name>.agent.md` (frontmatter: `name`, required `description`, `tools`,
 optional `model` and `include-custom-instructions`) into `ai-tools/copilot/agents/`.
+
+#### Persistent Copilot defaults
+
+Run `./ai-tools/install.sh` from the **stable canonical dotfiles checkout**
+after merging changes, never from a temporary task worktree. Personal assets
+are symlinked, not copied:
+
+| Repository source | Personal destination under `${COPILOT_HOME:-$HOME/.copilot}` |
+| --- | --- |
+| `ai-tools/copilot/agents/` | `agents` |
+| `ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md` | `instructions/dotfiles-coordinator.instructions.md` |
+| `ai-tools/copilot/prompts/coordinator-tick.md` | `prompts/coordinator-tick.md` |
+
+Copilot uses `~/.copilot` by default, **not** `~/.config/copilot`; set
+`COPILOT_HOME` consistently for both installation and CLI use to override it.
+The CLI automatically loads both `$COPILOT_HOME/copilot-instructions.md` and
+`$COPILOT_HOME/instructions/*.instructions.md`. This additive named file leaves
+the top-level file and unrelated personal instructions untouched. Conflicting
+named destinations are backed up (`.backup`, then numbered backups); repeat
+installation keeps correct symlinks. Verify actual loaded sources with:
+
+```bash
+copilot instruction list --json
+```
+
+The [personal defaults](ai-tools/copilot/instructions/dotfiles-coordinator.instructions.md)
+cover bounded planning/research, appropriate fleets, persistent worktree sessions
+(`/new worktree` or `/fork worktree`), and coordinator-owned PR delivery. Delegated
+roles do not recursively coordinate or merge. Routine execution is autonomous
+within explicitly authorized repositories/objectives; product/scope decisions
+remain yours. The coordinator reviews locally and requests Copilot review after
+**every push**, addresses/responds to and resolves all feedback, and repeats
+until satisfied. Normal merge requires a completed Copilot review on the exact
+current head, no unresolved feedback, all relevant checks successful on that
+head, and `gh pr merge --merge --match-head-commit <full-head-SHA>`.
+Missing/pending/skipped checks or stale reviews block merge; permissions are
+never bypassed. No Copilot models or budgets are pinned.
+
+The [coordinator tick](ai-tools/copilot/prompts/coordinator-tick.md) is reusable
+**opt-in text**, not native prompt discovery or a custom slash command. First
+explicitly authorize the repositories/objective and record its task dependencies,
+owned roots/optional objective lock paths and an initialized returned-ID registry.
+Enable experimental mode (`copilot --experimental` or `/settings` experimental
+on), then type an ordinary prompt using the actual absolute personal path:
+
+```text
+/every 10m Read <absolute COPILOT_HOME>/prompts/coordinator-tick.md and execute one tick for the authorized repositories and objective recorded in this session.
+```
+
+`/every [interval] [prompt]` reconciles known IDs/completed outputs once per tick,
+launches only dependency-ready work with about five safe independent agents max,
+targets >=15 GiB free disk and pauses new heavy jobs below 5 GiB. It serializes
+heavy builds, inspects only configured objective locks, cleans only owned
+inactive generated artifacts/clean merged worktrees, and stops its known schedule
+when done or genuinely blocked. It never kills others' builds, discards dirty
+work, rewrites history, weakens checks or broadens scope. No schedule is installed
+or started by this setup; `/tasks` can inspect running work.
 
 The stack also keeps a small shared Pi coding-agent config under `ai-tools/` and
 merges it into the user files instead of replacing them or symlinking them, so
@@ -755,10 +812,13 @@ To enable the coordinator workflow in a repository, copy or merge the template:
 cp ~/.dotfiles/ai-tools/templates/AGENTS.md ./AGENTS.md
 ```
 
-The template is deliberately opt-in because it requires a scout before
+The repository template is deliberately opt-in, separate from automatically
+loaded personal defaults. It requires research before
 implementation, worktree workers, reviewer approval before opening a PR, PR-only
 source changes, task tracking in [Backlog.md](https://github.com/MrLesk/Backlog.md),
-and pushed task branches. Set up Backlog.md with:
+and pushed task branches. Its coordinator rules support Copilot and Pi, keep
+delegated roles scoped, and use the same per-push review and exact-head merge
+gates as the personal defaults. Set up Backlog.md with:
 
 ```bash
 brew install backlog-md
@@ -790,6 +850,8 @@ On macOS, `xbuild` is a drop-in `xcodebuild` wrapper that serializes builds
 with the native `lockf` utility. Test runs default to two parallel workers and
 shut down simulators afterward. Set `XBUILD_KEEP_SIMS=1` to keep them running,
 or `XBUILD_DERIVED_DATA_ROOT` to put per-checkout DerivedData elsewhere.
+On shared hosts, use `XBUILD_KEEP_SIMS=1`: cleanup otherwise shuts down **all**
+simulators, not just those owned by the coordinator.
 
 #### Plugin prerequisites
 
