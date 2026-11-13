@@ -1492,14 +1492,16 @@ run_copilot_settings_merge() {
   [ -f "$settings" ] && [ ! -L "$settings" ] ||
     fail "$name did not create regular settings"
   assert_json "$settings" \
-    'Object.keys(value).length === 1 && value.defaultPermissionMode === "allow-all"' \
-    "$name missing settings did not apply only the shared default"
+    'Object.keys(value).length === 3 && value.defaultPermissionMode === "allow-all" && value.model === "auto" && value.fusionTier === "high"' \
+    "$name missing settings did not apply only the shared defaults"
   node -e 'if ((require("fs").statSync(process.argv[1]).mode & 0o777) !== 0o600) process.exit(1)' \
     "$settings" || fail "$name new settings permissions were not 0600"
 
   cat > "$settings" <<'EOF'
 {
   "defaultPermissionMode": "manual",
+  "model": "gpt-5",
+  "fusionTier": "standard",
   "localOnly": true,
   "nested": {"keep": {"enabled": true}},
   "hooks": {"preToolUse": [{"command": "synthetic-local-hook"}]},
@@ -1511,8 +1513,8 @@ EOF
   output="$(umask 077; run_copilot_defaults_fixture "$root" "$REPO_ROOT/ai-tools" "$home" 2>&1)" ||
     fail "$name existing settings activation failed: $output"
   assert_json "$settings" \
-    'value.defaultPermissionMode === "allow-all" && value.localOnly === true && value.nested.keep.enabled === true && value.hooks.preToolUse[0].command === "synthetic-local-hook" && value.permissions.deny[0] === "shell(rm)" && value.permissions.ask[0] === "shell(git push)" && value.integration.herdr.enabled === true' \
-    "$name merge dropped personal values or did not overwrite the mode"
+    'value.defaultPermissionMode === "allow-all" && value.model === "auto" && value.fusionTier === "high" && value.localOnly === true && value.nested.keep.enabled === true && value.hooks.preToolUse[0].command === "synthetic-local-hook" && value.permissions.deny[0] === "shell(rm)" && value.permissions.ask[0] === "shell(git push)" && value.integration.herdr.enabled === true' \
+    "$name merge dropped personal values or did not overwrite the shared defaults"
   node -e 'if ((require("fs").statSync(process.argv[1]).mode & 0o777) !== 0o640) process.exit(1)' \
     "$settings" || fail "$name existing settings permissions changed"
   cp "$settings" "$root/settings-before.json"
@@ -1585,8 +1587,8 @@ run_copilot_settings_full_installer_rejection() {
   [ -f "$root/state/herdr-settings-write" ] ||
     fail "$name Herdr mock did not write settings in the successful control"
   assert_json "$root/copilot-home/settings.json" \
-    'value.mockHerdrIntegration.enabled === true && value.defaultPermissionMode === "allow-all"' \
-    "$name did not preserve the Herdr integration settings"
+    'value.mockHerdrIntegration.enabled === true && value.defaultPermissionMode === "allow-all" && value.model === "auto" && value.fusionTier === "high"' \
+    "$name did not preserve the Herdr integration settings or apply the shared defaults"
   printf '%s writer-control passed\n' "$name"
 
   for kind in malformed array null string number symlink dangling directory; do
